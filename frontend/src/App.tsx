@@ -49,32 +49,33 @@ const App: React.FC = () => {
     };
     loadConvos();
   }, []);
-  // Sync selection when conv list or idParam changes
+  // Sync selection or new-chat when idParam changes
   useEffect(() => {
     if (conversations.length === 0) return;
-    const targetId = idParam ? parseInt(idParam, 10) : conversations[0].id;
+    // if no idParam, redirect to new conversation
+    if (!searchParams.has('id')) {
+      setSearchParams({ id: 'new', collapsed: collapsed.toString() }, { replace: true });
+      return;
+    }
+    // new conversation mode: clear selection
+    if (idParam === 'new') {
+      setSelectedConv(null);
+      setMessages([]);
+      return;
+    }
+    // load existing conversation
+    const targetId = parseInt(idParam!, 10);
     const conv = conversations.find(c => c.id === targetId) || conversations[0];
-    // ensure URL has id
+    // ensure URL id matches selected
     if (conv.id.toString() !== idParam) {
       setSearchParams({ id: conv.id.toString(), collapsed: collapsed.toString() }, { replace: true });
     }
     selectConversation(conv);
   }, [conversations, idParam, collapsed]);
 
-  // Create a new conversation
-  const createConversation = async () => {
-    const title = window.prompt('Conversation title:');
-    if (!title) return;
-    try {
-      const res = await axios.post<number>('/api/conversations/', { title });
-      const newId = res.data;
-      // refresh and navigate
-      const listRes = await axios.get<Conversation[]>('/api/conversations/');
-      setConversations(listRes.data);
-      setSearchParams({ id: newId.toString(), collapsed: collapsed.toString() });
-    } catch (err) {
-      console.error(err);
-    }
+  // Start a blank chat, will create on first message
+  const createConversation = () => {
+    setSearchParams({ id: 'new', collapsed: collapsed.toString() });
   };
 
   // Delete a conversation
@@ -97,17 +98,16 @@ const App: React.FC = () => {
     }
   };
 
-  // Send a chat message
+  // Send a chat message; handle new and existing conversations
   const handleSend = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || !selectedConv) return;
-    // Optimistic UI: display user message immediately
-    const userText = trimmed;
+    if (!trimmed) return;
+    // Optimistic UI: display user message
     const userMsg: Message = {
       id: Date.now(),
-      conversation_id: selectedConv.id,
+      conversation_id: selectedConv?.id ?? 0,
       sender: "user",
-      text: userText,
+      text: trimmed,
       created_at: new Date().toISOString(),
       metadata: 'pending',
     };
@@ -115,12 +115,22 @@ const App: React.FC = () => {
     setLoading(true);
     try {
       const res = await axios.post<Message>('/api/chat/', {
-        conversation_id: selectedConv!.id,
+        conversation_id: selectedConv?.id ?? null,
         sender: 'user',
-        text: userText,
+        text: trimmed,
         metadata: null,
         model: 'gpt-4.1',
       });
+      // First message: select new conversation
+      if (!selectedConv) {
+        const listRes = await axios.get<Conversation[]>('/api/conversations/');
+        setConversations(listRes.data);
+        const newConv = listRes.data.find(c => c.id === res.data.conversation_id);
+        if (newConv) {
+          setSelectedConv(newConv);
+          setSearchParams({ id: newConv.id.toString(), collapsed: collapsed.toString() });
+        }
+      }
       setMessages(prev => [...prev, res.data]);
     } catch (err) {
       console.error(err);
@@ -140,14 +150,12 @@ const App: React.FC = () => {
         collapsed={collapsed}
         onToggle={toggleCollapsed}
       />
-      {selectedConv && (
-        <ChatArea
-          key={selectedConv.id}
-          messages={messages}
-          loading={loading}
-          handleSend={handleSend}
-        />
-      )}
+      <ChatArea
+        key={selectedConv?.id ?? 'new'}
+        messages={messages}
+        loading={loading}
+        handleSend={handleSend}
+      />
     </div>
   );
 };

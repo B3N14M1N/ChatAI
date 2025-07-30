@@ -11,7 +11,7 @@ class ConversationOut(BaseModel):
     created_at: str
 
 class MessageCreate(BaseModel):
-    conversation_id: int
+    conversation_id: Optional[int]
     sender: str
     text: str
     metadata: Optional[str] = None
