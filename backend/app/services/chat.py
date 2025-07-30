@@ -15,10 +15,10 @@ async def generate_conversation_title(
     model: str = "gpt-4.1"
 ) -> str:
     """
-    Generate a concise title for the conversation based on the first user prompt.
+    Generate a very short and concise title for the conversation based on the first user prompt.
     """
     # Use OpenAI to create a title
-    title_prompt = f"Generate a short, descriptive title for the following conversation topic: {prompt}"
+    title_prompt = f"Generate a very short and concise title for the following conversation topic: {prompt}"
     resp = client.responses.create(
         model=model,
         tools=[],

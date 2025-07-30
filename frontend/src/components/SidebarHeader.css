@@ -1,0 +1,40 @@
+/* SidebarHeader.css */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.sidebar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--user-msg-bg);
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* Stack buttons vertically when collapsed */
+.sidebar.collapsed .sidebar-header .header-actions {
+  flex-direction: column;
+}
+.header-btn {
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 1.5rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+.header-btn:hover {
+  background: var(--sidebar-selected-bg);
+  color: var(--color-bg);
+  transform: translateY(-1px);
+}

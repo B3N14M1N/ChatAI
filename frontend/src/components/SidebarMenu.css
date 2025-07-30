@@ -1,0 +1,32 @@
+/* SidebarMenu.css */
+.sidebar-menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sidebar-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.sidebar-menu-item svg {
+  font-size: 1.5rem;
+  margin-right: 1rem;
+}
+.sidebar-menu-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sidebar-menu-item:hover:not(.disabled) {
+  background-color: var(--sidebar-selected-bg);
+}
+/* Hide text when collapsed */
+.sidebar.collapsed .sidebar-menu-item span {
+  display: none;
+}
+.sidebar.collapsed .sidebar-menu-item {
+  justify-content: center;
+}
