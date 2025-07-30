@@ -33,7 +33,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem;
+  padding: 0.01rem;
   border-radius: 4px;
   transition: background 0.2s ease, transform 0.1s ease;
 }
