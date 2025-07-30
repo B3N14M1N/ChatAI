@@ -48,14 +48,14 @@ const ChatInput: FC<ChatInputProps> = ({
 
   useEffect(() => {
     if (!textareaRef.current) return;
-    // temporarily reset height to measure content
+    // measure content height
     textareaRef.current.style.height = 'auto';
     const contentH = textareaRef.current.scrollHeight;
+    // auto-resize container to content height up to max
     const clamped = Math.min(
       Math.max(contentH, minHeight),
       window.innerHeight / 2
     );
-    // use clamped height directly to allow shrinking on content reduction
     setLocalHeight(clamped);
     onHeightChange(clamped);
     // clear inline height so textarea CSS height:100% fills container
@@ -88,6 +88,7 @@ const ChatInput: FC<ChatInputProps> = ({
           transform: 'translateX(-50%)',
           width: '75%',
           height: `${inputHeight}px`,
+          transition: 'height .05s ease',
           display: 'flex',
           alignItems: 'stretch',
           zIndex: 1

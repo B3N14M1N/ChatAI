@@ -78,17 +78,29 @@ const App = () => {
   const handleSend = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!inputText.trim() || !selectedConv) return;
+    // Optimistic UI: display user message immediately
+    const userText = inputText;
+    const userMsg: Message = {
+      id: Date.now(),
+      conversation_id: selectedConv.id,
+      sender: "user",
+      text: userText,
+      created_at: new Date().toISOString(),
+      metadata: 'pending',
+    };
+    setMessages(prev => [...prev, userMsg]);
+    setInputText("");
     setLoading(true);
     try {
       const res = await axios.post<Message>("/api/chat/", {
         conversation_id: selectedConv.id,
         sender: "user",
-        text: inputText,
+        text: userText,
         metadata: null,
         model: "gpt-4.1",
       });
+      // append assistant response
       setMessages(prev => [...prev, res.data]);
-      setInputText("");
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Send failed");

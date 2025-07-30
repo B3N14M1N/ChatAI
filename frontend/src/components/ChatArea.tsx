@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import type { FC, FormEvent } from "react";
 import type { Message } from "../types";
 import ChatInput from './ChatInput';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import './ChatArea.css';
 
 interface ChatAreaProps {
@@ -20,7 +22,7 @@ const ChatArea: FC<ChatAreaProps> = ({ messages, inputText, setInputText, loadin
   // Scroll to bottom on messages change
   useEffect(() => {
     if (messagesRef.current) {
-      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+      messagesRef.current.scrollTo({ top: messagesRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages]);
   return (
@@ -29,14 +31,21 @@ const ChatArea: FC<ChatAreaProps> = ({ messages, inputText, setInputText, loadin
       <div
         className="messages"
         ref={messagesRef}
-        style={{ paddingBottom: `${inputHeight}px` }}
+        style={{ paddingBottom: `${inputHeight + 16}px` }}
       >
         {messages.map(msg => (
           <div key={msg.id} className={`message ${msg.sender}`}>
             <div className="timestamp">
-              {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              {msg.metadata === 'pending'
+                ? 'now'
+                : new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              }
             </div>
-            <div className="bubble">{msg.text}</div>
+            <div className="bubble">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>  
+                {msg.text}
+              </ReactMarkdown>
+            </div>
           </div>
         ))}
       </div>
