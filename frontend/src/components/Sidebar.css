@@ -66,3 +66,38 @@
   display: flex;
   justify-content: center;
 }
+/* Mobile header layout */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
+    z-index: 10;
+  }
+  /* make collapsed header full-width on mobile */
+  .sidebar.collapsed {
+    width: 100%;
+  }
+  /* hide list when collapsed; show when expanded */
+  .sidebar.collapsed .conversations-list {
+    display: none;
+  }
+  .sidebar:not(.collapsed) .conversations-list {
+    position: fixed;
+    top: 3.5rem; /* height of header */
+    left: 0;
+    width: 100%;
+    bottom: 0;
+    overflow-y: auto;
+    background-color: var(--sidebar-bg);
+    display: block;
+    z-index: 9;
+  }
+}

@@ -24,12 +24,15 @@
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
   .input-container {
-    width: calc(100% - 32px);
+    /* stick to bottom of viewport */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     max-width: none;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 8px;
-    padding: 6px 10px;
+    transform: none;
+    padding: 8px 12px;
+    border-radius: 0;
   }
   .chat-textarea {
     font-size: 16px;
