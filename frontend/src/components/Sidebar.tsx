@@ -27,7 +27,7 @@ const Sidebar: FC<SidebarProps> = ({
   onRename,
 }) => (
   <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-    <SidebarHeader collapsed={collapsed} onCreate={onCreate} onToggle={onToggle} />
+    <SidebarHeader collapsed={collapsed} onToggle={onToggle} />
     <SidebarMenu collapsed={collapsed} onCreate={onCreate} />
     <hr />
     {!collapsed && (
