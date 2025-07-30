@@ -78,6 +78,21 @@ const App: React.FC = () => {
     setSearchParams({ id: 'new', collapsed: collapsed.toString() });
   };
 
+  // Rename a conversation
+  const renameConversation = async (id: number, newTitle: string) => {
+    try {
+      await axios.put(`/api/conversations/${id}/rename`, null, { params: { new_title: newTitle } });
+      const listRes = await axios.get<Conversation[]>('/api/conversations/');
+      setConversations(listRes.data);
+      // if renaming current, update selectedConv
+      if (selectedConv?.id === id) {
+        const updated = listRes.data.find(c => c.id === id) || null;
+        setSelectedConv(updated);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
   // Delete a conversation
   const deleteConversation = async (id: number) => {
     try {
@@ -147,6 +162,7 @@ const App: React.FC = () => {
         onSelect={conv => setSearchParams({ id: conv.id.toString(), collapsed: collapsed.toString() })}
         onCreate={createConversation}
         onDelete={deleteConversation}
+        onRename={renameConversation}
         collapsed={collapsed}
         onToggle={toggleCollapsed}
       />

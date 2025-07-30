@@ -2,7 +2,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem;
+  position: relative;
   cursor: pointer;
   color: var(--sidebar-text);
 }
@@ -14,17 +15,54 @@
 .conversation-item .conv-title {
   flex-grow: 1;
   padding-left: 0.5rem;
+  font-size: 0.9rem;
 }
-
-.delete-conv-btn {
+/* Icon button for actions */
+.icon-btn {
   background: none;
   border: none;
-  color: var(--danger-color);
+  color: var(--sidebar-text);
   font-size: 1rem;
   cursor: pointer;
-  padding: 0;
+  padding: 4px;
+  margin-left: 4px;
+}
+.icon-btn:hover {
+  color: var(--color-secondary);
 }
 
-.delete-conv-btn:hover {
-  opacity: 0.8;
+/* Action container for positioning */
+.actions {
+  position: relative;
+}
+
+/* Floating context menu */
+.context-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  padding: 0.25rem 0;
+  z-index: 100;
+  min-width: 120px;
+}
+.context-menu button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--sidebar-text);
+}
+.context-menu button:hover {
+  background: var(--color-hover);
+}
+.context-menu button.delete {
+  color: var(--danger-color);
 }

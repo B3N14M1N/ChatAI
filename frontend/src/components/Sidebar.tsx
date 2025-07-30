@@ -10,6 +10,7 @@ interface SidebarProps {
   onSelect: (conv: Conversation) => void;
   onCreate: () => void;
   onDelete: (id: number) => void;
+  onRename: (id: number, newTitle: string) => void;
   collapsed: boolean;
   onToggle: () => void;
 }
@@ -22,6 +23,7 @@ const Sidebar: FC<SidebarProps> = ({
   onDelete,
   collapsed,
   onToggle,
+  onRename,
 }) => (
   <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
     <div className="sidebar-header d-flex flex-column align-items-center">
@@ -50,6 +52,7 @@ const Sidebar: FC<SidebarProps> = ({
             selected={selectedId === conv.id}
             onSelect={onSelect}
             onDelete={onDelete}
+            onRename={onRename}
           />
         ))}
       </ul>

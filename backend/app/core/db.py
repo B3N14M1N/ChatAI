@@ -58,6 +58,12 @@ class DatabaseHandler:
             await conn.commit()
             return cursor.lastrowid
 
+    async def rename_conversation(self, conversation_id: int, new_title: str) -> None:
+        query = "UPDATE conversations SET title = ? WHERE id = ?"
+        async with self.connector.get_connection() as conn:
+            await conn.execute(query, (new_title, conversation_id))
+            await conn.commit()
+
     async def delete_conversation(self, conversation_id: int) -> None:
         query = "DELETE FROM conversations WHERE id = ?"
         async with self.connector.get_connection() as conn:

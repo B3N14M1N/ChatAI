@@ -5,6 +5,10 @@ from typing import Optional, List
 class ConversationCreate(BaseModel):
     title: Optional[str] = None
 
+class ConversationUpdate(BaseModel):
+    conversation_id: int
+    new_title: str
+
 class ConversationOut(BaseModel):
     id: int
     title: Optional[str]

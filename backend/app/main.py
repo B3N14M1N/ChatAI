@@ -18,7 +18,8 @@ from app.core.crud import (
     get_conversations,
     delete_conversation,
     get_conversation_context,
-    get_messages_for_conversation
+    get_messages_for_conversation,
+    rename_conversation
 )
 from app.services.chat import chat_call
 
@@ -61,6 +62,12 @@ async def chat_endpoint(
 @app.post("/conversations/", response_model=int)
 async def create_conversation_endpoint(conversation: ConversationCreate):
     return await create_conversation(conversation)
+
+
+@app.put("/conversations/{conversation_id}/rename")
+async def rename_conversation_endpoint(conversation_id: int, new_title: str):
+    await rename_conversation(conversation_id, new_title)
+    return {"detail": "Conversation renamed successfully"}
 
 
 @app.get("/conversations/", response_model=List[dict])

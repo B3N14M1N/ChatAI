@@ -12,6 +12,9 @@ from typing import List, Dict, Any
 async def create_conversation(conversation: ConversationCreate) -> int:
     return await db.create_conversation(conversation.title)
 
+async def rename_conversation(conversation_id: int, new_title: str) -> None:
+    await db.rename_conversation(conversation_id, new_title)
+
 async def get_conversations() -> List[Dict[str, Any]]:
     return await db.get_conversations()
 
