@@ -36,6 +36,8 @@ const App = () => {
   // Select and load conversation messages
   const selectConversation = async (conv: Conversation) => {
     setSelectedConv(conv);
+    // reset input field when switching conversations
+    setInputText("");
     try {
       // Backend returns { conversation_id, messages: Message[] }
       const res = await axios.get<{ conversation_id: number; messages: Message[] }>(
@@ -107,6 +109,7 @@ const App = () => {
         onToggle={() => setCollapsed(prev => !prev)}
       />
       <ChatArea
+        key={selectedConv?.id ?? 'none'}
         messages={messages}
         inputText={inputText}
         setInputText={setInputText}

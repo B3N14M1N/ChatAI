@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import type { Conversation } from "../types";
 import { FaPlus, FaChevronLeft, FaChevronRight, FaTrash } from 'react-icons/fa';
+import './Sidebar.css';
 
 interface SidebarProps {
   conversations: Conversation[];

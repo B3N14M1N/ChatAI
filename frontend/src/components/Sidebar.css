@@ -1,0 +1,68 @@
+.sidebar {
+  position: sticky;
+  top: 0;
+  width: 250px;
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  border-right: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.sidebar.collapsed {
+  width: 60px;
+}
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+.conversations-list {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.conversations-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  color: var(--sidebar-text);
+}
+.conversations-list li.selected {
+  background-color: var(--sidebar-selected-bg);
+}
+.delete-conv-btn {
+  background: none;
+  border: none;
+  color: var(--danger-color);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+}
+.delete-conv-btn:hover {
+  opacity: 0.8;
+}
+.toggle-btn {
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 1.2rem;
+  margin-left: auto;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+.new-btn {
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+.new-btn.icon-only {
+  display: flex;
+  justify-content: center;
+}
