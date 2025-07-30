@@ -4,16 +4,17 @@ import "./App.css";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
 import type { Conversation, Message } from "./types";
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 const App: React.FC = () => {
-  const navigate = useNavigate();
-  const params = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const idParam = searchParams.get('id');
   const collapsed = searchParams.get('collapsed') === 'true';
   const toggleCollapsed = () => {
-    const next = (!collapsed).toString();
-    setSearchParams({ ...Object.fromEntries(searchParams), collapsed: next });
+    setSearchParams({
+      id: idParam ?? '',
+      collapsed: (!collapsed).toString(),
+    });
   };
 
   // State variables for conversations, messages, and UI
@@ -23,35 +24,8 @@ const App: React.FC = () => {
   const [inputText, setInputText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Load conversations and select based on URL or default
-  useEffect(() => {
-    const loadConversations = async () => {
-      try {
-        const res = await axios.get<Conversation[]>('/api/conversations/');
-        setConversations(res.data);
-        if (params.id) {
-          const convId = parseInt(params.id, 10);
-          const conv = res.data.find(c => c.id === convId);
-          if (conv) {
-            selectConversation(conv);
-            return;
-          }
-        }
-        // no valid URL param, select first
-        if (res.data.length) {
-          const first = res.data[0];
-          navigate(`/conversation/${first.id}${collapsed ? '?collapsed=true' : ''}`, { replace: true });
-          selectConversation(first);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    loadConversations();
-  }, [params.id, collapsed]);
-
-  // Load messages for a conversation
-  const selectConversation = async (conv: Conversation) => {
+  // Function to select and load messages for a conversation
+  async function selectConversation(conv: Conversation): Promise<void> {
     setSelectedConv(conv);
     setInputText("");
     try {
@@ -62,9 +36,33 @@ const App: React.FC = () => {
     } catch (err) {
       console.error(err);
     }
-  };
+  }
 
-  // Create and navigate to new conversation
+  // Load conversations on mount
+  useEffect(() => {
+    const loadConvos = async () => {
+      try {
+        const res = await axios.get<Conversation[]>('/api/conversations/');
+        setConversations(res.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    loadConvos();
+  }, []);
+  // Sync selection when conv list or idParam changes
+  useEffect(() => {
+    if (conversations.length === 0) return;
+    const targetId = idParam ? parseInt(idParam, 10) : conversations[0].id;
+    const conv = conversations.find(c => c.id === targetId) || conversations[0];
+    // ensure URL has id
+    if (conv.id.toString() !== idParam) {
+      setSearchParams({ id: conv.id.toString(), collapsed: collapsed.toString() }, { replace: true });
+    }
+    selectConversation(conv);
+  }, [conversations, idParam, collapsed]);
+
+  // Create a new conversation
   const createConversation = async () => {
     const title = window.prompt('Conversation title:');
     if (!title) return;
@@ -74,13 +72,13 @@ const App: React.FC = () => {
       // refresh and navigate
       const listRes = await axios.get<Conversation[]>('/api/conversations/');
       setConversations(listRes.data);
-      navigate(`/conversation/${newId}${collapsed ? '?collapsed=true' : ''}`);
+      setSearchParams({ id: newId.toString(), collapsed: collapsed.toString() });
     } catch (err) {
       console.error(err);
     }
   };
 
-  // Delete conversation and adjust URL
+  // Delete a conversation
   const deleteConversation = async (id: number) => {
     try {
       await axios.delete(`/api/conversations/${id}`);
@@ -90,9 +88,10 @@ const App: React.FC = () => {
       }
       const listRes = await axios.get<Conversation[]>('/api/conversations/');
       setConversations(listRes.data);
-      // navigate to first or root
+      // switch to first
       if (selectedConv?.id === id && listRes.data.length) {
-        navigate(`/conversation/${listRes.data[0].id}${collapsed ? '?collapsed=true' : ''}`);
+        const firstId = listRes.data[0].id.toString();
+        setSearchParams({ id: firstId, collapsed: collapsed.toString() });
       }
     } catch (err) {
       console.error(err);
@@ -137,7 +136,7 @@ const App: React.FC = () => {
       <Sidebar
         conversations={conversations}
         selectedId={selectedConv?.id ?? null}
-        onSelect={conv => navigate(`/conversation/${conv.id}${collapsed ? '?collapsed=true' : ''}`)}
+        onSelect={conv => setSearchParams({ id: conv.id.toString(), collapsed: collapsed.toString() })}
         onCreate={createConversation}
         onDelete={deleteConversation}
         collapsed={collapsed}
