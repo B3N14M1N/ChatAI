@@ -4,31 +4,53 @@ import "./App.css";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
 import type { Conversation, Message } from "./types";
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 const App: React.FC = () => {
+  const navigate = useNavigate();
+  const params = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const collapsed = searchParams.get('collapsed') === 'true';
+  const toggleCollapsed = () => {
+    const next = (!collapsed).toString();
+    setSearchParams({ ...Object.fromEntries(searchParams), collapsed: next });
+  };
+
   // State variables for conversations, messages, and UI
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [collapsed, setCollapsed] = useState<boolean>(false);
 
-  // Fetch conversations on component mount
+  // Load conversations and select based on URL or default
   useEffect(() => {
     const loadConversations = async () => {
       try {
         const res = await axios.get<Conversation[]>('/api/conversations/');
         setConversations(res.data);
-        if (res.data.length) selectConversation(res.data[0]);
-      } catch (err) {
-        console.error(err);
+        if (params.id) {
+          const convId = parseInt(params.id, 10);
+          const conv = res.data.find(c => c.id === convId);
+          if (conv) {
+            selectConversation(conv);
+            return;
+          }
+        }
+        // no valid URL param, select first
+        if (res.data.length) {
+          const first = res.data[0];
+          navigate(`/conversation/${first.id}${collapsed ? '?collapsed=true' : ''}`, { replace: true });
+          selectConversation(first);
+        }
+      } catch (error) {
+        console.error(error);
       }
     };
     loadConversations();
-  }, []);
+  }, [params.id, collapsed]);
 
-  // Select and load messages for a conversation
+  // Load messages for a conversation
   const selectConversation = async (conv: Conversation) => {
     setSelectedConv(conv);
     setInputText("");
@@ -42,24 +64,23 @@ const App: React.FC = () => {
     }
   };
 
-  // Create a new conversation and select it
+  // Create and navigate to new conversation
   const createConversation = async () => {
     const title = window.prompt('Conversation title:');
     if (!title) return;
     try {
       const res = await axios.post<number>('/api/conversations/', { title });
       const newId = res.data;
-      // refresh list
+      // refresh and navigate
       const listRes = await axios.get<Conversation[]>('/api/conversations/');
       setConversations(listRes.data);
-      const newConv = listRes.data.find(c => c.id === newId);
-      if (newConv) selectConversation(newConv);
+      navigate(`/conversation/${newId}${collapsed ? '?collapsed=true' : ''}`);
     } catch (err) {
       console.error(err);
     }
   };
 
-  // Delete a conversation
+  // Delete conversation and adjust URL
   const deleteConversation = async (id: number) => {
     try {
       await axios.delete(`/api/conversations/${id}`);
@@ -69,6 +90,10 @@ const App: React.FC = () => {
       }
       const listRes = await axios.get<Conversation[]>('/api/conversations/');
       setConversations(listRes.data);
+      // navigate to first or root
+      if (selectedConv?.id === id && listRes.data.length) {
+        navigate(`/conversation/${listRes.data[0].id}${collapsed ? '?collapsed=true' : ''}`);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -112,11 +137,11 @@ const App: React.FC = () => {
       <Sidebar
         conversations={conversations}
         selectedId={selectedConv?.id ?? null}
-        onSelect={selectConversation}
+        onSelect={conv => navigate(`/conversation/${conv.id}${collapsed ? '?collapsed=true' : ''}`)}
         onCreate={createConversation}
         onDelete={deleteConversation}
         collapsed={collapsed}
-        onToggle={() => setCollapsed(p => !p)}
+        onToggle={toggleCollapsed}
       />
       {selectedConv && (
         <ChatArea
