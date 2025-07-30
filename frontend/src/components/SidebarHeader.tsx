@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { MdChevronLeft, MdChevronRight } from 'react-icons/md';
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import './SidebarHeader.css';
 
 interface SidebarHeaderProps {
@@ -15,8 +15,9 @@ const SidebarHeader: FC<SidebarHeaderProps> = ({ collapsed, onToggle }) => (
         className="header-btn"
         onClick={onToggle}
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
-        {collapsed ? <MdChevronRight size={20} /> : <MdChevronLeft size={20} />}
+        {collapsed ? <FiChevronRight size={24} /> : <FiChevronLeft size={24} />}
       </button>
     </div>
   </div>

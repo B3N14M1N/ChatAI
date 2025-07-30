@@ -23,13 +23,12 @@
 .header-btn {
   background: none;
   border: none;
-  color: var(--sidebar-text);
-  font-size: 1.5rem;
-  width: 2rem;
-  height: 2rem;
-  display: flex;
+  color: var(--user-msg-bg);
+  font-size: 1.75rem;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 0.25rem;
   border-radius: 4px;
   transition: background 0.2s ease, transform 0.1s ease;
 }
@@ -37,4 +36,11 @@
   background: var(--sidebar-selected-bg);
   color: var(--color-bg);
   transform: translateY(-1px);
+}
+/* Ensure SVG icons inherit color */
+.header-btn svg {
+  fill: currentColor;
+  stroke: currentColor;
+  width: 1em;
+  height: 1em;
 }
