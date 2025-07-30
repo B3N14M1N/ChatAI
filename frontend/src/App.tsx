@@ -1,4 +1,4 @@
-import React, { useState, useEffect, type FormEvent } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
 import Sidebar from "./components/Sidebar";
@@ -21,13 +21,12 @@ const App: React.FC = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
   // Function to select and load messages for a conversation
   async function selectConversation(conv: Conversation): Promise<void> {
     setSelectedConv(conv);
-    setInputText("");
+    // clear input is managed by ChatInput locally
     try {
       const res = await axios.get<{ conversation_id: number; messages: Message[] }>(
         `/api/conversations/${conv.id}/messages`
@@ -99,11 +98,11 @@ const App: React.FC = () => {
   };
 
   // Send a chat message
-  const handleSend = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!inputText.trim() || !selectedConv) return;
+  const handleSend = async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || !selectedConv) return;
     // Optimistic UI: display user message immediately
-    const userText = inputText;
+    const userText = trimmed;
     const userMsg: Message = {
       id: Date.now(),
       conversation_id: selectedConv.id,
@@ -113,7 +112,6 @@ const App: React.FC = () => {
       metadata: 'pending',
     };
     setMessages(prev => [...prev, userMsg]);
-    setInputText("");
     setLoading(true);
     try {
       const res = await axios.post<Message>('/api/chat/', {
@@ -146,8 +144,6 @@ const App: React.FC = () => {
         <ChatArea
           key={selectedConv.id}
           messages={messages}
-          inputText={inputText}
-          setInputText={setInputText}
           loading={loading}
           handleSend={handleSend}
         />

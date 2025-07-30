@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import type { Conversation } from "../types";
-import { FaPlus, FaChevronLeft, FaChevronRight, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import ConversationItem from './ConversationItem';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -43,20 +44,13 @@ const Sidebar: FC<SidebarProps> = ({
     { !collapsed && (
       <ul className="conversations-list">
         {conversations.map(conv => (
-          <li
+          <ConversationItem
             key={conv.id}
-            className={selectedId === conv.id ? "selected" : ""}
-            onClick={() => onSelect(conv)}
-          >
-            <span className="conv-title flex-grow-1 ps-2">{conv.title}</span>
-            <button
-              className="btn btn-outline-danger btn-sm delete-conv-btn"
-              onClick={e => { e.stopPropagation(); onDelete(conv.id); }}
-              aria-label="Delete conversation"
-            >
-              <FaTrash />
-            </button>
-          </li>
+            conv={conv}
+            selected={selectedId === conv.id}
+            onSelect={onSelect}
+            onDelete={onDelete}
+          />
         ))}
       </ul>
     )}
