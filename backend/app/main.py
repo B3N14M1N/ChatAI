@@ -7,12 +7,19 @@ from typing import List
 
 from app.core.db import db_connector
 from app.core.schemas import (
-    MessageCreate,
+    ChatRequest,
+    ChatResponse,
     MessageOut,
     ConversationCreate,
     ConversationMessages,
 )
-from app.services import crud
+from app.core.crud import (
+    create_conversation,
+    get_conversations,
+    delete_conversation,
+    get_conversation_context,
+    get_messages_for_conversation
+)
 from app.services.chat import chat_call
 
 
@@ -36,13 +43,7 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "Hello, FastAPI!"}
-    # Remove modular router, define endpoints directly on app
 
-class ChatRequest(MessageCreate):
-    model: str = "gpt-4.1"
-
-class ChatResponse(MessageOut):
-    model: str
 
 @app.post("/chat/", response_model=ChatResponse)
 async def chat_endpoint(
@@ -56,23 +57,28 @@ async def chat_endpoint(
     )
     return ChatResponse(**ai_reply.dict(), model=req.model)
 
+
 @app.post("/conversations/", response_model=int)
 async def create_conversation_endpoint(conversation: ConversationCreate):
-    return await crud.create_conversation(conversation)
+    return await create_conversation(conversation)
+
 
 @app.get("/conversations/", response_model=List[dict])
 async def get_conversations_endpoint():
-    return await crud.get_conversations()
+    return await get_conversations()
+
 
 @app.delete("/conversations/{conversation_id}")
 async def delete_conversation_endpoint(conversation_id: int):
-    await crud.delete_conversation(conversation_id)
+    await delete_conversation(conversation_id)
     return {"detail": "Conversation deleted"}
+
 
 @app.get("/conversations/{conversation_id}/messages", response_model=ConversationMessages)
 async def get_conversation_messages_endpoint(conversation_id: int):
-    return await crud.get_messages_for_conversation(conversation_id)
+    return await get_messages_for_conversation(conversation_id)
+
 
 @app.get("/conversations/{conversation_id}/context", response_model=str)
 async def get_conversation_context_endpoint(conversation_id: int):
-    return await crud.get_conversation_context(conversation_id)
+    return await get_conversation_context(conversation_id)

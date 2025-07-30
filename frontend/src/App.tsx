@@ -1,62 +1,118 @@
-import React, { useState, FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import axios from "axios";
+import "./App.css";
+import Sidebar from "./components/Sidebar";
+import ChatArea from "./components/ChatArea";
+import type { Conversation, Message } from "./types";
 
-const App: React.FC = () => {
-  const [prompt, setPrompt] = useState<string>("");
-  const [reply, setReply] = useState<string>("");
+const App = () => {
+  // Types
+  interface Conversation { id: number; title: string; created_at: string; }
+  interface Message { id: number; conversation_id: number; sender: string; text: string; created_at: string; metadata?: string; }
+  // State
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputText, setInputText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  // Sidebar collapsed state
+  const [collapsed, setCollapsed] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!prompt.trim()) return;
-    setLoading(true);
-    setError(null);
-
+  // Load conversations on mount
+  // Fetch list of conversations
+  useEffect(() => { fetchConversations(); }, []);
+  const fetchConversations = async () => {
     try {
-      // Now uses the Vite proxy at /api/chat/…
-      const res = await axios.get<{ response: string }>(
-        `/api/chat/${encodeURIComponent(prompt)}`
+      const res = await axios.get<Conversation[]>("/api/conversations/");
+      setConversations(res.data);
+      if (res.data.length && !selectedConv) {
+        selectConversation(res.data[0]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  // Select and load conversation messages
+  const selectConversation = async (conv: Conversation) => {
+    setSelectedConv(conv);
+    try {
+      // Backend returns { conversation_id, messages: Message[] }
+      const res = await axios.get<{ conversation_id: number; messages: Message[] }>(
+        `/api/conversations/${conv.id}/messages`
       );
-      setReply(res.data.response);
+      setMessages(res.data.messages);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  // Create a new conversation with title prompt
+  const createConversation = async () => {
+    const title = window.prompt("Conversation title:");
+    if (!title) return;
+    try {
+      const res = await axios.post<number>("/api/conversations/", { title });
+      await fetchConversations();
+      selectConversation({ id: res.data, title, created_at: new Date().toISOString() });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
+  // Delete a conversation and refresh list
+  const deleteConversation = async (id: number) => {
+    try {
+      await axios.delete(`/api/conversations/${id}`);
+      if (selectedConv?.id === id) {
+        setSelectedConv(null);
+        setMessages([]);
+      }
+      await fetchConversations();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  // Send a message and append to list
+  const handleSend = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!inputText.trim() || !selectedConv) return;
+    setLoading(true);
+    try {
+      const res = await axios.post<Message>("/api/chat/", {
+        conversation_id: selectedConv.id,
+        sender: "user",
+        text: inputText,
+        metadata: null,
+        model: "gpt-4.1",
+      });
+      setMessages(prev => [...prev, res.data]);
+      setInputText("");
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Something went wrong");
+      setError(err.message || "Send failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Chat with FastAPI AI</h1>
-
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
-        <input
-          type="text"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Type your question..."
-          className="flex-1 border rounded px-3 py-2"
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white rounded px-4 py-2 disabled:opacity-50"
-        >
-          {loading ? "Sending…" : "Send"}
-        </button>
-      </form>
-
-      {error && <p className="text-red-500 mb-2">Error: {error}</p>}
-
-      {reply && (
-        <div className="bg-gray-100 p-3 rounded">
-          <h2 className="font-semibold mb-1">Response:</h2>
-          <p>{reply}</p>
-        </div>
-      )}
+    <div className="app-container">
+      <Sidebar
+        conversations={conversations}
+        selectedId={selectedConv?.id ?? null}
+        onSelect={selectConversation}
+        onCreate={createConversation}
+        onDelete={deleteConversation}
+        collapsed={collapsed}
+        onToggle={() => setCollapsed(prev => !prev)}
+      />
+      <ChatArea
+        messages={messages}
+        inputText={inputText}
+        setInputText={setInputText}
+        loading={loading}
+        handleSend={handleSend}
+      />
     </div>
   );
 };

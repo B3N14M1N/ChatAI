@@ -18,6 +18,10 @@ async def get_conversations() -> List[Dict[str, Any]]:
 async def delete_conversation(conversation_id: int) -> None:
     await db.delete_conversation(conversation_id)
 
+async def get_conversation_context(conversation_id: int) -> str:
+    messages = await db.get_conversation_messages(conversation_id)
+    return "\n".join([f"{m.sender}: {m.text}" for m in messages])
+
 # MESSAGE CRUD
 async def add_message(msg: MessageCreate) -> int:
     return await db.add_message(msg.conversation_id, msg.sender, msg.text, msg.metadata)
@@ -31,7 +35,3 @@ async def get_messages_for_conversation(conversation_id: int) -> ConversationMes
         conversation_id=conversation_id,
         messages=messages
     )
-
-async def get_conversation_context(conversation_id: int) -> str:
-    messages = await db.get_conversation_messages(conversation_id)
-    return "\n".join([f"{m.sender}: {m.text}" for m in messages])

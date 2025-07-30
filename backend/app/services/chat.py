@@ -1,7 +1,7 @@
 from typing import List
 from openai import OpenAI
 from app.core.schemas import MessageCreate, MessageOut
-from app.services.crud import (
+from app.core.crud import (
     get_conversation_context,
     get_last_message,
     add_message
