@@ -9,19 +9,25 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
+  // Display timestamp above for assistant, below for user
+  const timeLabel = msg.metadata === "pending"
+    ? "now"
+    : new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   return (
     <div className={`message ${msg.sender}`}>
-      <div className="timestamp">
-        {msg.metadata === "pending"
-          ? "now"
-          : new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-        }
-      </div>
+      {/* User timestamp above */}
+      {msg.sender === "user" && (
+        <div className="timestamp">{timeLabel}</div>
+      )}
       <div className="bubble">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>  
           {msg.text}
         </ReactMarkdown>
       </div>
+      {/* Assistant timestamp below */}
+      {msg.sender === "assistant" && (
+        <div className="timestamp">{timeLabel}</div>
+      )}
     </div>
   );
 };

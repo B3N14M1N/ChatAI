@@ -15,6 +15,30 @@
   backdrop-filter: blur(10px);
   z-index: 2;
 }
+.send-btn:disabled {
+  background-color: var(--color-border);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .input-container {
+    width: calc(100% - 32px);
+    max-width: none;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 8px;
+    padding: 6px 10px;
+  }
+  .chat-textarea {
+    font-size: 16px;
+  }
+  .send-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
 .input-tools {
   display: flex;
   gap: 8px;

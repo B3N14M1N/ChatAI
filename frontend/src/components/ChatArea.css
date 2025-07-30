@@ -5,6 +5,17 @@
   background-color: var(--chat-bg);
   position: relative;
 }
+/* Responsive tweaks for mobile */
+@media (max-width: 768px) {
+  .messages {
+    padding: 1rem 0.5rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .message .bubble {
+    max-width: 90%;
+  }
+}
 
 .messages {
   flex: 1;

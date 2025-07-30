@@ -67,6 +67,28 @@
   --primary-color: var(--color-primary);
   --danger-color: var(--color-error);
 }
+/* Responsive layout for smaller screens */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+    /* allow internal scrolling on mobile */
+    overflow: visible;
+  }
+  .sidebar {
+    position: relative;
+    width: 100%;
+    order: 1;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
+  }
+  .sidebar.collapsed {
+    width: 100%;
+  }
+  .chat-area {
+    order: 2;
+    flex: 1;
+  }
+}
 
 /* Sidebar */
 .sidebar {
