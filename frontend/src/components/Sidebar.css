@@ -47,29 +47,25 @@ hr {
     top: 0;
     left: 0;
     width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    border-right: none;
-    border-bottom: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 0;
+    border: none;
     z-index: 10;
   }
   .sidebar.collapsed {
     width: 100%;
   }
+  .sidebar.collapsed .sidebar-menu,
   .sidebar.collapsed .conversations-list {
-    display: none;
+    display: none;  
   }
   .sidebar:not(.collapsed) .conversations-list {
-    position: fixed;
-    top: 3.5rem;
-    left: 0;
+    display: block;
     width: 100%;
-    bottom: 0;
     overflow-y: auto;
     background-color: var(--sidebar-bg);
-    display: block;
-    z-index: 9;
   }
 }
