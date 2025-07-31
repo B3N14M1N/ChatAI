@@ -30,7 +30,8 @@ MESSAGE CRUD
 Store and return messages with usage metrics.
 """
 async def add_message(msg: MessageCreate) -> int:
-    return await db.add_message(
+    # Insert the message and then attachments if provided
+    message_id = await db.add_message(
         msg.conversation_id,
         msg.sender,
         msg.text,
@@ -41,12 +42,33 @@ async def add_message(msg: MessageCreate) -> int:
         msg.model,
         msg.price,
     )
+    # Handle attachments
+    if getattr(msg, 'attachments', None):
+        for filename, content in msg.attachments:
+            # content expected as bytes and tracked elsewhere
+            await db.add_attachment(message_id, filename, content, '')
+    return message_id
+
+async def add_attachment(message_id: int, filename: str, content: bytes, content_type: str) -> int:
+    """
+    Proxy to database handler for adding attachments.
+    """
+    return await db.add_attachment(message_id, filename, content, content_type)
 
 async def get_last_message(conversation_id: int, sender: str) -> MessageOut:
-    return await db.get_latest_message(conversation_id, sender)
+    msg = await db.get_latest_message(conversation_id, sender)
+    if msg:
+        # fetch attachments metadata
+        attachments = await db.get_attachments_for_message(msg.id)
+        msg.attachments = attachments
+    return msg
 
 async def get_messages_for_conversation(conversation_id: int) -> ConversationMessages:
     messages = await db.get_conversation_messages(conversation_id)
+    # enrich each with attachments
+    for m in messages:
+        attachments = await db.get_attachments_for_message(m.id)
+        m.attachments = attachments
     return ConversationMessages(
         conversation_id=conversation_id,
         messages=messages

@@ -59,15 +59,10 @@ async def chat_endpoint(
     metadata: Optional[str] = Form(None),
     files: List[UploadFile] = File(None)
 ):
-    # Preprocess attached files into prompt
-    prompt = text
-    if files:
-        from app.services.file_processor import extract_text_from_file
-        for file in files:
-            content = await extract_text_from_file(file)
-            prompt += f"\nContents of {file.filename}:\n{content}"
+    # Delegate full conversation handling (message persistence, attachments, AI call) to service
     ai_reply: MessageOut = await chat_call(
-        prompt=prompt,
+        text=text,
+        files=files,
         conversation_id=conversation_id,
         model=model,
         metadata=metadata

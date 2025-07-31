@@ -25,6 +25,9 @@ class MessageCreate(BaseModel):
     total_tokens: Optional[int] = None
     model: Optional[str] = "gpt-4.1"
     price: Optional[float] = None
+    # attachments files will be uploaded via multipart form
+    # filenames of attached files
+    attachments: Optional[List[str]] = None
 
 class MessageOut(BaseModel):
     id: int
@@ -39,6 +42,8 @@ class MessageOut(BaseModel):
     total_tokens: Optional[int] = None
     model: Optional[str] = None
     price: Optional[float] = None
+    # list of attachment records associated
+    attachments: Optional[List[dict]] = None
 
 class ConversationMessages(BaseModel):
     conversation_id: int

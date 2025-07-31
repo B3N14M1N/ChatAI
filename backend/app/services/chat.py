@@ -26,17 +26,32 @@ async def generate_conversation_title(
     )
     return resp.output_text.strip()
 
+from app.core.crud import add_attachment
+
 async def chat_call(
-    prompt: str,
-    conversation_id: int = None,
+    text: str,
+    files: List = None,
+    conversation_id: Optional[int] = None,
     model: str = "gpt-4.1",
-    metadata: str = None
+    metadata: Optional[str] = None
 ) -> MessageOut:
     # If new conversation, generate title and create record
     if conversation_id is None:
         # Title based on first prompt
         title = await generate_conversation_title(prompt, model)
         conversation_id = await create_conversation(ConversationCreate(title=title))
+    # Build prompt and collect attachments
+    original_text = text
+    prompt = text
+    file_contents = []  # List[tuple(filename, bytes, content_type)]
+    if files:
+        from app.services.file_processor import extract_text_from_file
+        for f in files:
+            raw = await f.read()
+            file_contents.append((f.filename, raw, f.content_type))
+            content = await extract_text_from_file(f)
+            prompt += f"\nContents of {f.filename}:\n{content}"
+
     # Get conversation context (all previous messages)
     context: str = await get_conversation_context(conversation_id)
     # Build full prompt including context
@@ -66,13 +81,14 @@ async def chat_call(
     # Compute price via pricing service
     price = calculate_price(model, input_tokens, output_tokens, cached_input_tokens)
 
-    # Save user message (no metrics)
+    # Save user message
     await add_message(MessageCreate(
         conversation_id=conversation_id,
         sender="user",
-        text=prompt,
+        text=original_text,
         metadata=metadata
     ))
+    
     # Save AI reply with usage metrics and model
     await add_message(MessageCreate(
         conversation_id=conversation_id,
@@ -85,6 +101,10 @@ async def chat_call(
         model=model,
         price=price
     ))
+
+    # Save attachments
+    for filename, raw, ctype in file_contents:
+        await add_attachment(conversation_id, filename, raw, ctype)
 
     # Assuming the last added message is the assistant's reply, fetch it to return a complete MessageOut
     return await get_last_message(conversation_id, "assistant")

@@ -47,6 +47,15 @@ class DatabaseConnector:
                     price REAL,
                     FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
                 );
+                -- Attachments table for message files
+                CREATE TABLE IF NOT EXISTS attachments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    message_id INTEGER NOT NULL,
+                    filename TEXT NOT NULL,
+                    content BLOB,
+                    content_type TEXT,
+                    FOREIGN KEY(message_id) REFERENCES messages(id) ON DELETE CASCADE
+                );
                 """
             )
             await conn.commit()
@@ -133,6 +142,47 @@ class DatabaseHandler:
             rows = await cursor.fetchall()
             columns = [column[0] for column in cursor.description]
             return [MessageOut(**dict(zip(columns, row))) for row in rows]
+    async def add_attachment(
+        self,
+        message_id: int,
+        filename: str,
+        content: bytes,
+        content_type: str
+    ) -> int:
+        """
+        Insert an attachment linked to a message.
+        """
+        query = (
+            "INSERT INTO attachments (message_id, filename, content, content_type) "
+            "VALUES (?, ?, ?, ?)"
+        )
+        async with self.connector.get_connection() as conn:
+            cursor = await conn.execute(query, (message_id, filename, content, content_type))
+            await conn.commit()
+            return cursor.lastrowid
+    async def get_attachments_for_message(self, message_id: int) -> List[Dict[str, Any]]:
+        """
+        Retrieve attachment metadata for a specific message.
+        """
+        query = "SELECT id, filename, content_type FROM attachments WHERE message_id = ?"
+        async with self.connector.get_connection() as conn:
+            cursor = await conn.execute(query, (message_id,))
+            rows = await cursor.fetchall()
+            cols = [desc[0] for desc in cursor.description]
+            return [dict(zip(cols, row)) for row in rows]
+    
+    async def get_attachment(self, attachment_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve full attachment record including content for download.
+        """
+        query = "SELECT filename, content, content_type FROM attachments WHERE id = ?"
+        async with self.connector.get_connection() as conn:
+            cursor = await conn.execute(query, (attachment_id,))
+            row = await cursor.fetchone()
+            if not row:
+                return None
+            cols = [desc[0] for desc in cursor.description]
+            return dict(zip(cols, row))
 
 
 db_connector = DatabaseConnector()

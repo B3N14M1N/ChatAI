@@ -12,4 +12,10 @@ export interface Message {
   total_tokens?: number;
   model?: string;
   price?: number;
+  // Attached files
+  attachments?: Array<{
+    id: number;
+    filename: string;
+    content_type?: string;
+  }>;
 }

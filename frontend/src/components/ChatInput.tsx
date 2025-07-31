@@ -50,7 +50,10 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
 
   // helper for sending current text
   const sendText = async () => {
-    const text = inputText.trim();
+    const trimmed = inputText.trim();
+    // If only attachments and no text, send a placeholder listing files
+    const hasFiles = attachments.length > 0;
+    const text = trimmed || (hasFiles ? `[Files attached: ${attachments.map(f => f.name).join(', ')}]` : '');
     if (!text || loading) return;
     await handleSend(text, selectedModel, attachments);
     // reset input and attachments

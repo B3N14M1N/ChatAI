@@ -144,7 +144,8 @@ const App: React.FC = () => {
       const res = await axios.post<Message>('/api/chat/', form, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      // First message: select new conversation
+      // On first message, select the new conversation
+      let convId = selectedConv?.id;
       if (!selectedConv) {
         const listRes = await axios.get<Conversation[]>('/api/conversations/');
         setConversations(listRes.data);
@@ -152,9 +153,19 @@ const App: React.FC = () => {
         if (newConv) {
           setSelectedConv(newConv);
           setSearchParams({ id: newConv.id.toString(), collapsed: collapsed.toString() });
+          convId = newConv.id;
         }
       }
-      setMessages(prev => [...prev, res.data]);
+      // Reload full conversation messages to include attachments
+      if (convId != null) {
+        const msgsRes = await axios.get<{conversation_id: number; messages: Message[]}>(
+          `/api/conversations/${convId}/messages`
+        );
+        setMessages(msgsRes.data.messages);
+      } else {
+        // fallback to optimistic append
+        setMessages(prev => [...prev, res.data]);
+      }
     } catch (err) {
       console.error(err);
     } finally {
