@@ -24,6 +24,34 @@ async def delete_conversation(conversation_id: int) -> None:
 async def get_conversation_context(conversation_id: int) -> str:
     messages = await db.get_conversation_messages(conversation_id)
     return "\n".join([f"{m.sender}: {m.text}" for m in messages])
+    # Note: this function fetches fresh context from DB
+
+# In-memory cache for conversation contexts
+_context_cache: Dict[int, str] = {}
+
+async def get_cached_conversation_context(conversation_id: int) -> str:
+    """
+    Retrieve conversation context from cache or DB.
+    """
+    if conversation_id not in _context_cache:
+        _context_cache[conversation_id] = await get_conversation_context(conversation_id)
+    return _context_cache[conversation_id]
+
+async def set_conversation_context(conversation_id: int, context: str) -> None:
+    """
+    Set or replace the cached conversation context.
+    """
+    _context_cache[conversation_id] = context
+
+async def append_to_conversation_context(conversation_id: int, sender: str, text: str) -> None:
+    """
+    Append a new message to the cached conversation context.
+    """
+    entry = f"{sender}: {text}"
+    if conversation_id in _context_cache:
+        _context_cache[conversation_id] += "\n" + entry
+    else:
+        _context_cache[conversation_id] = entry
 
 """
 MESSAGE CRUD

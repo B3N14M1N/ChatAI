@@ -4,7 +4,9 @@ from app.services.pricing import calculate_price, get_available_models
 from app.core.schemas import MessageCreate, MessageOut, ConversationCreate
 from app.services.file_processor import extract_text_from_file
 from app.core.crud import (
-    get_conversation_context,
+    get_cached_conversation_context,
+    set_conversation_context,
+    append_to_conversation_context,
     get_last_message,
     add_message,
     create_conversation,
@@ -54,9 +56,8 @@ async def chat_call(
             file_contents.append((f.filename, raw, f.content_type))
             prompt += f"\nContents of {f.filename}:\n{content}"
 
-    # Get conversation context (all previous messages)
-    # Could be improved by making a short summary instead of sending all the texts.
-    context: str = await get_conversation_context(conversation_id)
+    # Get cached conversation context
+    context: str = await get_cached_conversation_context(conversation_id)
 
     # Build full prompt including context
     full_prompt = f"{context}\nuser prompt: {prompt}" if context else prompt
@@ -84,20 +85,21 @@ async def chat_call(
         usage.input_tokens_details.cached_tokens
     )
 
-    # Persist user message
+    # Persist user message and update cache
     user_msg_id = await add_message(MessageCreate(
         conversation_id=conversation_id,
         sender="user",
         text=original_text,
         metadata=metadata
     ))
+    await append_to_conversation_context(conversation_id, "user", original_text)
 
     # Persist attachments linked to user message
     for filename, raw, ctype in file_contents:
         await add_attachment(user_msg_id, filename, raw, ctype)
 
     # Save AI reply with usage metrics and model
-    await add_message(MessageCreate(
+    assistant_msg_id = await add_message(MessageCreate(
         conversation_id=conversation_id,
         sender="assistant",
         text=ai_reply,
@@ -108,6 +110,18 @@ async def chat_call(
         model=model,
         price=price
     ))
+    await append_to_conversation_context(conversation_id, "assistant", ai_reply)
+
+    # Summarize context when too long
+    cached = await get_cached_conversation_context(conversation_id)
+    if len(cached) > 2000:
+        # generate summary
+        summary_prompt = f"Summarize the key points of this conversation in a concise bullet list:\n{cached}"
+        summary_resp = client.responses.create(model=model, input=summary_prompt)
+        summary_text = summary_resp.output_text.strip()
+        # reset cache with summary and recent messages
+        new_context = summary_text + f"\nuser: {original_text}\nassistant: {ai_reply}"
+        await set_conversation_context(conversation_id, new_context)
 
     # Attachments already saved for user message above
 
