@@ -2,6 +2,7 @@ from typing import List, Optional
 from openai import OpenAI
 from app.services.pricing import calculate_price, get_available_models
 from app.core.schemas import MessageCreate, MessageOut, ConversationCreate
+from app.services.file_processor import extract_text_from_file
 from app.core.crud import (
     get_conversation_context,
     get_last_message,
@@ -45,11 +46,12 @@ async def chat_call(
     prompt = text
     file_contents = []  # List[tuple(filename, bytes, content_type)]
     if files:
-        from app.services.file_processor import extract_text_from_file
         for f in files:
             raw = await f.read()
-            file_contents.append((f.filename, raw, f.content_type))
+            # Reset file pointer for content extraction
+            f.file.seek(0)
             content = await extract_text_from_file(f)
+            file_contents.append((f.filename, raw, f.content_type))
             prompt += f"\nContents of {f.filename}:\n{content}"
 
     # Get conversation context (all previous messages)
