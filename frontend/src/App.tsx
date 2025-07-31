@@ -125,6 +125,8 @@ const App: React.FC = () => {
       text: trimmed,
       created_at: new Date().toISOString(),
       metadata: 'pending',
+      // show attachments immediately
+      attachments: files?.map((file, idx) => ({ id: Date.now() + idx, filename: file.name }))
     };
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);

@@ -23,6 +23,23 @@ const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
         <ReactMarkdown remarkPlugins={[remarkGfm]}>  
           {msg.text}
         </ReactMarkdown>
+        {/* Render user attachments in footer */}
+        {msg.attachments && msg.attachments.length > 0 && msg.sender === 'user' && (
+          <div className="bubble-footer attachments-footer">
+            {msg.attachments.map(att => (
+              <a
+                key={att.id}
+                href={`/api/attachments/${att.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="attachment-link"
+              >
+                {att.filename}
+              </a>
+            ))}
+          </div>
+        )}
         {msg.sender === "assistant" && (
           <div className="bubble-footer">
             <div className="metrics">

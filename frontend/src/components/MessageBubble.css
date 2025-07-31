@@ -75,6 +75,21 @@
   color: var(--color-text-secondary);
   margin-top: 0.5rem;
 }
+/* User message attachments in bubble footer */
+.bubble-footer.attachments-footer {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.bubble-footer.attachments-footer .attachment-link {
+  font-size: 0.875rem;
+  color: var(--color-link);
+  text-decoration: underline;
+}
+.bubble-footer.attachments-footer .attachment-link:hover {
+  color: var(--color-link-hover);
+}
 
 .message .bubble-footer .metrics {
   display: flex;
