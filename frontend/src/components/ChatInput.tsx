@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, type FormEvent } from "react";
-import { FaPaperPlane } from 'react-icons/fa';
+import { FaPaperPlane, FaPaperclip, FaTimes } from 'react-icons/fa';
 import type { FC } from "react";
 import './ChatInput.css';
 
@@ -16,6 +16,8 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
   const [models, setModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [inputText, setInputText] = useState<string>('');
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [inputHeight, setLocalHeight] = useState<number>(minHeight);
   const heightTimeout = useRef<number | undefined>(undefined);
 
@@ -58,45 +60,90 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
     e.preventDefault();
     void sendText();
   };
+  // handle file selection
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newFiles = Array.from(files);
+      setAttachments(prev => [...prev, ...newFiles]);
+    }
+  };
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
   return (
     <form className="input-container" onSubmit={onSubmit}>
-      <div className="input-tools">
-        {/* Model selector */}
-        <select
-          className="model-select"
-          value={selectedModel}
-          onChange={e => setSelectedModel(e.target.value)}
-          disabled={loading || models.length === 0}
-        >
-          {models.map(m => (
-            <option key={m} value={m}>{m}</option>
+      {/* Attachments preview */}
+      {attachments.length > 0 && (
+        <div className="attachments">
+          {attachments.map((file, idx) => (
+            <div key={idx} className="attachment-item">
+              <span>{file.name}</span>
+              <button
+                type="button"
+                onClick={() => removeAttachment(idx)}
+                className="remove-attach-btn"
+              >
+                <FaTimes />
+              </button>
+            </div>
           ))}
-        </select>
-      </div>
+        </div>
+      )}
       <textarea
-        ref={textareaRef}
-        className="chat-textarea"
-        value={inputText}
-        onChange={e => setInputText(e.target.value)}
-        placeholder="Type your message..."
-        disabled={loading}
-        style={{ height: `${inputHeight}px` }}
-        onKeyDown={e => {
-          // on desktop, Enter sends message; Shift+Enter newline
-          if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) {
-            e.preventDefault();
-            void sendText();
-          }
-        }}
-      />
-      <button
-        type="submit"
-        className="send-btn"
-        disabled={loading || !inputText.trim()}
-        aria-label="Send message"
-      >
-        <FaPaperPlane size={32} />
-      </button>
+         ref={textareaRef}
+         className="chat-textarea"
+         value={inputText}
+         onChange={e => setInputText(e.target.value)}
+         placeholder="Type your message..."
+         disabled={loading}
+         style={{ height: `${inputHeight}px` }}
+         onKeyDown={e => {
+           // on desktop, Enter sends message; Shift+Enter newline
+           if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) {
+             e.preventDefault();
+             void sendText();
+           }
+         }}
+       />
+      {/* Footer with attachment, model select and send */}
+      <div className="input-footer">
+        <div className="left-controls">
+          <button
+            type="button"
+            className="attach-btn"
+            onClick={() => fileInputRef.current?.click()}
+            aria-label="Attach files"
+          >
+            <FaPaperclip />
+          </button>
+          <select
+            className="model-select"
+            value={selectedModel}
+            onChange={e => setSelectedModel(e.target.value)}
+            disabled={loading || models.length === 0}
+          >
+            {models.map(m => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+        <button
+          type="submit"
+          className="send-btn"
+          disabled={loading || !inputText.trim()}
+          aria-label="Send message"
+        >
+          <FaPaperPlane size={20} />
+        </button>
+        <input
+          type="file"
+          multiple
+          hidden
+          ref={fileInputRef}
+          onChange={onFileChange}
+        />
+      </div>
     </form>
   );
 };
