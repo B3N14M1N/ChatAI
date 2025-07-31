@@ -22,6 +22,7 @@ from app.core.crud import (
     rename_conversation
 )
 from app.services.chat import chat_call
+from app.services.pricing import get_available_models
 
 
 
@@ -89,3 +90,10 @@ async def get_conversation_messages_endpoint(conversation_id: int):
 @app.get("/conversations/{conversation_id}/context", response_model=str)
 async def get_conversation_context_endpoint(conversation_id: int):
     return await get_conversation_context(conversation_id)
+
+@app.get("/models", response_model=dict)
+async def get_models_endpoint():
+    """
+    Retrieve available models along with their version, pricing, and capabilities metadata.
+    """
+    return get_available_models()

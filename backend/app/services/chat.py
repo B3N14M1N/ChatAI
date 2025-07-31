@@ -1,6 +1,6 @@
 from typing import List, Optional
 from openai import OpenAI
-from app.services.pricing import calculate_price
+from app.services.pricing import calculate_price, get_available_models
 from app.core.schemas import MessageCreate, MessageOut, ConversationCreate
 from app.core.crud import (
     get_conversation_context,
@@ -13,7 +13,7 @@ client = OpenAI()
 
 async def generate_conversation_title(
     prompt: str,
-    model: str = "gpt-4.1"
+    model: str = "gpt-4.1-nano"
 ) -> str:
     """
     Generate a very short and concise title for the conversation based on the first user prompt.
@@ -22,7 +22,6 @@ async def generate_conversation_title(
     title_prompt = f"Generate a very short and concise title for the following conversation topic: {prompt}"
     resp = client.responses.create(
         model=model,
-        tools=[],
         input=title_prompt
     )
     return resp.output_text.strip()
@@ -43,12 +42,15 @@ async def chat_call(
     # Build full prompt including context
     full_prompt = f"{context}\nuser: {prompt}" if context else prompt
 
-    # Call OpenAI API with selected model
-    response = client.responses.create(
-        model=model,
-        tools=[{"type": "web_search_preview"}],
-        input=full_prompt
-    )
+    # Determine tools based on model capabilities
+    pricing_data = get_available_models()
+    caps = pricing_data.get(model, {}).get("capabilities", [])
+    tools = [{"type": cap} for cap in caps]
+    # Call OpenAI API with selected model and, if any, appropriate tools
+    call_args = {"model": model, "input": full_prompt}
+    if tools:
+        call_args["tools"] = tools
+    response = client.responses.create(**call_args)
     ai_reply = response.output_text
 
     # Extract usage metrics from response

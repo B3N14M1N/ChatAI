@@ -114,7 +114,7 @@ const App: React.FC = () => {
   };
 
   // Send a chat message; handle new and existing conversations
-  const handleSend = async (text: string) => {
+  const handleSend = async (text: string, model: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
     // Optimistic UI: display user message
@@ -134,7 +134,7 @@ const App: React.FC = () => {
         sender: 'user',
         text: trimmed,
         metadata: null,
-        model: 'gpt-4.1',
+        model,
       });
       // First message: select new conversation
       if (!selectedConv) {

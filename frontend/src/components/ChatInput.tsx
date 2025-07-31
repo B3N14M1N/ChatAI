@@ -6,13 +6,15 @@ import './ChatInput.css';
 interface ChatInputProps {
   loading: boolean;
   // handleSend accepts the current text and sends it
-  handleSend: (text: string) => Promise<void>;
+  handleSend: (text: string, model: string) => Promise<void>;
   onHeightChange: (height: number) => void;
   minHeight?: number;
 }
 
 const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, minHeight = 80 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [models, setModels] = useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('');
   const [inputText, setInputText] = useState<string>('');
   const [inputHeight, setLocalHeight] = useState<number>(minHeight);
   const heightTimeout = useRef<number | undefined>(undefined);
@@ -32,12 +34,23 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
     heightTimeout.current = window.setTimeout(() => onHeightChange(newHeight), 100);
     textareaRef.current.style.height = `${newHeight}px`;
   }, [inputText, minHeight, onHeightChange]);
+  // Fetch available models on mount
+  useEffect(() => {
+    fetch('/api/models')
+      .then(res => res.json())
+      .then(data => {
+        const list = Object.keys(data);
+        setModels(list);
+        if (list.length) setSelectedModel(list[0]);
+      })
+      .catch(console.error);
+  }, []);
 
   // helper for sending current text
   const sendText = async () => {
     const text = inputText.trim();
     if (!text || loading) return;
-    await handleSend(text);
+    await handleSend(text, selectedModel);
     setInputText('');
   };
   // submit via form
@@ -47,7 +60,19 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
   };
   return (
     <form className="input-container" onSubmit={onSubmit}>
-      <div className="input-tools">{/* future attachments */}</div>
+      <div className="input-tools">
+        {/* Model selector */}
+        <select
+          className="model-select"
+          value={selectedModel}
+          onChange={e => setSelectedModel(e.target.value)}
+          disabled={loading || models.length === 0}
+        >
+          {models.map(m => (
+            <option key={m} value={m}>{m}</option>
+          ))}
+        </select>
+      </div>
       <textarea
         ref={textareaRef}
         className="chat-textarea"
