@@ -42,11 +42,6 @@ async def add_message(msg: MessageCreate) -> int:
         msg.model,
         msg.price,
     )
-    # Handle attachments
-    if getattr(msg, 'attachments', None):
-        for filename, content in msg.attachments:
-            # content expected as bytes and tracked elsewhere
-            await db.add_attachment(message_id, filename, content, '')
     return message_id
 
 async def add_attachment(message_id: int, filename: str, content: bytes, content_type: str) -> int:

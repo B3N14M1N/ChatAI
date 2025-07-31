@@ -39,6 +39,7 @@ async def chat_call(
         # Title based on first prompt text
         title = await generate_conversation_title(text, model)
         conversation_id = await create_conversation(ConversationCreate(title=title))
+
     # Build prompt with context and extract file content
     original_text = text
     prompt = text
@@ -52,14 +53,17 @@ async def chat_call(
             prompt += f"\nContents of {f.filename}:\n{content}"
 
     # Get conversation context (all previous messages)
+    # Could be improved by making a short summary instead of sending all the texts.
     context: str = await get_conversation_context(conversation_id)
+
     # Build full prompt including context
-    full_prompt = f"{context}\nuser: {prompt}" if context else prompt
+    full_prompt = f"{context}\nuser prompt: {prompt}" if context else prompt
 
     # Determine tools based on model capabilities
     pricing_data = get_available_models()
     caps = pricing_data.get(model, {}).get("capabilities", [])
     tools = [{"type": cap} for cap in caps]
+
     # Call OpenAI API with selected model and, if any, appropriate tools
     call_args = {"model": model, "input": full_prompt}
     if tools:
@@ -69,16 +73,14 @@ async def chat_call(
 
     # Extract usage metrics from response
     usage = response.usage
-    # New API fields: input_tokens, output_tokens, total_tokens
-    input_tokens = getattr(usage, "input_tokens", 0) or 0
-    # Some usage objects include cached token counts
-    cached_input_tokens = 0
-    if getattr(usage, "input_tokens_details", None):
-        cached_input_tokens = getattr(usage.input_tokens_details, "cached_tokens", 0) or 0
-    output_tokens = getattr(usage, "output_tokens", 0) or 0
-    total_tokens = getattr(usage, "total_tokens", 0) or 0
+
     # Compute price via pricing service
-    price = calculate_price(model, input_tokens, output_tokens, cached_input_tokens)
+    price = calculate_price(
+        model,
+        usage.input_tokens,
+        usage.output_tokens,
+        usage.input_tokens_details.cached_tokens
+    )
 
     # Persist user message
     user_msg_id = await add_message(MessageCreate(
@@ -87,6 +89,7 @@ async def chat_call(
         text=original_text,
         metadata=metadata
     ))
+
     # Persist attachments linked to user message
     for filename, raw, ctype in file_contents:
         await add_attachment(user_msg_id, filename, raw, ctype)
@@ -96,10 +99,10 @@ async def chat_call(
         conversation_id=conversation_id,
         sender="assistant",
         text=ai_reply,
-        metadata=None,
-        prompt_tokens=input_tokens,
-        completion_tokens=output_tokens,
-        total_tokens=total_tokens,
+        metadata=metadata,
+        prompt_tokens=usage.input_tokens,
+        completion_tokens=usage.output_tokens,
+        total_tokens=usage.total_tokens,
         model=model,
         price=price
     ))

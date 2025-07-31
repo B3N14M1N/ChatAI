@@ -142,6 +142,7 @@ class DatabaseHandler:
             rows = await cursor.fetchall()
             columns = [column[0] for column in cursor.description]
             return [MessageOut(**dict(zip(columns, row))) for row in rows]
+
     async def add_attachment(
         self,
         message_id: int,
@@ -160,6 +161,7 @@ class DatabaseHandler:
             cursor = await conn.execute(query, (message_id, filename, content, content_type))
             await conn.commit()
             return cursor.lastrowid
+
     async def get_attachments_for_message(self, message_id: int) -> List[Dict[str, Any]]:
         """
         Retrieve attachment metadata for a specific message.
