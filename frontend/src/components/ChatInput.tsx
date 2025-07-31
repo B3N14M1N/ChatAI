@@ -6,7 +6,7 @@ import './ChatInput.css';
 interface ChatInputProps {
   loading: boolean;
   // handleSend accepts the current text and sends it
-  handleSend: (text: string, model: string) => Promise<void>;
+  handleSend: (text: string, model: string, files?: File[]) => Promise<void>;
   onHeightChange: (height: number) => void;
   minHeight?: number;
 }
@@ -52,8 +52,10 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
   const sendText = async () => {
     const text = inputText.trim();
     if (!text || loading) return;
-    await handleSend(text, selectedModel);
+    await handleSend(text, selectedModel, attachments);
+    // reset input and attachments
     setInputText('');
+    setAttachments([]);
   };
   // submit via form
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -141,6 +143,7 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
           multiple
           hidden
           ref={fileInputRef}
+          accept=".txt,.md,.csv,.pdf,.docx"
           onChange={onFileChange}
         />
       </div>

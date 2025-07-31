@@ -113,8 +113,8 @@ const App: React.FC = () => {
     }
   };
 
-  // Send a chat message; handle new and existing conversations
-  const handleSend = async (text: string, model: string) => {
+  // Send a chat message; handle new and existing conversations, with optional files
+  const handleSend = async (text: string, model: string, files?: File[]) => {
     const trimmed = text.trim();
     if (!trimmed) return;
     // Optimistic UI: display user message
@@ -129,12 +129,20 @@ const App: React.FC = () => {
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
     try {
-      const res = await axios.post<Message>('/api/chat/', {
-        conversation_id: selectedConv?.id ?? null,
-        sender: 'user',
-        text: trimmed,
-        metadata: null,
-        model,
+      // Build multipart form data
+      const form = new FormData();
+      form.append('conversation_id', selectedConv?.id != null ? selectedConv.id.toString() : '');
+      form.append('sender', 'user');
+      form.append('text', trimmed);
+      form.append('model', model);
+      // include metadata if needed
+      form.append('metadata', '');
+      // append files
+      if (files && files.length) {
+        files.forEach(file => form.append('files', file, file.name));
+      }
+      const res = await axios.post<Message>('/api/chat/', form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       // First message: select new conversation
       if (!selectedConv) {

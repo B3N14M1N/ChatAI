@@ -47,15 +47,30 @@ def read_root():
     return {"message": "Hello, FastAPI!"}
 
 
+from fastapi import Form, File, UploadFile
+from typing import Optional, List
+
 @app.post("/chat/", response_model=ChatResponse)
 async def chat_endpoint(
-    req: ChatRequest
+    conversation_id: Optional[int] = Form(None),
+    sender: str = Form(...),
+    text: str = Form(...),
+    model: str = Form(...),
+    metadata: Optional[str] = Form(None),
+    files: List[UploadFile] = File(None)
 ):
+    # Preprocess attached files into prompt
+    prompt = text
+    if files:
+        from app.services.file_processor import extract_text_from_file
+        for file in files:
+            content = await extract_text_from_file(file)
+            prompt += f"\nContents of {file.filename}:\n{content}"
     ai_reply: MessageOut = await chat_call(
-        prompt=req.text,
-        conversation_id=req.conversation_id,
-        model=req.model,
-        metadata=req.metadata
+        prompt=prompt,
+        conversation_id=conversation_id,
+        model=model,
+        metadata=metadata
     )
     return ChatResponse(**ai_reply.dict())
 
