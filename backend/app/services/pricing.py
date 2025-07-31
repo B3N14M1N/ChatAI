@@ -2,19 +2,17 @@
 Service for pricing calculations based on model token usage rates.
 This module defines pricing rates per model and a helper to calculate cost.
 """
-from typing import Dict
+import json
+from pathlib import Path
+from typing import Any, Dict
 
-# Pricing rates are in USD per 1 million tokens
-MODEL_PRICING: Dict[str, Dict[str, float]] = {
-    # GPT-4.1 pricing (example rates)
-    "gpt-4.1": {
-        "input": 2.00,         # $2.00 per 1M input tokens
-        "cached_input": 0.50,  # $0.50 per 1M cached input tokens
-        "output": 8.00         # $8.00 per 1M output tokens
-    },
-    # Additional model rates can be added here
-    # "gpt-3.5-turbo": {"input": 0.0015, "cached_input": 0.0005, "output": 0.0020},
-}
+# Load pricing data from external JSON to separate raw data from logic
+_DATA_FILE = Path(__file__).parent / "pricing_data.json"
+try:
+    with open(_DATA_FILE, "r", encoding="utf-8") as f:
+        MODEL_PRICING: Dict[str, Dict[str, Any]] = json.load(f)
+except FileNotFoundError:
+    MODEL_PRICING: Dict[str, Dict[str, Any]] = {}
 
 
 def calculate_price(
@@ -48,3 +46,9 @@ def calculate_price(
         output_tokens * rates.get("output", 0)
     ) / 1_000_000
     return cost
+    
+def get_available_models() -> Dict[str, Dict[str, Any]]:
+    """
+    Return a mapping of model names to their pricing and version metadata.
+    """
+    return {name: data.copy() for name, data in MODEL_PRICING.items()}
