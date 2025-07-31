@@ -59,6 +59,8 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
     // reset input and attachments
     setInputText('');
     setAttachments([]);
+    // Clear file input to allow re-adding
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
   // submit via form
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -71,30 +73,48 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
     if (files) {
       const newFiles = Array.from(files);
       setAttachments(prev => [...prev, ...newFiles]);
+      // Reset input value so the same file can be reselected
+      e.target.value = '';
     }
   };
   const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+    setAttachments(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      // If no attachments remain, clear the file input
+      if (updated.length === 0 && fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      return updated;
+    });
   };
   return (
     <form className="input-container" onSubmit={onSubmit}>
       {/* Attachments preview */}
-      {attachments.length > 0 && (
-        <div className="attachments">
-          {attachments.map((file, idx) => (
-            <div key={idx} className="attachment-item">
-              <span>{file.name}</span>
-              <button
-                type="button"
-                onClick={() => removeAttachment(idx)}
-                className="remove-attach-btn"
-              >
-                <FaTimes />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      {attachments.length > 0 && (() => {
+        const nameCounts: Record<string, number> = {};
+        return (
+          <div className="attachments">
+            {attachments.map((file, idx) => {
+              nameCounts[file.name] = (nameCounts[file.name] || 0) + 1;
+              const displayName = nameCounts[file.name] > 1
+                ? `${file.name} (${nameCounts[file.name]})`
+                : file.name;
+              return (
+                <div key={idx} className="attachment-item">
+                  <span>{displayName}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(idx)}
+                    className="remove-attach-btn"
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
       <textarea
          ref={textareaRef}
          className="chat-textarea"

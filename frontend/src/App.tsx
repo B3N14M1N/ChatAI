@@ -133,12 +133,14 @@ const App: React.FC = () => {
     try {
       // Build multipart form data
       const form = new FormData();
-      form.append('conversation_id', selectedConv?.id != null ? selectedConv.id.toString() : '');
+      // Only include conversation_id when replying to an existing conversation
+      if (selectedConv?.id != null) {
+        form.append('conversation_id', selectedConv.id.toString());
+      }
       form.append('sender', 'user');
       form.append('text', trimmed);
       form.append('model', model);
-      // include metadata if needed
-      form.append('metadata', '');
+      // metadata is optional; omit if not used
       // append files
       if (files && files.length) {
         files.forEach(file => form.append('files', file, file.name));
