@@ -56,7 +56,7 @@ async def chat_endpoint(
         model=req.model,
         metadata=req.metadata
     )
-    return ChatResponse(**ai_reply.dict(), model=req.model)
+    return ChatResponse(**ai_reply.dict())
 
 
 @app.post("/conversations/", response_model=int)

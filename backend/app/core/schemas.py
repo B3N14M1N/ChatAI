@@ -19,6 +19,12 @@ class MessageCreate(BaseModel):
     sender: str
     text: str
     metadata: Optional[str] = None
+    # Usage metrics
+    prompt_tokens: Optional[int] = None
+    completion_tokens: Optional[int] = None
+    total_tokens: Optional[int] = None
+    model: Optional[str] = "gpt-4.1"
+    price: Optional[float] = None
 
 class MessageOut(BaseModel):
     id: int
@@ -27,6 +33,12 @@ class MessageOut(BaseModel):
     text: Optional[str]
     created_at: str
     metadata: Optional[str] = None
+    # Usage metrics
+    prompt_tokens: Optional[int] = None
+    completion_tokens: Optional[int] = None
+    total_tokens: Optional[int] = None
+    model: Optional[str] = None
+    price: Optional[float] = None
 
 class ConversationMessages(BaseModel):
     conversation_id: int
@@ -34,7 +46,9 @@ class ConversationMessages(BaseModel):
 
 
 class ChatRequest(MessageCreate):
-    model: str = "gpt-4.1"
+    pass
 
 class ChatResponse(MessageOut):
-    model: str
+    """
+    Response returned by /chat includes message fields with usage metrics.
+    """

@@ -23,24 +23,28 @@ class DatabaseConnector:
             await conn.execute("PRAGMA foreign_keys = ON;")
             await conn.executescript(
                 """
-                -- Conversations table (standalone)
+                -- Conversations table
                 CREATE TABLE IF NOT EXISTS conversations (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
 
-                -- Messages table linked to conversations
+                -- Messages table with usage metrics
                 CREATE TABLE IF NOT EXISTS messages (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     conversation_id INTEGER NOT NULL,
                     sender TEXT NOT NULL,
                     text TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    -- Future extension fields
                     audio BLOB,
                     image BLOB,
                     metadata TEXT,
+                    prompt_tokens INTEGER,
+                    completion_tokens INTEGER,
+                    total_tokens INTEGER,
+                    model TEXT,
+                    price REAL,
                     FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
                 );
                 """
@@ -78,10 +82,37 @@ class DatabaseHandler:
             columns = [column[0] for column in cursor.description]
             return [dict(zip(columns, row)) for row in rows]
 
-    async def add_message(self, conversation_id: int, sender: str, text: str, metadata: Optional[str] = None) -> int:
-        query = "INSERT INTO messages (conversation_id, sender, text, metadata) VALUES (?, ?, ?, ?)"
+    async def add_message(
+        self,
+        conversation_id: int,
+        sender: str,
+        text: str,
+        metadata: Optional[str] = None,
+        prompt_tokens: Optional[int] = None,
+        completion_tokens: Optional[int] = None,
+        total_tokens: Optional[int] = None,
+        model: Optional[str] = None,
+        price: Optional[float] = None,
+    ) -> int:
+        # Insert message and usage metrics
+        query = (
+            "INSERT INTO messages (conversation_id, sender, text, metadata, "
+            "prompt_tokens, completion_tokens, total_tokens, model, price) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        )
+        params = (
+            conversation_id,
+            sender,
+            text,
+            metadata,
+            prompt_tokens,
+            completion_tokens,
+            total_tokens,
+            model,
+            price,
+        )
         async with self.connector.get_connection() as conn:
-            cursor = await conn.execute(query, (conversation_id, sender, text, metadata))
+            cursor = await conn.execute(query, params)
             await conn.commit()
             return cursor.lastrowid
 

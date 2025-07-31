@@ -25,9 +25,22 @@ async def get_conversation_context(conversation_id: int) -> str:
     messages = await db.get_conversation_messages(conversation_id)
     return "\n".join([f"{m.sender}: {m.text}" for m in messages])
 
-# MESSAGE CRUD
+"""
+MESSAGE CRUD
+Store and return messages with usage metrics.
+"""
 async def add_message(msg: MessageCreate) -> int:
-    return await db.add_message(msg.conversation_id, msg.sender, msg.text, msg.metadata)
+    return await db.add_message(
+        msg.conversation_id,
+        msg.sender,
+        msg.text,
+        msg.metadata,
+        msg.prompt_tokens,
+        msg.completion_tokens,
+        msg.total_tokens,
+        msg.model,
+        msg.price,
+    )
 
 async def get_last_message(conversation_id: int, sender: str) -> MessageOut:
     return await db.get_latest_message(conversation_id, sender)

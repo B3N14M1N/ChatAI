@@ -1,5 +1,6 @@
 from typing import List, Optional
 from openai import OpenAI
+from app.services.pricing import calculate_price
 from app.core.schemas import MessageCreate, MessageOut, ConversationCreate
 from app.core.crud import (
     get_conversation_context,
@@ -50,19 +51,37 @@ async def chat_call(
     )
     ai_reply = response.output_text
 
-    # Save user message
+    # Extract usage metrics from response
+    usage = response.usage
+    # New API fields: input_tokens, output_tokens, total_tokens
+    input_tokens = getattr(usage, "input_tokens", 0) or 0
+    # Some usage objects include cached token counts
+    cached_input_tokens = 0
+    if getattr(usage, "input_tokens_details", None):
+        cached_input_tokens = getattr(usage.input_tokens_details, "cached_tokens", 0) or 0
+    output_tokens = getattr(usage, "output_tokens", 0) or 0
+    total_tokens = getattr(usage, "total_tokens", 0) or 0
+    # Compute price via pricing service
+    price = calculate_price(model, input_tokens, output_tokens, cached_input_tokens)
+
+    # Save user message (no metrics)
     await add_message(MessageCreate(
         conversation_id=conversation_id,
         sender="user",
         text=prompt,
         metadata=metadata
     ))
-    # Save AI reply
+    # Save AI reply with usage metrics and model
     await add_message(MessageCreate(
         conversation_id=conversation_id,
         sender="assistant",
         text=ai_reply,
-        metadata=None
+        metadata=None,
+        prompt_tokens=input_tokens,
+        completion_tokens=output_tokens,
+        total_tokens=total_tokens,
+        model=model,
+        price=price
     ))
 
     # Assuming the last added message is the assistant's reply, fetch it to return a complete MessageOut
