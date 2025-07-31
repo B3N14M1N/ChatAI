@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Form, File, UploadFile, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from typing import List
+from typing import List, Optional
 
 from app.core.db import db_connector
 from app.core.schemas import (
@@ -19,7 +19,8 @@ from app.core.crud import (
     delete_conversation,
     get_conversation_context,
     get_messages_for_conversation,
-    rename_conversation
+    rename_conversation,
+    get_attachment
 )
 from app.services.chat import chat_call
 from app.services.pricing import get_available_models
@@ -46,9 +47,6 @@ app.add_middleware(
 def read_root():
     return {"message": "Hello, FastAPI!"}
 
-
-from fastapi import Form, File, UploadFile
-from typing import Optional, List
 
 @app.post("/chat/", response_model=ChatResponse)
 async def chat_endpoint(
@@ -107,3 +105,18 @@ async def get_models_endpoint():
     Retrieve available models along with their version, pricing, and capabilities metadata.
     """
     return get_available_models()
+    
+@app.get("/attachments/{attachment_id}")
+async def download_attachment(attachment_id: int):
+    """
+    Download raw attachment content by ID.
+    """
+    try:
+        attachment = await get_attachment(attachment_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+    filename = attachment.get('filename')
+    content = attachment.get('content')
+    content_type = attachment.get('content_type') or 'application/octet-stream'
+    headers = {"Content-Disposition": f"attachment; filename=\"{filename}\""}
+    return Response(content, media_type=content_type, headers=headers)

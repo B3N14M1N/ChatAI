@@ -73,3 +73,11 @@ async def get_messages_for_conversation(conversation_id: int) -> ConversationMes
         conversation_id=conversation_id,
         messages=messages
     )
+async def get_attachment(attachment_id: int) -> Dict[str, Any]:
+    """
+    Retrieve full attachment record for download.
+    """
+    attachment = await db.get_attachment(attachment_id)
+    if not attachment:
+        raise ValueError("Attachment not found")
+    return attachment
