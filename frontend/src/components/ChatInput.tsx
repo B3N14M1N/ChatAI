@@ -33,13 +33,17 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
     textareaRef.current.style.height = `${newHeight}px`;
   }, [inputText, minHeight, onHeightChange]);
 
-  // submit local text to parent and reset
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // helper for sending current text
+  const sendText = async () => {
     const text = inputText.trim();
-    if (!text) return;
+    if (!text || loading) return;
     await handleSend(text);
     setInputText('');
+  };
+  // submit via form
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    void sendText();
   };
   return (
     <form className="input-container" onSubmit={onSubmit}>
@@ -52,6 +56,13 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
         placeholder="Type your message..."
         disabled={loading}
         style={{ height: `${inputHeight}px` }}
+        onKeyDown={e => {
+          // on desktop, Enter sends message; Shift+Enter newline
+          if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) {
+            e.preventDefault();
+            void sendText();
+          }
+        }}
       />
       <button
         type="submit"

@@ -21,9 +21,14 @@
 .sidebar-menu-item:hover:not(.disabled) {
   background-color: var(--sidebar-selected-bg);
 }
-/* Hide text when collapsed */
+/* Fade menu text instead of hiding to avoid reflow */
+.sidebar-menu-item span {
+  opacity: 1;
+  transition: opacity 0.2s ease 0.3s;
+}
 .sidebar.collapsed .sidebar-menu-item span {
-  display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 .sidebar.collapsed .sidebar-menu-item {
   justify-content: center;
