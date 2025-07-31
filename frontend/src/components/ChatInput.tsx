@@ -11,7 +11,7 @@ interface ChatInputProps {
   minHeight?: number;
 }
 
-const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, minHeight = 80 }) => {
+const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, minHeight = 20 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [models, setModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');

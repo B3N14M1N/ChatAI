@@ -28,7 +28,7 @@ const ChatArea: FC<ChatAreaProps> = ({ messages, loading, handleSend }) => {
       <div
         className="messages"
         ref={messagesRef}
-        style={{ paddingBottom: `${inputHeight + 60}px` }}
+        style={{ paddingBottom: `${inputHeight + 100}px` }}
       >
         {messages.map(msg => (
           <MessageBubble key={msg.id} msg={msg} />
