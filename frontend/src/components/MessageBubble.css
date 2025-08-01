@@ -1,0 +1,109 @@
+.message {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.75rem;
+}
+
+.message .timestamp {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-align: left;
+  margin-bottom: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.message.user {
+  align-items: flex-end;
+}
+
+.message.assistant {
+  align-items: flex-start;
+}
+
+/* Base bubble styling */
+.message .bubble {
+  max-width: 75%;
+  /* wrap long continuous text to avoid overflow */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  padding: 1rem 1.5rem 0.5rem;
+  border-radius: 25px;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.message.user .bubble {
+  background-color: var(--user-msg-bg);
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 30px;
+  border-top-left-radius: 25px;
+  border-bottom-left-radius: 25px;
+  /* gentle dark shadow for user messages */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+/* hover effect for user messages */
+.message.user .bubble:hover {
+  transform: translateY(-2px);
+  /* slightly stronger dark shadow on hover */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+ .message.assistant .bubble {
+  background-color: var(--assistant-msg-bg);
+  border-top-right-radius: 25px;
+  border-bottom-right-radius: 25px;
+  border-top-left-radius: 30px;
+  border-bottom-left-radius: 4px;
+  /* subtle light glow for assistant messages */
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.message.assistant .bubble:hover {
+  transform: translateY(-2px);
+  /* slightly stronger light glow on hover */
+  box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1);
+}
+
+/* Footer inside the bubble for assistant metrics only */
+.message .bubble-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.5rem;
+}
+/* User message attachments in bubble footer */
+.bubble-footer.attachments-footer {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: flex-end; /* align attachments to the left */
+}
+/* Style attachment links as pill badges for better readability */
+.bubble-footer.attachments-footer .attachment-link {
+  display: inline-block;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  background-color: rgba(15, 15, 15, 0.274);
+  padding: .25rem 0.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.bubble-footer.attachments-footer .attachment-link:hover {
+  background-color: rgba(255, 255, 255, 0.712);
+  color: var(--color-link-hover);
+}
+
+.message .bubble-footer .metrics {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.message .bubble-footer .metrics span {
+  margin-left: 0.5rem;
+}

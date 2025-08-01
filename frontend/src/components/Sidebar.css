@@ -1,0 +1,76 @@
+/* Sidebar.css */
+.sidebar {
+  position: sticky;
+  top: 0;
+  width: 250px;
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  border-right: 1px solid var(--color-border);
+
+  /* subtle divider instead of border */
+  box-shadow: inset -1px 0 0 var(--color-border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.sidebar.collapsed {
+  width: 60px;
+  box-shadow: none;
+}
+
+.conversations-list {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.conversations-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  color: var(--sidebar-text);
+}
+.conversations-list li.selected {
+  background-color: var(--sidebar-selected-bg);
+}
+
+/* Separator */
+hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0.5rem 0;
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 0;
+    border: none;
+    z-index: 10;
+  }
+  .sidebar.collapsed {
+    width: 100%;
+  }
+  .sidebar.collapsed .sidebar-menu,
+  .sidebar.collapsed .conversations-list {
+    display: none;  
+  }
+  .sidebar:not(.collapsed) .conversations-list {
+    display: block;
+    width: 100%;
+    overflow-y: auto;
+    background-color: var(--sidebar-bg);
+  }
+}

@@ -1,64 +1,201 @@
-import React, { useState, FormEvent } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import "./App.css";
+import Sidebar from "./components/Sidebar";
+import ChatArea from "./components/ChatArea";
+import type { Conversation, Message } from "./types";
+import { useSearchParams } from 'react-router-dom';
 
 const App: React.FC = () => {
-  const [prompt, setPrompt] = useState<string>("");
-  const [reply, setReply] = useState<string>("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const idParam = searchParams.get('id');
+  const collapsed = searchParams.get('collapsed') === 'true';
+  const toggleCollapsed = () => {
+    setSearchParams({
+      id: idParam ?? '',
+      collapsed: (!collapsed).toString(),
+    });
+  };
+
+  // State variables for conversations, messages, and UI
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!prompt.trim()) return;
-    setLoading(true);
-    setError(null);
-
+  // Function to select and load messages for a conversation
+  async function selectConversation(conv: Conversation): Promise<void> {
+    setSelectedConv(conv);
+    // clear input is managed by ChatInput locally
     try {
-      // Now uses the Vite proxy at /api/chat/…
-      const res = await axios.get<{ response: string }>(
-        `/api/chat/${encodeURIComponent(prompt)}`
+      const res = await axios.get<{ conversation_id: number; messages: Message[] }>(
+        `/api/conversations/${conv.id}/messages`
       );
-      setReply(res.data.response);
-    } catch (err: any) {
+      setMessages(res.data.messages);
+    } catch (err) {
       console.error(err);
-      setError(err.message || "Something went wrong");
+    }
+  }
+
+  // Load conversations on mount
+  useEffect(() => {
+    const loadConvos = async () => {
+      try {
+        const res = await axios.get<Conversation[]>('/api/conversations/');
+        setConversations(res.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    loadConvos();
+  }, []);
+  // Sync selection or new-chat when idParam changes
+  useEffect(() => {
+    if (conversations.length === 0) return;
+    // if no idParam, redirect to new conversation
+    if (!searchParams.has('id')) {
+      setSearchParams({ id: 'new', collapsed: collapsed.toString() }, { replace: true });
+      return;
+    }
+    // new conversation mode: clear selection
+    if (idParam === 'new') {
+      setSelectedConv(null);
+      setMessages([]);
+      return;
+    }
+    // load existing conversation
+    const targetId = parseInt(idParam!, 10);
+    const conv = conversations.find(c => c.id === targetId) || conversations[0];
+    // ensure URL id matches selected
+    if (conv.id.toString() !== idParam) {
+      setSearchParams({ id: conv.id.toString(), collapsed: collapsed.toString() }, { replace: true });
+    }
+    selectConversation(conv);
+  }, [conversations, idParam, collapsed]);
+
+  // Start a blank chat, will create on first message
+  const createConversation = () => {
+    setSearchParams({ id: 'new', collapsed: collapsed.toString() });
+  };
+
+  // Rename a conversation
+  const renameConversation = async (id: number, newTitle: string) => {
+    try {
+      await axios.put(`/api/conversations/${id}/rename`, null, { params: { new_title: newTitle } });
+      const listRes = await axios.get<Conversation[]>('/api/conversations/');
+      setConversations(listRes.data);
+      // if renaming current, update selectedConv
+      if (selectedConv?.id === id) {
+        const updated = listRes.data.find(c => c.id === id) || null;
+        setSelectedConv(updated);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  // Delete a conversation
+  const deleteConversation = async (id: number) => {
+    try {
+      await axios.delete(`/api/conversations/${id}`);
+      if (selectedConv?.id === id) {
+        setSelectedConv(null);
+        setMessages([]);
+      }
+      const listRes = await axios.get<Conversation[]>('/api/conversations/');
+      setConversations(listRes.data);
+      // switch to first
+      if (selectedConv?.id === id && listRes.data.length) {
+        const firstId = listRes.data[0].id.toString();
+        setSearchParams({ id: firstId, collapsed: collapsed.toString() });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Send a chat message; handle new and existing conversations, with optional files
+  const handleSend = async (text: string, model: string, files?: File[]) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    // Optimistic UI: display user message
+    const userMsg: Message = {
+      id: Date.now(),
+      conversation_id: selectedConv?.id ?? 0,
+      sender: "user",
+      text: trimmed,
+      created_at: new Date().toISOString(),
+      metadata: 'pending',
+      // show attachments immediately
+      attachments: files?.map((file, idx) => ({ id: Date.now() + idx, filename: file.name }))
+    };
+    setMessages(prev => [...prev, userMsg]);
+    setLoading(true);
+    try {
+      // Build multipart form data
+      const form = new FormData();
+      // Only include conversation_id when replying to an existing conversation
+      if (selectedConv?.id != null) {
+        form.append('conversation_id', selectedConv.id.toString());
+      }
+      form.append('sender', 'user');
+      form.append('text', trimmed);
+      form.append('model', model);
+      // metadata is optional; omit if not used
+      // append files
+      if (files && files.length) {
+        files.forEach(file => form.append('files', file, file.name));
+      }
+      const res = await axios.post<Message>('/api/chat/', form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      // On first message, select the new conversation
+      let convId = selectedConv?.id;
+      if (!selectedConv) {
+        const listRes = await axios.get<Conversation[]>('/api/conversations/');
+        setConversations(listRes.data);
+        const newConv = listRes.data.find(c => c.id === res.data.conversation_id);
+        if (newConv) {
+          setSelectedConv(newConv);
+          setSearchParams({ id: newConv.id.toString(), collapsed: collapsed.toString() });
+          convId = newConv.id;
+        }
+      }
+      // Reload full conversation messages to include attachments
+      if (convId != null) {
+        const msgsRes = await axios.get<{conversation_id: number; messages: Message[]}>(
+          `/api/conversations/${convId}/messages`
+        );
+        setMessages(msgsRes.data.messages);
+      } else {
+        // fallback to optimistic append
+        setMessages(prev => [...prev, res.data]);
+      }
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Chat with FastAPI AI</h1>
-
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
-        <input
-          type="text"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Type your question..."
-          className="flex-1 border rounded px-3 py-2"
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white rounded px-4 py-2 disabled:opacity-50"
-        >
-          {loading ? "Sending…" : "Send"}
-        </button>
-      </form>
-
-      {error && <p className="text-red-500 mb-2">Error: {error}</p>}
-
-      {reply && (
-        <div className="bg-gray-100 p-3 rounded">
-          <h2 className="font-semibold mb-1">Response:</h2>
-          <p>{reply}</p>
-        </div>
-      )}
+    <div className="app-container">
+      <Sidebar
+        conversations={conversations}
+        selectedId={selectedConv?.id ?? null}
+        onSelect={conv => setSearchParams({ id: conv.id.toString(), collapsed: collapsed.toString() })}
+        onCreate={createConversation}
+        onDelete={deleteConversation}
+        onRename={renameConversation}
+        collapsed={collapsed}
+        onToggle={toggleCollapsed}
+      />
+      <ChatArea
+        key={selectedConv?.id ?? 'new'}
+        messages={messages}
+        loading={loading}
+        handleSend={handleSend}
+      />
     </div>
   );
 };
-
 export default App;

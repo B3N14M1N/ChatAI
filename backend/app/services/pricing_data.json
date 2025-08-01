@@ -1,0 +1,11 @@
+{
+    "gpt-4.1-nano": {"version": "2025-04-14", "input": 0.10, "cached_input": 0.025, "output": 0.40},
+    "gpt-4.1-mini": {"version": "2025-04-14", "input": 0.40, "cached_input": 0.10, "output": 1.60},
+    "gpt-4.1": {"version": "2025-04-14", "input": 2.00, "cached_input": 0.50, "output": 8.00, "capabilities": ["web_search_preview"]},
+    "gpt-4o-mini": {"version": "2024-07-18", "input": 0.15, "cached_input": 0.075, "output": 0.60, "capabilities": ["image_generation"]},
+    "gpt-4o": {"version": "2024-08-06", "input": 2.50, "cached_input": 1.25, "output": 10.00},
+    "o3-mini": {"version": "2025-01-31", "input": 1.10, "cached_input": 0.55, "output": 4.40},
+    "o3-pro": {"version": "2025-06-10", "input": 20.00, "cached_input": 0.00, "output": 80.00},
+    "o3": {"version": "2025-04-16", "input": 2.00, "cached_input": 0.50, "output": 8.00},
+    "o1": {"version": "2024-12-17", "input": 15.00, "cached_input": 7.50, "output": 60.00}
+}
