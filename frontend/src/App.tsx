@@ -162,7 +162,7 @@ const App: React.FC = () => {
       }
       // Reload full conversation messages to include attachments
       if (convId != null) {
-        const msgsRes = await axios.get<{conversation_id: number; messages: Message[]}>(
+        const msgsRes = await axios.get<{ conversation_id: number; messages: Message[] }>(
           `/api/conversations/${convId}/messages`
         );
         setMessages(msgsRes.data.messages);

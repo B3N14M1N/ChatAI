@@ -14,6 +14,7 @@
   flex-direction: column;
   flex-shrink: 0;
 }
+
 .sidebar.collapsed {
   width: 60px;
   box-shadow: none;
@@ -26,6 +27,7 @@
   margin: 0;
   padding: 0;
 }
+
 .conversations-list li {
   display: flex;
   justify-content: space-between;
@@ -34,6 +36,7 @@
   cursor: pointer;
   color: var(--sidebar-text);
 }
+
 .conversations-list li.selected {
   background-color: var(--sidebar-selected-bg);
 }
@@ -60,13 +63,16 @@ hr {
     border: none;
     z-index: 10;
   }
+
   .sidebar.collapsed {
     width: 100%;
   }
+
   .sidebar.collapsed .sidebar-menu,
   .sidebar.collapsed .conversations-list {
-    display: none;  
+    display: none;
   }
+
   .sidebar:not(.collapsed) .conversations-list {
     display: block;
     width: 100%;

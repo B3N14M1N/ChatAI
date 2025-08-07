@@ -116,21 +116,21 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
         );
       })()}
       <textarea
-         ref={textareaRef}
-         className="chat-textarea"
-         value={inputText}
-         onChange={e => setInputText(e.target.value)}
-         placeholder="Type your message..."
-         disabled={loading}
-         style={{ height: `${inputHeight}px` }}
-         onKeyDown={e => {
-           // on desktop, Enter sends message; Shift+Enter newline
-           if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) {
-             e.preventDefault();
-             void sendText();
-           }
-         }}
-       />
+        ref={textareaRef}
+        className="chat-textarea"
+        value={inputText}
+        onChange={e => setInputText(e.target.value)}
+        placeholder="Type your message..."
+        disabled={loading}
+        style={{ height: `${inputHeight}px` }}
+        onKeyDown={e => {
+          // on desktop, Enter sends message; Shift+Enter newline
+          if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) {
+            e.preventDefault();
+            void sendText();
+          }
+        }}
+      />
       {/* Footer with attachment, model select and send */}
       <div className="input-footer">
         <div className="left-controls">

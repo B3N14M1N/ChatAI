@@ -20,11 +20,10 @@ from app.core.crud import (
     get_conversation_context,
     get_messages_for_conversation,
     rename_conversation,
-    get_attachment
+    get_attachment,
 )
 from app.services.chat import chat_call
 from app.services.pricing import get_available_models
-
 
 
 @asynccontextmanager
@@ -32,6 +31,7 @@ async def lifespan(app: FastAPI):
     # Initialize database connection and tables on startup
     await db_connector.init_db()
     yield
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -42,6 +42,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 def read_root():
@@ -55,7 +56,7 @@ async def chat_endpoint(
     text: str = Form(...),
     model: str = Form(...),
     metadata: Optional[str] = Form(None),
-    files: List[UploadFile] = File(None)
+    files: List[UploadFile] = File(None),
 ):
     # Delegate full conversation handling (message persistence, attachments, AI call) to service
     ai_reply: MessageOut = await chat_call(
@@ -63,7 +64,7 @@ async def chat_endpoint(
         files=files,
         conversation_id=conversation_id,
         model=model,
-        metadata=metadata
+        metadata=metadata,
     )
     return ChatResponse(**ai_reply.dict())
 
@@ -90,7 +91,9 @@ async def delete_conversation_endpoint(conversation_id: int):
     return {"detail": "Conversation deleted"}
 
 
-@app.get("/conversations/{conversation_id}/messages", response_model=ConversationMessages)
+@app.get(
+    "/conversations/{conversation_id}/messages", response_model=ConversationMessages
+)
 async def get_conversation_messages_endpoint(conversation_id: int):
     return await get_messages_for_conversation(conversation_id)
 
@@ -99,13 +102,15 @@ async def get_conversation_messages_endpoint(conversation_id: int):
 async def get_conversation_context_endpoint(conversation_id: int):
     return await get_conversation_context(conversation_id)
 
+
 @app.get("/models", response_model=dict)
 async def get_models_endpoint():
     """
     Retrieve available models along with their version, pricing, and capabilities metadata.
     """
     return get_available_models()
-    
+
+
 @app.get("/attachments/{attachment_id}")
 async def download_attachment(attachment_id: int):
     """
@@ -115,8 +120,8 @@ async def download_attachment(attachment_id: int):
         attachment = await get_attachment(attachment_id)
     except ValueError:
         raise HTTPException(status_code=404, detail="Attachment not found")
-    filename = attachment.get('filename')
-    content = attachment.get('content')
-    content_type = attachment.get('content_type') or 'application/octet-stream'
-    headers = {"Content-Disposition": f"attachment; filename=\"{filename}\""}
+    filename = attachment.get("filename")
+    content = attachment.get("content")
+    content_type = attachment.get("content_type") or "application/octet-stream"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
     return Response(content, media_type=content_type, headers=headers)

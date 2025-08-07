@@ -9,20 +9,24 @@
   position: relative;
   z-index: 10;
 }
+
 .sidebar-title {
   font-size: 1.5rem;
   font-weight: bold;
   color: var(--user-msg-bg);
 }
+
 .header-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
+
 /* Stack buttons vertically when collapsed */
 .sidebar.collapsed .sidebar-header .header-actions {
   flex-direction: column;
 }
+
 .header-btn {
   background: none;
   border: none;
@@ -37,11 +41,13 @@
   border-radius: 4px;
   transition: background 0.2s ease, transform 0.1s ease;
 }
+
 .header-btn:hover {
   background: var(--sidebar-selected-bg);
   color: var(--color-bg);
   transform: translateY(-1px);
 }
+
 /* Ensure SVG icons inherit color */
 .header-btn svg {
   fill: currentColor;
@@ -49,6 +55,7 @@
   width: 1em;
   height: 1.5em;
 }
+
 /* Mobile: ensure collapse button is visible */
 @media (max-width: 768px) {
   .header-btn {

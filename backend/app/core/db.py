@@ -60,6 +60,7 @@ class DatabaseConnector:
             )
             await conn.commit()
 
+
 class DatabaseHandler:
     def __init__(self, connector: DatabaseConnector):
         self.connector = connector
@@ -128,7 +129,7 @@ class DatabaseHandler:
     async def get_latest_message(self, conversation_id: int, sender: str) -> MessageOut:
         query = "SELECT * FROM messages WHERE conversation_id = ?  and sender = ? ORDER BY created_at DESC LIMIT 1"
         async with self.connector.get_connection() as conn:
-            cursor = await conn.execute(query, (conversation_id,sender))
+            cursor = await conn.execute(query, (conversation_id, sender))
             row = await cursor.fetchone()
             if row:
                 columns = [column[0] for column in cursor.description]
@@ -136,7 +137,9 @@ class DatabaseHandler:
             return None
 
     async def get_conversation_messages(self, conversation_id: int) -> List[MessageOut]:
-        query = "SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC"
+        query = (
+            "SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC"
+        )
         async with self.connector.get_connection() as conn:
             cursor = await conn.execute(query, (conversation_id,))
             rows = await cursor.fetchall()
@@ -144,11 +147,7 @@ class DatabaseHandler:
             return [MessageOut(**dict(zip(columns, row))) for row in rows]
 
     async def add_attachment(
-        self,
-        message_id: int,
-        filename: str,
-        content: bytes,
-        content_type: str
+        self, message_id: int, filename: str, content: bytes, content_type: str
     ) -> int:
         """
         Insert an attachment linked to a message.
@@ -158,21 +157,27 @@ class DatabaseHandler:
             "VALUES (?, ?, ?, ?)"
         )
         async with self.connector.get_connection() as conn:
-            cursor = await conn.execute(query, (message_id, filename, content, content_type))
+            cursor = await conn.execute(
+                query, (message_id, filename, content, content_type)
+            )
             await conn.commit()
             return cursor.lastrowid
 
-    async def get_attachments_for_message(self, message_id: int) -> List[Dict[str, Any]]:
+    async def get_attachments_for_message(
+        self, message_id: int
+    ) -> List[Dict[str, Any]]:
         """
         Retrieve attachment metadata for a specific message.
         """
-        query = "SELECT id, filename, content_type FROM attachments WHERE message_id = ?"
+        query = (
+            "SELECT id, filename, content_type FROM attachments WHERE message_id = ?"
+        )
         async with self.connector.get_connection() as conn:
             cursor = await conn.execute(query, (message_id,))
             rows = await cursor.fetchall()
             cols = [desc[0] for desc in cursor.description]
             return [dict(zip(cols, row)) for row in rows]
-    
+
     async def get_attachment(self, attachment_id: int) -> Optional[Dict[str, Any]]:
         """
         Retrieve full attachment record including content for download.

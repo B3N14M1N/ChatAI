@@ -11,15 +11,18 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 /* App layout container */
 .app-container {
   display: flex;
   height: 100vh;
   overflow: hidden;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -28,6 +31,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -67,6 +71,7 @@
   --primary-color: var(--color-primary);
   --danger-color: var(--color-error);
 }
+
 /* Responsive layout for smaller screens */
 @media (max-width: 768px) {
   .app-container {
@@ -74,6 +79,7 @@
     /* allow internal scrolling on mobile */
     overflow: visible;
   }
+
   .sidebar {
     position: relative;
     width: 100%;
@@ -81,9 +87,11 @@
     border-right: none;
     border-bottom: 1px solid #ccc;
   }
+
   .sidebar.collapsed {
     width: 100%;
   }
+
   .chat-area {
     order: 2;
     flex: 1;
@@ -102,27 +110,31 @@
   flex-direction: column;
   flex-shrink: 0;
 }
+
 .sidebar-header {
-    padding: 1rem;
-    border-bottom: 1px solid #ddd;
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
 }
+
 .conversations-list {
-    flex: 1;
-    overflow-y: auto;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
+
 .conversations-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-    color: var(--sidebar-text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  color: var(--sidebar-text);
 }
+
 .conversations-list li.selected {
-    background-color: var(--sidebar-selected-bg);
+  background-color: var(--sidebar-selected-bg);
 }
 
 /* Delete conversation button */
@@ -134,26 +146,31 @@
   cursor: pointer;
   padding: 0;
 }
+
 .delete-conv-btn:hover {
   opacity: 0.8;
 }
+
 /* Toggle sidebar button */
 .toggle-btn {
-    background: none;
-    border: none;
-    color: var(--sidebar-text);
-    font-size: 1.2rem;
-    margin-left: auto;
-    cursor: pointer;
-    padding: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 1.2rem;
+  margin-left: auto;
+  cursor: pointer;
+  padding: 0.5rem;
 }
+
 /* Collapsed sidebar adjustments */
 .sidebar.collapsed {
   width: 60px;
 }
+
 .sidebar.collapsed .conversations-list li {
   justify-content: center;
 }
+
 .sidebar.collapsed .conv-title,
 .sidebar.collapsed .delete-conv-btn {
   display: none;
@@ -161,49 +178,58 @@
 
 /* Chat area */
 .chat-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background-color: var(--chat-bg);
-    position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--chat-bg);
+  position: relative;
 }
+
 .messages {
-    flex: 1;
-    padding: 1rem;
-    overflow-y: auto;
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
 }
+
 .message {
-    margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
 }
+
 /* Bubble chat styles */
 .message {
   display: flex;
   flex-direction: column;
   margin-bottom: 0.75rem;
 }
+
 .message .timestamp {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
   text-align: left;
   margin-bottom: 0.25rem;
 }
+
 .message.user {
   align-items: flex-end;
 }
+
 .message.assistant {
   align-items: flex-start;
 }
+
 .message .bubble {
   max-width: 75%;
   padding: 0.75rem 1rem;
   border-radius: 16px;
   color: var(--color-text-primary);
 }
+
 .message.user .bubble {
   background-color: var(--user-msg-bg);
   border-bottom-right-radius: 4px;
   border-bottom-left-radius: 16px;
 }
+
 .message.assistant .bubble {
   background-color: var(--assistant-msg-bg);
   border-bottom-left-radius: 4px;
@@ -214,81 +240,87 @@
 .divider {
   height: 4px;
   cursor: ns-resize;
-    background-color: transparent;
+  background-color: transparent;
   width: 100%;
 }
 
 /* Input area */
 .input-area {
-    display: flex;
-    align-items: flex-end;
-    padding: 0.5rem 1rem;
-    border-top: 1px solid var(--color-border);
-    background-color: var(--chat-bg);
+  display: flex;
+  align-items: flex-end;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--chat-bg);
 }
+
 .input-area {
-    display: flex;
-    align-items: flex-end;
-    border-top: 1px solid var(--color-border);
-    background-color: var(--input-bg);
-    border-radius: 20px;
-    padding: 1rem;
-    overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--input-bg);
+  border-radius: 20px;
+  padding: 1rem;
+  overflow: hidden;
 }
+
 .input-area textarea {
-    flex: 1;
-    background-color: var(--input-bg);
-    color: var(--input-text);
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    padding: 0.5rem;
-    resize: vertical;
-    font-size: 1rem;
-    min-height: 40px;
-    max-height: 150px;
-    overflow-y: auto;
+  flex: 1;
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.5rem;
+  resize: vertical;
+  font-size: 1rem;
+  min-height: 40px;
+  max-height: 150px;
+  overflow-y: auto;
 }
+
 .input-area textarea {
-    flex: 1;
-    background-color: var(--feedback-bg, var(--input-bg));
-    color: var(--input-text);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 0.5rem;
-    resize: vertical;
-    font-size: 1rem;
-    min-height: 40px;
-    max-height: 50vh;
-    overflow-y: auto;
+  flex: 1;
+  background-color: var(--feedback-bg, var(--input-bg));
+  color: var(--input-text);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  resize: vertical;
+  font-size: 1rem;
+  min-height: 40px;
+  max-height: 50vh;
+  overflow-y: auto;
 }
+
 .input-area button {
-    margin-left: 0.5rem;
-    padding: 0.6rem 1.2rem;
-    background-color: var(--primary-color);
-    color: var(--input-text);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+  margin-left: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background-color: var(--primary-color);
+  color: var(--input-text);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
+
 .input-area button {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background-color: var(--primary-color);
-    color: var(--input-text);
-    border: none;
-    border-radius: 50%;
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: var(--primary-color);
+  color: var(--input-text);
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
+
 .input-area button:disabled {
-    background-color: var(--color-border);
-    opacity: 0.6;
-    cursor: not-allowed;
+  background-color: var(--color-border);
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .read-the-docs {

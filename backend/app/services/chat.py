@@ -10,32 +10,28 @@ from app.core.crud import (
     get_last_message,
     add_message,
     create_conversation,
-    add_attachment
+    add_attachment,
 )
 
 client = OpenAI()
 
-async def generate_conversation_title(
-    prompt: str,
-    model: str = "gpt-4.1-nano"
-) -> str:
+
+async def generate_conversation_title(prompt: str, model: str = "gpt-4.1-nano") -> str:
     """
     Generate a very short and concise title for the conversation based on the first user prompt.
     """
     # Use OpenAI to create a title
     title_prompt = f"Generate a very short and concise title for the following conversation topic: {prompt}"
-    resp = client.responses.create(
-        model=model,
-        input=title_prompt
-    )
+    resp = client.responses.create(model=model, input=title_prompt)
     return resp.output_text.strip()
+
 
 async def chat_call(
     text: str,
     files: List = None,
     conversation_id: Optional[int] = None,
     model: str = "gpt-4.1",
-    metadata: Optional[str] = None
+    metadata: Optional[str] = None,
 ) -> MessageOut:
     # If new conversation, generate title and create record
     if conversation_id is None:
@@ -82,16 +78,18 @@ async def chat_call(
         model,
         usage.input_tokens,
         usage.output_tokens,
-        usage.input_tokens_details.cached_tokens
+        usage.input_tokens_details.cached_tokens,
     )
 
     # Persist user message and update cache
-    user_msg_id = await add_message(MessageCreate(
-        conversation_id=conversation_id,
-        sender="user",
-        text=original_text,
-        metadata=metadata
-    ))
+    user_msg_id = await add_message(
+        MessageCreate(
+            conversation_id=conversation_id,
+            sender="user",
+            text=original_text,
+            metadata=metadata,
+        )
+    )
     await append_to_conversation_context(conversation_id, "user", original_text)
 
     # Persist attachments linked to user message
@@ -99,17 +97,19 @@ async def chat_call(
         await add_attachment(user_msg_id, filename, raw, ctype)
 
     # Save AI reply with usage metrics and model
-    assistant_msg_id = await add_message(MessageCreate(
-        conversation_id=conversation_id,
-        sender="assistant",
-        text=ai_reply,
-        metadata=metadata,
-        prompt_tokens=usage.input_tokens,
-        completion_tokens=usage.output_tokens,
-        total_tokens=usage.total_tokens,
-        model=model,
-        price=price
-    ))
+    assistant_msg_id = await add_message(
+        MessageCreate(
+            conversation_id=conversation_id,
+            sender="assistant",
+            text=ai_reply,
+            metadata=metadata,
+            prompt_tokens=usage.input_tokens,
+            completion_tokens=usage.output_tokens,
+            total_tokens=usage.total_tokens,
+            model=model,
+            price=price,
+        )
+    )
     await append_to_conversation_context(conversation_id, "assistant", ai_reply)
 
     # Summarize context when too long

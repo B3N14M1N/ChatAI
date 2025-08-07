@@ -2,6 +2,7 @@
 Service for pricing calculations based on model token usage rates.
 This module defines pricing rates per model and a helper to calculate cost.
 """
+
 import json
 from pathlib import Path
 from typing import Any, Dict
@@ -16,10 +17,7 @@ except FileNotFoundError:
 
 
 def calculate_price(
-    model: str,
-    input_tokens: int,
-    output_tokens: int,
-    cached_input_tokens: int = 0
+    model: str, input_tokens: int, output_tokens: int, cached_input_tokens: int = 0
 ) -> float:
     """
     Calculate the price for a given model and token usage.
@@ -41,12 +39,13 @@ def calculate_price(
     # Calculate cost proportional to thousand tokens
     # rates are per 1,000,000 tokens
     cost = (
-        input_tokens * rates.get("input", 0) +
-        cached_input_tokens * rates.get("cached_input", 0) +
-        output_tokens * rates.get("output", 0)
+        input_tokens * rates.get("input", 0)
+        + cached_input_tokens * rates.get("cached_input", 0)
+        + output_tokens * rates.get("output", 0)
     ) / 1_000_000
     return cost
-    
+
+
 def get_available_models() -> Dict[str, Dict[str, Any]]:
     """
     Return a mapping of model names to their pricing and version metadata.

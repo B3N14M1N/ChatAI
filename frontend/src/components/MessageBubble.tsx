@@ -20,7 +20,7 @@ const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
         <div className="timestamp">{timeLabel}</div>
       )}
       <div className="bubble">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>  
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {msg.text}
         </ReactMarkdown>
         {/* Render user attachments in footer */}

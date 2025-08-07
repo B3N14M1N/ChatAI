@@ -5,14 +5,17 @@ from typing import Optional, List
 class ConversationCreate(BaseModel):
     title: Optional[str] = None
 
+
 class ConversationUpdate(BaseModel):
     conversation_id: int
     new_title: str
+
 
 class ConversationOut(BaseModel):
     id: int
     title: Optional[str]
     created_at: str
+
 
 class MessageCreate(BaseModel):
     conversation_id: Optional[int]
@@ -28,6 +31,7 @@ class MessageCreate(BaseModel):
     # attachments files will be uploaded via multipart form
     # filenames of attached files
     attachments: Optional[List[str]] = None
+
 
 class MessageOut(BaseModel):
     id: int
@@ -45,6 +49,7 @@ class MessageOut(BaseModel):
     # list of attachment records associated
     attachments: Optional[List[dict]] = None
 
+
 class ConversationMessages(BaseModel):
     conversation_id: int
     messages: List[MessageOut]
@@ -52,6 +57,7 @@ class ConversationMessages(BaseModel):
 
 class ChatRequest(MessageCreate):
     pass
+
 
 class ChatResponse(MessageOut):
     """
