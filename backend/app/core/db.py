@@ -3,8 +3,8 @@ from typing import List, Optional, Dict, Any
 
 import aiosqlite
 
-from app.core.config import DATABASE_URL
-from app.core.schemas import MessageOut
+from app.configs.config import DATABASE_URL
+from app.models.schemas import MessageOut
 
 
 DB_PATH = Path(DATABASE_URL)

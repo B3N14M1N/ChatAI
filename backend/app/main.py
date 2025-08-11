@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 
 from app.core.db import db_connector
-from app.core.schemas import (
+from app.models.schemas import (
     ChatRequest,
     ChatResponse,
     MessageOut,

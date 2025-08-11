@@ -1,5 +1,5 @@
 from app.core.db import db_handler as db
-from app.core.schemas import (
+from app.models.schemas import (
     ConversationCreate,
     MessageCreate,
     MessageOut,

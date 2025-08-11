@@ -2,21 +2,6 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 
-class ConversationCreate(BaseModel):
-    title: Optional[str] = None
-
-
-class ConversationUpdate(BaseModel):
-    conversation_id: int
-    new_title: str
-
-
-class ConversationOut(BaseModel):
-    id: int
-    title: Optional[str]
-    created_at: str
-
-
 class MessageCreate(BaseModel):
     conversation_id: Optional[int]
     sender: str
@@ -48,6 +33,21 @@ class MessageOut(BaseModel):
     price: Optional[float] = None
     # list of attachment records associated
     attachments: Optional[List[dict]] = None
+
+
+class ConversationCreate(BaseModel):
+    title: Optional[str] = None
+
+
+class ConversationUpdate(BaseModel):
+    conversation_id: int
+    new_title: str
+
+
+class ConversationOut(BaseModel):
+    id: int
+    title: Optional[str]
+    created_at: str
 
 
 class ConversationMessages(BaseModel):

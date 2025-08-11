@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 # Load pricing data from external JSON to separate raw data from logic
-_DATA_FILE = Path(__file__).parent / "pricing_data.json"
+_DATA_FILE = Path(__file__).parent.parent / "data" / "pricing_data.json"
 try:
     with open(_DATA_FILE, "r", encoding="utf-8") as f:
         MODEL_PRICING: Dict[str, Dict[str, Any]] = json.load(f)
