@@ -120,23 +120,14 @@ async def chat_call(
     # 5. Determine tools & try tool call first
     tools = determine_tools(model)
     
-    tool_response = dispatch_tool_call(model, text)
-    if tool_response:
-        reply = str(tool_response)
-        # Create a mock usage object for tool responses
-        mock_usage = type("MockUsage", (), {
-            "input_tokens": 0,
-            "output_tokens": 0, 
-            "total_tokens": 0,
-            "input_tokens_details": None
-        })()
-        usage = ModelUsage(mock_usage)
-        price = 0
-        await _persist_assistant_message(conversation_id, reply, model, usage, price, metadata)
-        return await get_last_message(conversation_id, "assistant")
+    tool_response, usage = dispatch_tool_call(model, text)
     
-    # 6. Fallback to normal AI model call
-    ai_reply, usage = call_model(client, model, full_prompt, tools)
+    if tool_response:
+        ai_reply = str(tool_response)
+    else:
+        # 6. Fallback to normal AI model call
+        ai_reply, usage = call_model(client, model, full_prompt, tools)
+        ai_reply += "\n\n### Fallback Generated Response"
 
     # 7. Pricing
     price = calculate_price(
