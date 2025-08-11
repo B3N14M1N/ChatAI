@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 
 from app.core.db import db_connector
+from app.rag.vector_store import initialize_vector_store
 from app.models.schemas import (
     ChatRequest,
     ChatResponse,
@@ -30,6 +31,7 @@ from app.services.pricing import get_available_models
 async def lifespan(app: FastAPI):
     # Initialize database connection and tables on startup
     await db_connector.init_db()
+    initialize_vector_store()
     yield
 
 

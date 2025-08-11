@@ -9,6 +9,7 @@ from openai import OpenAI
 
 from app.services.pricing import calculate_price
 from app.models.schemas import MessageCreate, MessageOut, ConversationCreate
+from app.rag.dispatch import dispatch_tool_call
 from app.core.crud import (
     get_cached_conversation_context,
     append_to_conversation_context,
@@ -19,6 +20,7 @@ from app.core.crud import (
 )
 
 from .chat_utils import (
+    ModelUsage,
     generate_conversation_title,
     prepare_files_and_prompt,
     build_full_prompt,
@@ -107,11 +109,36 @@ async def chat_call(
     context = await get_cached_conversation_context(conversation_id)
     full_prompt = build_full_prompt(context, prompt)
 
-    # 4. Determine tools & call model
+    # 4. Persist user message first
+    await _persist_user_message(
+        conversation_id,
+        text,
+        metadata,
+        file_attachments
+    )
+
+    # 5. Determine tools & try tool call first
     tools = determine_tools(model)
+    
+    tool_response = dispatch_tool_call(model, text)
+    if tool_response:
+        reply = str(tool_response)
+        # Create a mock usage object for tool responses
+        mock_usage = type("MockUsage", (), {
+            "input_tokens": 0,
+            "output_tokens": 0, 
+            "total_tokens": 0,
+            "input_tokens_details": None
+        })()
+        usage = ModelUsage(mock_usage)
+        price = 0
+        await _persist_assistant_message(conversation_id, reply, model, usage, price, metadata)
+        return await get_last_message(conversation_id, "assistant")
+    
+    # 6. Fallback to normal AI model call
     ai_reply, usage = call_model(client, model, full_prompt, tools)
 
-    # 5. Pricing
+    # 7. Pricing
     price = calculate_price(
         model,
         usage.input_tokens,
@@ -119,13 +146,7 @@ async def chat_call(
         usage.input_tokens_details.cached_tokens,
     )
 
-    # 6. Persist user + assistant messages & attachments
-    await _persist_user_message(
-        conversation_id,
-        text,
-        metadata,
-        file_attachments
-    )
+    # 8. Persist assistant message
     await _persist_assistant_message(
         conversation_id,
         ai_reply,
@@ -135,8 +156,8 @@ async def chat_call(
         metadata
     )
 
-    # 7. Summarize long context (mutation happens internally if triggered)
+    # 9. Summarize long context (mutation happens internally if triggered)
     await maybe_summarize_context(client, conversation_id, model, text, ai_reply)
 
-    # 8. Return hydrated assistant message
+    # 10. Return hydrated assistant message
     return await get_last_message(conversation_id, "assistant")
