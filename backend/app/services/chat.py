@@ -130,8 +130,7 @@ async def chat_call(
         file_attachments
     )
     
-    tool_response, usage = dispatch_tool_call(model, text)
-    #tool_response, usage = dispatch_tool_call(model, full_prompt)
+    tool_response, usage = dispatch_tool_call(model, text, context)
     
     ai_reply = str(tool_response)
     

@@ -1,5 +1,5 @@
 import json
-from app.services.chat_utils import ModelUsage
+from app.services.chat_utils import ModelUsage, determine_tools
 from openai import OpenAI
 from app.rag.tools import recommend_books, get_books_summaries
 from app.models.schemas import BookRecommendationInput, BooksSummariesInput
@@ -66,11 +66,13 @@ def summarize_tool_output(model: str, tool_name: str, tool_result, arguments=Non
     return "[No output text returned]"
 
 
-def dispatch_tool_call(model: str, prompt: str):
+def dispatch_tool_call(model: str, prompt: str, context: str):
+    model_tools = determine_tools(model)
+    model_tools.extend(tools)
     response = client.responses.create(
         model=model,
         input=prompt,
-        tools=tools,
+        tools=model_tools,
         tool_choice="auto"
     )
 
