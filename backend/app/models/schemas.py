@@ -19,6 +19,21 @@ class ContentType(str, Enum):
     APPLICATION_OCTET_STREAM = "application/octet-stream"
 
 
+class MessageIntent(str, Enum):
+    BOOK_RECOMMENDATION = "book_recommendation"
+    BOOK_SUMMARY = "book_summary"
+    GENERAL_CHAT = "general_chat"
+    CONTEXT_DEPENDENT = "context_dependent"
+    NEW_TOPIC = "new_topic"
+
+
+class ContextStrategy(str, Enum):
+    NONE = "none"           # No context needed
+    RECENT = "recent"       # Last few messages
+    SUMMARY = "summary"     # Summarized context
+    FULL = "full"          # All conversation history
+
+
 # Usage metrics schema
 class UsageMetrics(BaseModel):
     input_tokens: Optional[int] = Field(None, ge=0, description="Number of input tokens")

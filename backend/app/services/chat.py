@@ -1,9 +1,3 @@
-"""Chat service orchestration logic.
-
-This module coordinates a chat exchange while delegating most sub-steps
-to helper functions in chat_utils for readability & easier extension.
-"""
-
 from typing import List, Optional, Tuple
 from openai import OpenAI
 
@@ -18,13 +12,10 @@ from app.models.schemas import (
 )
 from app.rag.dispatch import dispatch_tool_call
 from app.core.crud import (
-    get_cached_conversation_context,
     append_to_conversation_context,
-    get_last_user_message,
     get_last_assistant_message,
     add_user_message,
     add_assistant_response,
-    add_message,  # Keep for backward compatibility
     create_conversation,
     add_attachment,
 )
@@ -35,12 +26,29 @@ from .chat_utils import (
     generate_message_summary,
     prepare_files_and_prompt,
     build_full_prompt,
-    determine_tools,
-    call_model,
     maybe_summarize_context,
 )
+from .context_manager import smart_context_handler
+from app.models.schemas import MessageIntent
 
 client = OpenAI()
+
+
+async def _get_regular_chat_response(model: str, prompt: str) -> tuple[str, ModelUsage]:
+    """Handle regular chat completions for non-tool messages"""
+    try:
+        response = client.responses.create(
+            model=model,
+            input=prompt,
+            max_output_tokens=4000
+        )
+        reply = response.output_text
+        usage = ModelUsage(response.usage)
+        return reply, usage
+    except Exception as e:
+        print(f"Error in regular chat completion: {e}")
+        # Fallback to dispatch if regular chat fails
+        return dispatch_tool_call(model, prompt, "")
 
 
 async def _ensure_conversation(
@@ -111,13 +119,19 @@ async def chat_call(
     model: str = "gpt-4.1",
     summary: Optional[str] = None,
 ) -> MessageOut:
-    """Primary chat entrypoint orchestrating the flow of a single exchange."""
+    """Primary chat entrypoint orchestrating the flow of a single exchange with smart context."""
     conversation_id = await _ensure_conversation(conversation_id, text, model)
 
+    # Use smart context management instead of always including full context
+    smart_context, intent, strategy = await smart_context_handler(text, conversation_id)
+    
+    # Optional: Log context decisions for debugging
+    print(f"Intent: {intent.value}, Strategy: {strategy.value}, Context length: {len(smart_context)}")
+    
     prompt, file_attachments = await prepare_files_and_prompt(text, files)
-
-    context = await get_cached_conversation_context(conversation_id)
-    full_prompt = build_full_prompt(context, prompt)
+    
+    # Build prompt with smart context instead of cached context
+    full_prompt = build_full_prompt(smart_context, prompt)
 
     # Generate summary for user message if needed and not provided
     if summary is None:
@@ -130,9 +144,14 @@ async def chat_call(
         file_attachments
     )
     
-    tool_response, usage = dispatch_tool_call(model, text, context)
-    
-    ai_reply = str(tool_response)
+    # Choose response method based on intent
+    if intent in [MessageIntent.BOOK_RECOMMENDATION, MessageIntent.BOOK_SUMMARY]:
+        # Use tool dispatch for book-related queries
+        tool_response, usage = dispatch_tool_call(model, full_prompt, smart_context)
+        ai_reply = str(tool_response)
+    else:
+        # Use regular chat completion for general conversation
+        ai_reply, usage = await _get_regular_chat_response(model, full_prompt)
     
     # Generate summary for AI response if needed
     ai_summary = await generate_message_summary(client, ai_reply, model)

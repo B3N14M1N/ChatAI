@@ -58,15 +58,6 @@ class DatabaseConnector:
                 );
                 """
             )
-            
-            # Migration: Add summary column if it doesn't exist
-            try:
-                await conn.execute("ALTER TABLE messages ADD COLUMN summary TEXT;")
-                print("Added summary column to messages table")
-            except Exception:
-                # Column already exists, which is fine
-                pass
-                
             await conn.commit()
 
 
