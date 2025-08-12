@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import type { Message } from "../types";
+import { getSender, getDisplayText } from "../types";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "./MessageBubble.css";
@@ -9,22 +10,31 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
+  const sender = getSender(msg);
+  const displayText = getDisplayText(msg);
+  
+  // Check if this is a pending message (optimistic UI)
+  const isPending = msg.created_at === "pending" || 
+                   !msg.created_at || 
+                   (msg.id && msg.id > Date.now() - 5000); // Recent IDs are likely pending
+  
   // Display timestamp above for assistant, below for user
-  const timeLabel = msg.metadata === "pending"
+  const timeLabel = isPending
     ? "now"
     : new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    
   return (
-    <div className={`message ${msg.sender}`}>
+    <div className={`message ${sender}`}>
       {/* Timestamp above (user only) */}
-      {msg.sender === "user" && (
+      {sender === "user" && (
         <div className="timestamp">{timeLabel}</div>
       )}
       <div className="bubble">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {msg.text}
+          {displayText}
         </ReactMarkdown>
         {/* Render user attachments in footer */}
-        {msg.attachments && msg.attachments.length > 0 && msg.sender === 'user' && (
+        {msg.attachments && msg.attachments.length > 0 && sender === 'user' && (
           <div className="bubble-footer attachments-footer">
             {(() => {
               const nameCounts: Record<string, number> = {};
@@ -49,10 +59,20 @@ const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
             })()}
           </div>
         )}
-        {msg.sender === "assistant" && (
+        {sender === "assistant" && (
           <div className="bubble-footer">
             <div className="metrics">
-              {msg.total_tokens != null && <span>Tokens: {msg.total_tokens}</span>}
+              {(msg.input_tokens != null || msg.output_tokens != null) && (
+                <span>
+                  Tokens: {(msg.input_tokens || 0) + (msg.output_tokens || 0)}
+                  {msg.input_tokens != null && msg.output_tokens != null && 
+                    ` (${msg.input_tokens}→${msg.output_tokens})`
+                  }
+                  {msg.cached_tokens != null && msg.cached_tokens > 0 && 
+                    ` +${msg.cached_tokens} cached`
+                  }
+                </span>
+              )}
               {msg.price != null && <span>Price: ${msg.price.toFixed(6)}</span>}
               {msg.model && <span>Model: {msg.model}</span>}
             </div>
@@ -60,7 +80,7 @@ const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
         )}
       </div>
       {/* Timestamp below (assistant only) */}
-      {msg.sender === "assistant" && (
+      {sender === "assistant" && (
         <div className="timestamp">{timeLabel}</div>
       )}
     </div>

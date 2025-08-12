@@ -11,6 +11,7 @@ from app.models.schemas import (
     ChatResponse,
     MessageOut,
     ConversationCreate,
+    ConversationOut,
     ConversationMessages,
 )
 from app.core.crud import (
@@ -53,10 +54,9 @@ def read_root():
 @app.post("/chat/", response_model=ChatResponse)
 async def chat_endpoint(
     conversation_id: Optional[int] = Form(None),
-    sender: str = Form(...),
     text: str = Form(...),
     model: str = Form(...),
-    metadata: Optional[str] = Form(None),
+    summary: Optional[str] = Form(None),
     files: List[UploadFile] = File(None),
 ):
     # Delegate full conversation handling (message persistence, attachments, AI call) to service
@@ -65,9 +65,9 @@ async def chat_endpoint(
         files=files,
         conversation_id=conversation_id,
         model=model,
-        metadata=metadata,
+        summary=summary,
     )
-    return ChatResponse(**ai_reply.dict())
+    return ChatResponse(**ai_reply.model_dump())
 
 
 @app.post("/conversations/", response_model=int)
@@ -81,7 +81,7 @@ async def rename_conversation_endpoint(conversation_id: int, new_title: str):
     return {"detail": "Conversation renamed successfully"}
 
 
-@app.get("/conversations/", response_model=List[dict])
+@app.get("/conversations/", response_model=List[ConversationOut])
 async def get_conversations_endpoint():
     return await get_conversations()
 
@@ -121,8 +121,6 @@ async def download_attachment(attachment_id: int):
         attachment = await get_attachment(attachment_id)
     except ValueError:
         raise HTTPException(status_code=404, detail="Attachment not found")
-    filename = attachment.get("filename")
-    content = attachment.get("content")
-    content_type = attachment.get("content_type") or "application/octet-stream"
-    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
-    return Response(content, media_type=content_type, headers=headers)
+    
+    headers = {"Content-Disposition": f'attachment; filename="{attachment.filename}"'}
+    return Response(attachment.content, media_type=attachment.content_type, headers=headers)

@@ -19,6 +19,32 @@ async def generate_conversation_title(client: OpenAI, prompt: str, model: str) -
     return resp.output_text.strip()
 
 
+async def generate_message_summary(client: OpenAI, text: str, model: str = "gpt-4o-mini") -> Optional[str]:
+    """
+    Generate a concise summary for long messages.
+    Returns None if the message is short enough to not need summarization.
+    """
+    # Only summarize if text is longer than 500 characters
+    if len(text) < 500:
+        return None
+    
+    summary_prompt = (
+        f"Create a very concise 1-2 sentence summary of the following text. "
+        f"Keep it under 100 characters:\n\n{text}"
+    )
+    
+    try:
+        resp = client.responses.create(
+            model=model, 
+            input=summary_prompt,
+            max_tokens=50  # Keep summary short
+        )
+        return resp.output_text.strip()
+    except Exception as e:
+        print(f"Error generating summary: {e}")
+        return None
+
+
 async def prepare_files_and_prompt(
     base_text: str, files: Optional[List]
 ) -> Tuple[str, List[Tuple[str, bytes, str]]]:
