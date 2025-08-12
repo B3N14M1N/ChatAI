@@ -63,3 +63,18 @@ class ChatResponse(MessageOut):
     """
     Response returned by /chat includes message fields with usage metrics.
     """
+
+
+class BookRecommendationInput(BaseModel):
+    genre: str
+    top_k: int = 5
+
+
+class BooksSummariesInput(BaseModel):
+    titles: List[str]
+
+
+class BookRecommendationOutput(BaseModel):
+    title: str
+    author: str
+    short_summary: str

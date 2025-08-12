@@ -1,12 +1,8 @@
 import json
 from app.services.chat_utils import ModelUsage
 from openai import OpenAI
-from app.rag.tools import (
-    recommend_books,
-    get_book_summary,
-    BookRecommendationInput,
-    BookSummaryInput,
-)
+from app.rag.tools import recommend_books, get_books_summaries
+from app.models.schemas import BookRecommendationInput, BooksSummariesInput
 
 client = OpenAI()
 
@@ -19,46 +15,44 @@ tools = [
     },
     {
         "type": "function",
-        "name": "get_book_summary",
-        "description": "Get full book summary by title",
-        "parameters": BookSummaryInput.schema(),
+        "name": "get_books_summaries",
+        "description": "Get full summaries for one or more book titles. Provide a list of book titles.",
+        "parameters": BooksSummariesInput.schema(),
     },
 ]
 
 tool_functions = {
     "recommend_books": lambda args: recommend_books(**BookRecommendationInput(**args).dict()),
-    "get_book_summary": lambda args: get_book_summary(**BookSummaryInput(**args).dict()),
+    "get_books_summaries": lambda args: get_books_summaries(**BooksSummariesInput(**args).dict()),
 }
 
 
-def contains_book_query(user_input: str) -> bool:
-    keywords = ["book", "recommend", "genre", "summary", "novel"]
-    return any(k in user_input.lower() for k in keywords)
-
-
-def summarize_tool_output(model: str, tool_name: str, tool_result) -> str:
-    prompt = ""
-
+def summarize_tool_output(model: str, tool_name: str, tool_result, arguments=None) -> str:
+    user_prompt = ""
+    system_prompt= ""
     if tool_name == "recommend_books":
-        # Format as natural language
         book_list = "\n".join(
             [f"- *{b.title}* by {b.author}: {b.short_summary}" for b in tool_result]
         )
-        prompt = (
-            "Convert the following list of book recommendations into a natural response for the user:\n"
-            f"{book_list}"
-        )
+        system_prompt = "Convert the following list of book recommendations into a natural response for the user. Do not mention this request."
+        user_prompt = f"{book_list}"
 
-    elif tool_name == "get_book_summary":
-        # Probably already clean, but you can polish it
-        prompt = (
-            f"Rephrase the following book summary into a friendly user-facing answer:\n{tool_result}"
+    elif tool_name == "get_books_summaries":
+        # tool_result is a list of summaries, get titles from arguments
+        titles = arguments.get("titles", []) if arguments else []
+        book_summaries = "\n".join(
+            [f"- *{title}*: {summary}" for title, summary in zip(titles, tool_result)]
         )
+        system_prompt = "Rephrase the following list of book summaries (can be multiple or just one) into a natural response for the user. Do not mention this request."
+        user_prompt = f"{book_summaries}"
 
     # Use OpenAI to generate response
     response = client.responses.create(
         model=model,
-        input=prompt
+        input=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
     )
 
     # Extract plain string from structured output
@@ -73,9 +67,6 @@ def summarize_tool_output(model: str, tool_name: str, tool_result) -> str:
 
 
 def dispatch_tool_call(model: str, prompt: str):
-    if not contains_book_query(prompt):
-        return None, None
-
     response = client.responses.create(
         model=model,
         input=prompt,
@@ -84,14 +75,30 @@ def dispatch_tool_call(model: str, prompt: str):
     )
 
     tool_call = response.output[0]
-    function_name = tool_call.name
-    arguments = json.loads(tool_call.arguments)
+    print(f"Tool_call structure: {tool_call}")
+    tool_called = False
 
-    # Get raw structured result
-    tool_result = tool_functions[function_name](arguments)
+    # Handle different response structures
+    if hasattr(tool_call, 'function'):
+        function_name = tool_call.function.name
+        arguments = json.loads(tool_call.function.arguments)
+        tool_called = True
+    elif hasattr(tool_call, 'name'):
+        function_name = tool_call.name
+        arguments = json.loads(tool_call.arguments)
+        tool_called = True
+    else:
+        # Log the actual structure for debugging
+        print(f"Unexpected tool_call structure: {tool_call}")
 
-    # 🔁 Rephrase using the model itself
-    natural_reply = summarize_tool_output(model, function_name, tool_result)
+    if tool_called:
+        # Get raw structured result
+        tool_result = tool_functions[function_name](arguments)
+        # Rephrase using the model itself
+        natural_reply = summarize_tool_output(model, function_name, tool_result, arguments)
+    else:
+        natural_reply = response.output_text
+        natural_reply += "\n\n### Fallback Generated Response"
 
     usage = ModelUsage(response.usage)
     return natural_reply, usage

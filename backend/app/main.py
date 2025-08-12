@@ -8,7 +8,6 @@ from typing import List, Optional
 from app.core.db import db_connector
 from app.rag.vector_store import initialize_vector_store
 from app.models.schemas import (
-    ChatRequest,
     ChatResponse,
     MessageOut,
     ConversationCreate,

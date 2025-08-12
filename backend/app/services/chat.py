@@ -99,37 +99,25 @@ async def chat_call(
     metadata: Optional[str] = None,
 ) -> MessageOut:
     """Primary chat entrypoint orchestrating the flow of a single exchange."""
-    # 1. Conversation setup
     conversation_id = await _ensure_conversation(conversation_id, text, model)
 
-    # 2. Files & prompt assembly
     prompt, file_attachments = await prepare_files_and_prompt(text, files)
 
-    # 3. Retrieve prior context & construct full prompt
     context = await get_cached_conversation_context(conversation_id)
     full_prompt = build_full_prompt(context, prompt)
 
-    # 4. Persist user message first
     await _persist_user_message(
         conversation_id,
         text,
         metadata,
         file_attachments
     )
-
-    # 5. Determine tools & try tool call first
-    tools = determine_tools(model)
     
     tool_response, usage = dispatch_tool_call(model, text)
+    #tool_response, usage = dispatch_tool_call(model, full_prompt)
     
-    if tool_response:
-        ai_reply = str(tool_response)
-    else:
-        # 6. Fallback to normal AI model call
-        ai_reply, usage = call_model(client, model, full_prompt, tools)
-        ai_reply += "\n\n### Fallback Generated Response"
-
-    # 7. Pricing
+    ai_reply = str(tool_response)
+    
     price = calculate_price(
         model,
         usage.input_tokens,
@@ -137,7 +125,6 @@ async def chat_call(
         usage.input_tokens_details.cached_tokens,
     )
 
-    # 8. Persist assistant message
     await _persist_assistant_message(
         conversation_id,
         ai_reply,
@@ -147,8 +134,6 @@ async def chat_call(
         metadata
     )
 
-    # 9. Summarize long context (mutation happens internally if triggered)
     await maybe_summarize_context(client, conversation_id, model, text, ai_reply)
 
-    # 10. Return hydrated assistant message
     return await get_last_message(conversation_id, "assistant")
