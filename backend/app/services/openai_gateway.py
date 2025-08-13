@@ -148,7 +148,7 @@ class OpenAIGateway:
             {
                 "type": "function",
                 "name": "get_book_recommendations",
-                "description": "Get book recommendations. Only include genres/themes/authors that the user explicitly mentions. Do not infer or add additional genres/themes/authors.",
+                "description": "Get book recommendations. Only include genres/themes/authors that the user explicitly mentions. Use content parameter for plot/story descriptions to find similar books.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -166,6 +166,10 @@ class OpenAIGateway:
                             "type": "array",
                             "items": {"type": "string"},
                             "description": "List of author names ONLY if explicitly mentioned by user (e.g., ['George Orwell', 'Jane Austen'])",
+                        },
+                        "content": {
+                            "type": "string",
+                            "description": "Story content, plot description, or narrative elements to search for in book summaries (e.g., 'quest to help dwarves reclaim mountain home', 'dystopian society surveillance')",
                         },
                         "limit": {
                             "type": "integer",
@@ -217,6 +221,7 @@ class OpenAIGateway:
             "You are a book recommendation assistant. "
             "Use the get_book_recommendations tool when users ask for book suggestions, recommendations, or want to find books. "
             "ONLY include genres/themes/authors that the user explicitly mentions - do not infer or add additional categories. "
+            "When users describe a plot, story, or narrative elements they're looking for, use the 'content' parameter to search by story content. "
             "Use the get_book_summaries tool when users ask about specific book titles or want summaries."
         )
 

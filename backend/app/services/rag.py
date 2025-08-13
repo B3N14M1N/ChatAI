@@ -95,6 +95,7 @@ class BookRAG:
         genres: Optional[List[str]] = None,
         themes: Optional[List[str]] = None,
         authors: Optional[List[str]] = None,
+        content: Optional[str] = None,
         limit: int = 5,
         random: bool = False,
     ) -> List[Dict[str, Any]]:
@@ -104,7 +105,7 @@ class BookRAG:
                 return []
 
             # For random search with constraints, get a larger sample to filter from
-            if genres or themes or authors:
+            if genres or themes or authors or content:
                 # Create a query that's more likely to find relevant books
                 query_parts = []
                 if genres:
@@ -113,6 +114,8 @@ class BookRAG:
                     query_parts.extend(themes)
                 if authors:
                     query_parts.extend(authors)
+                if content:
+                    query_parts.append(content)
 
                 if query_parts:
                     # Use a query that matches the constraints for better initial results
@@ -142,28 +145,35 @@ class BookRAG:
 
         # Build semantic query for embeddings - this is the key improvement
         query_parts = []
-        if themes:
-            query_parts.extend(themes)
-        if genres:
-            query_parts.extend(genres)
-        if authors:
-            query_parts.extend(authors)
-
-        # Create a natural language query for better embedding matching
-        if query_parts:
-            # Use natural language that would appear in book descriptions
-            if themes:
-                theme_text = f"books about {', '.join(themes)}"
-                query_parts.append(theme_text)
-            if genres:
-                genre_text = f"{', '.join(genres)} genre books"
-                query_parts.append(genre_text)
-            if authors:
-                author_text = f"books by {', '.join(authors)}"
-                query_parts.append(author_text)
-            query = f"{' '.join(query_parts)} book recommendations"
+        
+        # Prioritize content-based search if content is provided
+        if content:
+            # Use the content directly as the main query for semantic search
+            query = content
         else:
-            query = "book recommendations"
+            # Build query from other parameters
+            if themes:
+                query_parts.extend(themes)
+            if genres:
+                query_parts.extend(genres)
+            if authors:
+                query_parts.extend(authors)
+
+            # Create a natural language query for better embedding matching
+            if query_parts:
+                # Use natural language that would appear in book descriptions
+                if themes:
+                    theme_text = f"books about {', '.join(themes)}"
+                    query_parts.append(theme_text)
+                if genres:
+                    genre_text = f"{', '.join(genres)} genre books"
+                    query_parts.append(genre_text)
+                if authors:
+                    author_text = f"books by {', '.join(authors)}"
+                    query_parts.append(author_text)
+                query = f"{' '.join(query_parts)} book recommendations"
+            else:
+                query = "book recommendations"
 
         # Use embeddings for semantic search - get more results initially
         # This is the key: let embeddings do the heavy lifting
@@ -171,9 +181,22 @@ class BookRAG:
 
         results = self._pack_results(res)
 
-        # Apply light filtering if specific constraints are given
-        # But prioritize embedding similarity over exact metadata matches
-        if genres or themes or authors:
+        # If content search is used, rely primarily on semantic similarity
+        if content:
+            # For content-based search, apply minimal filtering and rely on embedding similarity
+            if genres or themes or authors:
+                # Apply light metadata filtering but be more lenient
+                distances = res.get("distances", [[]])[0] if res.get("distances") else []
+                filtered_results = self._score_and_filter_results(
+                    results, genres, themes, authors, distances
+                )
+                return filtered_results[:limit]
+            else:
+                # Pure content search - return based on semantic similarity only
+                return results[:limit]
+        
+        # Traditional metadata-based search
+        elif genres or themes or authors:
             distances = res.get("distances", [[]])[0] if res.get("distances") else []
             filtered_results = self._score_and_filter_results(
                 results, genres, themes, authors, distances
