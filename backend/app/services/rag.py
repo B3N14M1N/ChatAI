@@ -1,4 +1,3 @@
-# app/services/rag.py
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
@@ -229,7 +228,7 @@ class BookRAG:
             
             # Always include results with decent embedding similarity
             # This allows for semantic matches even without exact metadata matches
-            if similarity_score > 0.2:  # Lower threshold for more results
+            if similarity_score > 0.7:  # Lower threshold for more results
                 book["_total_score"] = total_score
                 book["_similarity_score"] = similarity_score
                 book["_metadata_bonus"] = metadata_bonus
