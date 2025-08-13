@@ -1,5 +1,6 @@
 from .connector import DatabaseConnector
 
+
 class DatabaseInitializer:
     async def init(self, connector: DatabaseConnector):
         async with connector.get_connection() as conn:

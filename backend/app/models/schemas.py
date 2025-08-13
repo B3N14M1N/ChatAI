@@ -4,21 +4,26 @@ from pydantic import BaseModel, Field
 
 # Core entities
 
+
 class Conversation(BaseModel):
     id: int
     title: Optional[str] = None
     summary: Optional[str] = None
     created_at: str
 
+
 class ConversationCreate(BaseModel):
     title: Optional[str] = None
     summary: Optional[str] = None
+
 
 class ConversationUpdate(BaseModel):
     title: Optional[str] = None
     summary: Optional[str] = None
 
+
 Role = Literal["user", "assistant"]
+
 
 class Message(BaseModel):
     id: int
@@ -35,6 +40,7 @@ class Message(BaseModel):
     model: Optional[str] = None
     price: Optional[float] = None
 
+
 class MessageCreate(BaseModel):
     conversation_id: int
     # request_id: If None => user message; if set => assistant response to message_id=request_id
@@ -48,6 +54,7 @@ class MessageCreate(BaseModel):
     model: Optional[str] = None
     price: Optional[float] = None
 
+
 class MessageUpdate(BaseModel):
     text: Optional[str] = None
     summary: Optional[str] = None
@@ -57,11 +64,13 @@ class MessageUpdate(BaseModel):
     model: Optional[str] = None
     price: Optional[float] = None
 
+
 class Attachment(BaseModel):
     id: int
     message_id: int
     filename: str
     content_type: Optional[str] = None
+
 
 class AttachmentCreate(BaseModel):
     message_id: int
@@ -69,12 +78,13 @@ class AttachmentCreate(BaseModel):
     content: bytes
     content_type: Optional[str] = None
 
-# Convenience DTOs
 
 class RequestResponsePair(BaseModel):
     """A pair of (user request, assistant response). Response may be None if pending."""
+
     request: Message
     response: Optional[Message] = None
+
 
 class PaginatedMessages(BaseModel):
     items: List[Message]

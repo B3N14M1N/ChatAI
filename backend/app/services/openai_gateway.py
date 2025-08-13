@@ -1,6 +1,5 @@
 from __future__ import annotations
 import os
-import json
 from typing import List, Optional, Dict, Any
 from openai import OpenAI
 from pydantic import BaseModel
@@ -11,11 +10,13 @@ TITLE_MODEL = os.getenv("OPENAI_TITLE_MODEL", "gpt-4.1-nano")
 INTENT_MODEL = os.getenv("OPENAI_INTENT_MODEL", "gpt-4.1-nano")
 SUMMARY_MODEL = os.getenv("OPENAI_SUMMARY_MODEL", "gpt-4.1-nano")
 
+
 class OpenAIUsage(BaseModel):
     input_tokens: int = 0
     output_tokens: int = 0
     cached_tokens: int = 0
     model: str = DEFAULT_MODEL
+
 
 class OpenAIGateway:
     def __init__(self):
@@ -26,8 +27,11 @@ class OpenAIGateway:
         resp = self.client.responses.create(
             model=TITLE_MODEL,
             input=[
-                {"role":"system","content":"Create a 3-8 word concise title based on the user's message."},
-                {"role":"user","content": user_message}
+                {
+                    "role": "system",
+                    "content": "Create a 3-8 word concise title based on the user's message.",
+                },
+                {"role": "user", "content": user_message},
             ],
             max_output_tokens=32,
         )
@@ -35,8 +39,10 @@ class OpenAIGateway:
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,
-            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
-            model=TITLE_MODEL
+            cached_tokens=(
+                resp.usage.input_tokens_details.cached_tokens if resp.usage else 0
+            ),
+            model=TITLE_MODEL,
         )
         return title, usage
 
@@ -46,15 +52,18 @@ class OpenAIGateway:
         resp = self.client.responses.parse(
             model=INTENT_MODEL,
             input=[
-                {"role":"system","content":(
-                    "Analyze the user's message and determine how much conversation context is needed to respond appropriately. "
-                    "Return JSON with field: context_need. "
-                    "Use 'none' if the message is standalone (greetings, general questions, clear requests). "
-                    "Use 'last_message' if the message refers to something from the immediate previous exchange "
-                    "(like 'yes', 'tell me more', 'what about X', follow-up questions). "
-                    "Use 'full' if the message requires understanding the entire conversation history."
-                )},
-                {"role":"user","content": user_message}
+                {
+                    "role": "system",
+                    "content": (
+                        "Analyze the user's message and determine how much conversation context is needed to respond appropriately. "
+                        "Return JSON with field: context_need. "
+                        "Use 'none' if the message is standalone (greetings, general questions, clear requests). "
+                        "Use 'last_message' if the message refers to something from the immediate previous exchange "
+                        "(like 'yes', 'tell me more', 'what about X', follow-up questions). "
+                        "Use 'full' if the message requires understanding the entire conversation history."
+                    ),
+                },
+                {"role": "user", "content": user_message},
             ],
             text_format=IntentEnvelope,
         )
@@ -62,8 +71,10 @@ class OpenAIGateway:
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,
-            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
-            model=INTENT_MODEL
+            cached_tokens=(
+                resp.usage.input_tokens_details.cached_tokens if resp.usage else 0
+            ),
+            model=INTENT_MODEL,
         )
         return intent, usage
 
@@ -72,8 +83,11 @@ class OpenAIGateway:
         resp = self.client.responses.create(
             model=SUMMARY_MODEL,
             input=[
-                {"role":"system","content":f"Summarize in <= {max_words} words. KEEP concrete details: book titles, author names, specific requests, numbers, and factual information. Preserve the essence and specific content, not just abstract themes."},
-                {"role":"user","content": text}
+                {
+                    "role": "system",
+                    "content": f"Summarize in <= {max_words} words. KEEP concrete details: book titles, author names, specific requests, numbers, and factual information. Preserve the essence and specific content, not just abstract themes.",
+                },
+                {"role": "user", "content": text},
             ],
             max_output_tokens=200,
         )
@@ -81,8 +95,10 @@ class OpenAIGateway:
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,
-            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
-            model=SUMMARY_MODEL
+            cached_tokens=(
+                resp.usage.input_tokens_details.cached_tokens if resp.usage else 0
+            ),
+            model=SUMMARY_MODEL,
         )
         return summary, usage
 
@@ -101,12 +117,14 @@ class OpenAIGateway:
             "Only rely on tool_data for catalog facts. "
             "If tool_data shows no matches, say 'No matches found' and offer alternatives."
         )
-        messages = [{"role":"system","content":system_prompt}]
+        messages = [{"role": "system", "content": system_prompt}]
         messages.extend(compact_context)
         # Add the tool output as a hidden/system-like context block
         if tool_data is not None:
-            messages.append({"role":"system","content":f"tool_data(json): {tool_data}"})
-        messages.append({"role":"user","content":user_message})
+            messages.append(
+                {"role": "system", "content": f"tool_data(json): {tool_data}"}
+            )
+        messages.append({"role": "user", "content": user_message})
 
         resp = self.client.responses.create(
             model=model,
@@ -117,8 +135,10 @@ class OpenAIGateway:
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,
-            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
-            model=model
+            cached_tokens=(
+                resp.usage.input_tokens_details.cached_tokens if resp.usage else 0
+            ),
+            model=model,
         )
         return text, usage
 
@@ -135,26 +155,26 @@ class OpenAIGateway:
                         "genres": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "List of book genres ONLY if explicitly mentioned by user (e.g., ['fantasy', 'sci-fi'])"
+                            "description": "List of book genres ONLY if explicitly mentioned by user (e.g., ['fantasy', 'sci-fi'])",
                         },
                         "themes": {
-                            "type": "array", 
+                            "type": "array",
                             "items": {"type": "string"},
-                            "description": "List of themes ONLY if explicitly mentioned by user (e.g., ['friendship', 'adventure'])"
+                            "description": "List of themes ONLY if explicitly mentioned by user (e.g., ['friendship', 'adventure'])",
                         },
                         "limit": {
                             "type": "integer",
                             "description": "Maximum number of recommendations to return",
-                            "default": 5
+                            "default": 5,
                         },
                         "random": {
                             "type": "boolean",
                             "description": "Whether to return random recommendations",
-                            "default": False
-                        }
+                            "default": False,
+                        },
                     },
-                    "additionalProperties": False
-                }
+                    "additionalProperties": False,
+                },
             },
             {
                 "type": "function",
@@ -166,13 +186,13 @@ class OpenAIGateway:
                         "titles": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "List of book titles to get summaries for"
+                            "description": "List of book titles to get summaries for",
                         }
                     },
                     "required": ["titles"],
-                    "additionalProperties": False
-                }
-            }
+                    "additionalProperties": False,
+                },
+            },
         ]
 
     # 6) Generate response with tools
@@ -194,27 +214,29 @@ class OpenAIGateway:
             "ONLY include genres/themes that the user explicitly mentions - do not infer or add additional categories. "
             "Use the get_book_summaries tool when users ask about specific book titles or want summaries."
         )
-        
+
         input_messages = [{"role": "system", "content": system_prompt}]
         input_messages.extend(compact_context)
         input_messages.append({"role": "user", "content": user_message})
-        
+
         tools = self.get_tools_definition()
-        
+
         resp = self.client.responses.create(
             model=model,
             tools=tools,
             input=input_messages,
             max_output_tokens=max_output_tokens,
         )
-        
+
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,
-            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
-            model=model
+            cached_tokens=(
+                resp.usage.input_tokens_details.cached_tokens if resp.usage else 0
+            ),
+            model=model,
         )
-        
+
         return resp, usage
 
     # 7) Generate final response after tool calls
@@ -230,31 +252,38 @@ class OpenAIGateway:
         """
         # Add system instruction for natural responses
         final_messages = [
-            {"role": "system", "content": (
-                "You are a book recommendation assistant with access to a specific book database. "
-                "ONLY recommend books from the tool results provided - NEVER suggest books not in the results. "
-                "NEVER mention internal processes like 'I retrieved', 'I searched', 'I pulled up', 'the tool returned', etc. "
-                "If the tool results don't contain suitable books for the user's request, simply say 'I don't have any books in my collection that match your criteria.' "
-                "If the results contain books that don't match the request, treat it as if no suitable books were found. "
-                "Present any valid recommendations naturally as if you know them from your collection. Be conversational and helpful, but stay strictly within the provided data."
-            )}
-        ] + input_messages[1:]  # Skip the original system message, use our new one
-        
+            {
+                "role": "system",
+                "content": (
+                    "You are a book recommendation assistant with access to a specific book database. "
+                    "ONLY recommend books from the tool results provided - NEVER suggest books not in the results. "
+                    "NEVER mention internal processes like 'I retrieved', 'I searched', 'I pulled up', 'the tool returned', etc. "
+                    "If the tool results don't contain suitable books for the user's request, simply say 'I don't have any books in my collection that match your criteria.' "
+                    "If the results contain books that don't match the request, treat it as if no suitable books were found. "
+                    "Present any valid recommendations naturally as if you know them from your collection. Be conversational and helpful, but stay strictly within the provided data."
+                ),
+            }
+        ] + input_messages[
+            1:
+        ]  # Skip the original system message, use our new one
+
         tools = self.get_tools_definition()
-        
+
         resp = self.client.responses.create(
             model=model,
             tools=tools,
             input=final_messages,
             max_output_tokens=max_output_tokens,
         )
-        
+
         text = resp.output_text.strip()
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,
-            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
-            model=model
+            cached_tokens=(
+                resp.usage.input_tokens_details.cached_tokens if resp.usage else 0
+            ),
+            model=model,
         )
-        
+
         return text, usage

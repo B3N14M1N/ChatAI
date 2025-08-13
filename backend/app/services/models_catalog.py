@@ -2,6 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 import json
 
+
 def get_available_models_from_pricing(pricing_path: Path) -> dict:
     """
     Returns {"chat": [...]} using keys from pricing_data.json.

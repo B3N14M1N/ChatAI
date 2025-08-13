@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Optional, Sequence, Tuple
+from typing import Any, Optional, Sequence, Tuple
 from .connector import DatabaseConnector
 
 

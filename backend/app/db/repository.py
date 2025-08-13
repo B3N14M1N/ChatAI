@@ -1,5 +1,4 @@
-from typing import Optional, List, Tuple
-from datetime import datetime
+from typing import Optional, List
 from .crud import Crud
 from ..models.schemas import (
     Conversation,

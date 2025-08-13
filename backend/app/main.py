@@ -1,4 +1,3 @@
-# app/main.py
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
@@ -6,17 +5,12 @@ from pathlib import Path
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Response, Form, File, UploadFile
-from pydantic import BaseModel
 
-# --- Services & DB layers (from your existing modules) ---
 from app.db.connector import DatabaseConnector
 from app.db.initializer import DatabaseInitializer
 from app.db.crud import Crud
 from app.db.repository import Repository
-from app.models.schemas import (
-    ConversationCreate,
-    MessageCreate,
-)
+from app.models.schemas import ConversationCreate
 from app.services.context import ContextService
 from app.services.cache import TTLCache
 from app.services.pricing import PricingService
@@ -24,15 +18,21 @@ from app.services.openai_gateway import OpenAIGateway
 from app.services.rag import BookRAG
 from app.services.pipelines import ChatPipeline
 from app.services.models_catalog import get_available_models_from_pricing
-from app.models.api_schemas import ConversationOut, ConversationMessages, SendPayload, SendMessageResponse
+from app.models.api_schemas import (
+    ConversationOut,
+    ConversationMessages,
+    SendPayload,
+    SendMessageResponse,
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Paths for local assets (adjust if needed)
-    project_root = Path(__file__).resolve().parents[0]  # .../app -> parent is project root
+    # Paths for local assets
+    project_root = Path(__file__).resolve().parents[0]
     data_dir = project_root / "data"
-    books_path = data_dir / "books.json"            # you can also point this to /mnt/data
-    pricing_path = data_dir / "pricing_data.json"   # same here
+    books_path = data_dir / "books.json"
+    pricing_path = data_dir / "pricing_data.json"
 
     # 1) Database
     connector = DatabaseConnector()
@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
     cache_service = TTLCache(default_ttl_seconds=60)
     pricing_service = PricingService(pricing_path)
     openai_gateway = OpenAIGateway()
-    rag_service = BookRAG(books_path)  # BookRAG checks OPENAI_API_KEY internally in your impl
+    rag_service = BookRAG(books_path)
     pipeline = ChatPipeline(
         repo=repo,
         pricing=pricing_service,
@@ -69,14 +69,12 @@ async def lifespan(app: FastAPI):
 
     yield
 
+
 app = FastAPI(
     title="Book Chat Backend",
-    lifespan=lifespan,  # set just below with the asynccontextmanager
+    lifespan=lifespan,
 )
 
-# ------------------------------------------------------------------------------------
-# Chat endpoints (directly in main.py)
-# ------------------------------------------------------------------------------------
 
 @app.post("/chat/send")
 async def send_message(payload: SendPayload):
@@ -88,23 +86,24 @@ async def send_message(payload: SendPayload):
     )
     return result
 
+
 @app.post("/chat/", response_model=SendMessageResponse)
 async def send_message_with_files(
     text: str = Form(...),
     model: str = Form(default="gpt-4o"),
     conversation_id: Optional[int] = Form(default=None),
-    files: List[UploadFile] = File(default=[])
+    files: List[UploadFile] = File(default=[]),
 ):
     """Handle message sending with optional file attachments"""
     if not text.strip():
         raise HTTPException(400, "Empty text")
-    
+
     # First, send the message through the pipeline
     result = await app.state.pipeline.handle_user_message(
         conversation_id=conversation_id,
         user_text=text,
     )
-    
+
     # If files were uploaded, attach them to the user message
     if files:
         request_message_id = result["request_message_id"]
@@ -115,20 +114,24 @@ async def send_message_with_files(
                     message_id=request_message_id,
                     filename=file.filename,
                     content=content,
-                    content_type=file.content_type
+                    content_type=file.content_type,
                 )
-    
+
     return SendMessageResponse(
         conversation_id=result["conversation_id"],
         request_message_id=result["request_message_id"],
         response_message_id=result["response_message_id"],
-        answer=result["answer"]
+        answer=result["answer"],
     )
+
 
 @app.get("/chat/{conversation_id}/messages")
 async def get_messages(conversation_id: int, offset: int = 0, limit: int = 50):
-    res = await app.state.repo.list_messages(conversation_id, offset=offset, limit=limit)
+    res = await app.state.repo.list_messages(
+        conversation_id, offset=offset, limit=limit
+    )
     return res.model_dump()
+
 
 @app.get("/chat/attachments/{attachment_id}")
 async def download_attachment_chat(attachment_id: int):
@@ -144,17 +147,13 @@ async def download_attachment_chat(attachment_id: int):
         headers={"Content-Disposition": f'attachment; filename="{meta.filename}"'},
     )
 
-# ------------------------------------------------------------------------------------
-# Legacy-style conversation routes (directly in main.py)
-# ------------------------------------------------------------------------------------
 
-# POST /conversations/ -> int
 @app.post("/conversations/", response_model=int)
 async def create_conversation_endpoint(conversation: ConversationCreate):
     conv = await app.state.repo.create_conversation(conversation)
     return conv.id
 
-# PUT /conversations/{conversation_id}/rename
+
 @app.put("/conversations/{conversation_id}/rename")
 async def rename_conversation_endpoint(conversation_id: int, new_title: str):
     ok = await app.state.repo.rename_conversation(conversation_id, new_title)
@@ -162,13 +161,13 @@ async def rename_conversation_endpoint(conversation_id: int, new_title: str):
         raise HTTPException(404, "Conversation not found")
     return {"detail": "Conversation renamed successfully"}
 
-# GET /conversations/ -> List[ConversationOut]
+
 @app.get("/conversations/", response_model=List[ConversationOut])
 async def get_conversations_endpoint():
     convs = await app.state.repo.list_conversations()
     return [ConversationOut(**c.model_dump()) for c in convs]
 
-# DELETE /conversations/{conversation_id}
+
 @app.delete("/conversations/{conversation_id}")
 async def delete_conversation_endpoint(conversation_id: int):
     ok = await app.state.repo.delete_conversation(conversation_id)
@@ -176,8 +175,10 @@ async def delete_conversation_endpoint(conversation_id: int):
         raise HTTPException(404, "Conversation not found")
     return {"detail": "Conversation deleted"}
 
-# GET /conversations/{conversation_id}/messages -> ConversationMessages
-@app.get("/conversations/{conversation_id}/messages", response_model=ConversationMessages)
+
+@app.get(
+    "/conversations/{conversation_id}/messages", response_model=ConversationMessages
+)
 async def get_conversation_messages_endpoint(conversation_id: int):
     conv = await app.state.repo.get_conversation(conversation_id)
     if not conv:
@@ -185,7 +186,7 @@ async def get_conversation_messages_endpoint(conversation_id: int):
     page = await app.state.repo.list_messages(conversation_id, offset=0, limit=10_000)
     return ConversationMessages(conversation_id=conversation_id, messages=page.items)
 
-# GET /conversations/{conversation_id}/context -> str
+
 @app.get("/conversations/{conversation_id}/context", response_model=str)
 async def get_conversation_context_endpoint(conversation_id: int):
     conv = await app.state.repo.get_conversation(conversation_id)
@@ -202,12 +203,12 @@ async def get_conversation_context_endpoint(conversation_id: int):
         lines.append(f"{role}: {content}")
     return "\n---\n".join(lines)
 
-# GET /models -> dict
+
 @app.get("/models", response_model=dict)
 async def get_models_endpoint():
     return get_available_models_from_pricing(app.state.pricing_path)
 
-# GET /attachments/{attachment_id}  (legacy path)
+
 @app.get("/attachments/{attachment_id}")
 async def download_attachment(attachment_id: int):
     meta = await app.state.repo.get_attachment_meta(attachment_id)
