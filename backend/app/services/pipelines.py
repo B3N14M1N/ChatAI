@@ -74,9 +74,7 @@ class ChatPipeline:
         6) Persist assistant message with usage+price
         """
         # 1) Conversation bootstrap
-        new_conversation = False
         if conversation_id is None:
-            new_conversation = True
             title, title_usage = self.oa.generate_title(user_text)
             # build ConversationCreate inline
             from ..models.schemas import ConversationCreate
@@ -85,6 +83,7 @@ class ChatPipeline:
             conversation_id = conv.id
         else:
             conv = await self.repo.get_conversation(conversation_id)
+            
         # 2) Persist user message (with optional summary)
         # Heuristic: summarize if > 400 chars
         summary_text = None

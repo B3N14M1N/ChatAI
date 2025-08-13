@@ -48,8 +48,6 @@ export function getSender(message: Message): "user" | "assistant" {
 
 // Helper function to get display text from message
 export function getDisplayText(message: Message): string {
-  if (message.summary) {
-    return `[ID: ${message.id}] ${message.summary}`;
-  }
-  return message.text || "";
+  // Always prefer the full text over summary for display
+  return message.text || message.summary || "";
 }
