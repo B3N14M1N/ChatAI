@@ -230,12 +230,22 @@ class OpenAIGateway:
         """
         Generate the final response after tool calls have been processed.
         """
+        # Add system instruction for natural responses
+        final_messages = [
+            {"role": "system", "content": (
+                "You are a book recommendation assistant. Respond naturally to the user based on the tool results. "
+                "NEVER mention internal processes like 'I retrieved', 'I searched', 'the tool returned', etc. "
+                "If no suitable books are found, simply say something like 'I don't have any books that match your criteria' or 'No suitable books found for that topic.' "
+                "Present recommendations as if you naturally know them. Be conversational and helpful."
+            )}
+        ] + input_messages[1:]  # Skip the original system message, use our new one
+        
         tools = self.get_tools_definition()
         
         resp = self.client.responses.create(
             model=model,
             tools=tools,
-            input=input_messages,
+            input=final_messages,
             max_output_tokens=max_output_tokens,
         )
         
