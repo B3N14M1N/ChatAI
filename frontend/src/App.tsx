@@ -148,11 +148,16 @@ const App: React.FC = () => {
       if (files && files.length) {
         files.forEach(file => form.append('files', file, file.name));
       }
-      const res = await axios.post<Message>('/api/chat/', form, {
+      const res = await axios.post<{
+        conversation_id: number;
+        request_message_id: number;
+        response_message_id: number;
+        answer: string;
+      }>('/api/chat/', form, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       // On first message, select the new conversation
-      let convId = selectedConv?.id;
+      let convId = selectedConv?.id || res.data.conversation_id;
       if (!selectedConv) {
         const listRes = await axios.get<Conversation[]>('/api/conversations/');
         setConversations(listRes.data);
@@ -169,9 +174,6 @@ const App: React.FC = () => {
           `/api/conversations/${convId}/messages`
         );
         setMessages(msgsRes.data.messages);
-      } else {
-        // fallback to optimistic append
-        setMessages(prev => [...prev, res.data]);
       }
     } catch (err) {
       console.error(err);

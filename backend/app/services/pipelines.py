@@ -61,13 +61,10 @@ class ChatPipeline:
         # 1) Conversation bootstrap
         new_conversation = False
         if conversation_id is None:
+            new_conversation = True
             title, title_usage = self.oa.generate_title(user_text)
-            conv = await self.repo.create_conversation(data=... # type: ignore
-                # Pydantic wants a ConversationCreate; build inline to avoid import cycle
-            )
-        # build ConversationCreate inline
-        from ..models.schemas import ConversationCreate
-        if conversation_id is None:
+            # build ConversationCreate inline
+            from ..models.schemas import ConversationCreate
             c = ConversationCreate(title=title.strip() or "New chat")
             conv = await self.repo.create_conversation(c)
             conversation_id = conv.id

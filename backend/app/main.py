@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Response, Form, File, UploadFile
 from pydantic import BaseModel
 
 # --- Services & DB layers (from your existing modules) ---
@@ -24,7 +24,7 @@ from app.services.openai_gateway import OpenAIGateway
 from app.services.rag import BookRAG
 from app.services.pipelines import ChatPipeline
 from app.services.models_catalog import get_available_models_from_pricing
-from app.models.api_schemas import ConversationOut, ConversationMessages, SendPayload
+from app.models.api_schemas import ConversationOut, ConversationMessages, SendPayload, SendMessageResponse
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -87,6 +87,43 @@ async def send_message(payload: SendPayload):
         user_text=payload.text,
     )
     return result
+
+@app.post("/chat/", response_model=SendMessageResponse)
+async def send_message_with_files(
+    text: str = Form(...),
+    model: str = Form(default="gpt-4o"),
+    conversation_id: Optional[int] = Form(default=None),
+    files: List[UploadFile] = File(default=[])
+):
+    """Handle message sending with optional file attachments"""
+    if not text.strip():
+        raise HTTPException(400, "Empty text")
+    
+    # First, send the message through the pipeline
+    result = await app.state.pipeline.handle_user_message(
+        conversation_id=conversation_id,
+        user_text=text,
+    )
+    
+    # If files were uploaded, attach them to the user message
+    if files:
+        request_message_id = result["request_message_id"]
+        for file in files:
+            if file.filename:
+                content = await file.read()
+                await app.state.repo.add_attachment(
+                    message_id=request_message_id,
+                    filename=file.filename,
+                    content=content,
+                    content_type=file.content_type
+                )
+    
+    return SendMessageResponse(
+        conversation_id=result["conversation_id"],
+        request_message_id=result["request_message_id"],
+        response_message_id=result["response_message_id"],
+        answer=result["answer"]
+    )
 
 @app.get("/chat/{conversation_id}/messages")
 async def get_messages(conversation_id: int, offset: int = 0, limit: int = 50):

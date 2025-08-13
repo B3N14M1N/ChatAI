@@ -41,7 +41,8 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
     fetch('/api/models')
       .then(res => res.json())
       .then(data => {
-        const list = Object.keys(data);
+        // Backend returns {"chat": ["model1", "model2", ...]}
+        const list = data.chat || Object.keys(data);
         setModels(list);
         if (list.length) setSelectedModel(list[0]);
       })

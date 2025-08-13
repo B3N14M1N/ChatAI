@@ -5,10 +5,10 @@ from openai import OpenAI
 from pydantic import BaseModel
 from ..models.intents import IntentEnvelope
 
-DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-nano")
-TITLE_MODEL = os.getenv("OPENAI_TITLE_MODEL", "gpt-4o-nano")
-INTENT_MODEL = os.getenv("OPENAI_INTENT_MODEL", "gpt-4o-nano")
-SUMMARY_MODEL = os.getenv("OPENAI_SUMMARY_MODEL", "gpt-4o-nano")
+DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-nano")
+TITLE_MODEL = os.getenv("OPENAI_TITLE_MODEL", "gpt-4.1-nano")
+INTENT_MODEL = os.getenv("OPENAI_INTENT_MODEL", "gpt-4.1-nano")
+SUMMARY_MODEL = os.getenv("OPENAI_SUMMARY_MODEL", "gpt-4.1-nano")
 
 class OpenAIUsage(BaseModel):
     input_tokens: int = 0
@@ -34,7 +34,7 @@ class OpenAIGateway:
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,
-            cached_tokens=resp.usage.cached_tokens if resp.usage else 0,
+            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
             model=TITLE_MODEL
         )
         return title, usage
@@ -65,7 +65,7 @@ class OpenAIGateway:
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,
-            cached_tokens=resp.usage.cached_tokens if resp.usage else 0,
+            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
             model=INTENT_MODEL
         )
         return intent, usage
@@ -84,7 +84,7 @@ class OpenAIGateway:
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,
-            cached_tokens=resp.usage.cached_tokens if resp.usage else 0,
+            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
             model=SUMMARY_MODEL
         )
         return summary, usage
@@ -120,7 +120,7 @@ class OpenAIGateway:
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,
-            cached_tokens=resp.usage.cached_tokens if resp.usage else 0,
+            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
             model=model
         )
         return text, usage

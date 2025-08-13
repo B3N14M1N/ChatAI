@@ -16,3 +16,9 @@ class ConversationMessages(BaseModel):
 class SendPayload(BaseModel):
     conversation_id: Optional[int] = None
     text: str
+
+class SendMessageResponse(BaseModel):
+    conversation_id: int
+    request_message_id: int
+    response_message_id: int
+    answer: str
