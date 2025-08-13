@@ -72,7 +72,7 @@ class OpenAIGateway:
         resp = self.client.responses.create(
             model=SUMMARY_MODEL,
             input=[
-                {"role":"system","content":f"Summarize in <= {max_words} words, keep salient user goals and constraints."},
+                {"role":"system","content":f"Summarize in <= {max_words} words. KEEP concrete details: book titles, author names, specific requests, numbers, and factual information. Preserve the essence and specific content, not just abstract themes."},
                 {"role":"user","content": text}
             ],
             max_output_tokens=200,
@@ -195,7 +195,6 @@ class OpenAIGateway:
             "You are a book recommendation assistant. "
             "Use the get_book_recommendations tool when users ask for book suggestions, recommendations, or want to find books. "
             "Use the get_book_summaries tool when users ask about specific book titles or want summaries. "
-            "For general conversation, greetings, or follow-up questions that don't require book data, respond directly without using tools."
         )
         
         input_messages = [{"role": "system", "content": system_prompt}]
