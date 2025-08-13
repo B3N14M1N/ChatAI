@@ -1,123 +1,186 @@
+# app/main.py
+from __future__ import annotations
+
 from contextlib import asynccontextmanager
-
-from fastapi import FastAPI, Form, File, UploadFile, HTTPException, Response
-from fastapi.middleware.cors import CORSMiddleware
-
+from pathlib import Path
 from typing import List, Optional
 
-from app.core.db import db_connector
-from app.rag.vector_store import initialize_vector_store
-from app.models.schemas import (
-    ChatResponse,
-    MessageOut,
-    ConversationCreate,
-    ConversationOut,
-    ConversationMessages,
-)
-from app.core.crud import (
-    create_conversation,
-    get_conversations,
-    delete_conversation,
-    get_conversation_context,
-    get_messages_for_conversation,
-    rename_conversation,
-    get_attachment,
-)
-from app.services.chat import chat_call
-from app.services.pricing import get_available_models
+from fastapi import FastAPI, HTTPException, Response
+from pydantic import BaseModel
 
+# --- Services & DB layers (from your existing modules) ---
+from app.db.connector import DatabaseConnector
+from app.db.initializer import DatabaseInitializer
+from app.db.crud import Crud
+from app.db.repository import Repository
+from app.models.schemas import (
+    ConversationCreate,
+    MessageCreate,
+)
+from app.services.context import ContextService
+from app.services.cache import TTLCache
+from app.services.pricing import PricingService
+from app.services.openai_gateway import OpenAIGateway
+from app.services.rag import BookRAG
+from app.services.pipelines import ChatPipeline
+from app.services.models_catalog import get_available_models_from_pricing
+from app.models.api_schemas import ConversationOut, ConversationMessages, SendPayload
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize database connection and tables on startup
-    await db_connector.init_db()
-    initialize_vector_store()
+    # Paths for local assets (adjust if needed)
+    project_root = Path(__file__).resolve().parents[0]  # .../app -> parent is project root
+    data_dir = project_root / "data"
+    books_path = data_dir / "books.json"            # you can also point this to /mnt/data
+    pricing_path = data_dir / "pricing_data.json"   # same here
+
+    # 1) Database
+    connector = DatabaseConnector()
+    await DatabaseInitializer().init(connector)  # creates tables
+    crud = Crud(connector)
+    repo = Repository(crud)
+
+    # 2) Services
+    context_service = ContextService(repo)
+    cache_service = TTLCache(default_ttl_seconds=60)
+    pricing_service = PricingService(pricing_path)
+    openai_gateway = OpenAIGateway()
+    rag_service = BookRAG(books_path)  # BookRAG checks OPENAI_API_KEY internally in your impl
+    pipeline = ChatPipeline(
+        repo=repo,
+        pricing=pricing_service,
+        rag=rag_service,
+        oa=openai_gateway,
+        cache=cache_service,
+        context=context_service,
+    )
+
+    # 3) Expose on app.state so routes can use them
+    app.state.connector = connector
+    app.state.repo = repo
+    app.state.context = context_service
+    app.state.cache = cache_service
+    app.state.pricing = pricing_service
+    app.state.oa = openai_gateway
+    app.state.rag = rag_service
+    app.state.pipeline = pipeline
+    app.state.books_path = books_path
+    app.state.pricing_path = pricing_path
+
     yield
 
-
-app = FastAPI(lifespan=lifespan)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = FastAPI(
+    title="Book Chat Backend",
+    lifespan=lifespan,  # set just below with the asynccontextmanager
 )
 
+# ------------------------------------------------------------------------------------
+# Chat endpoints (directly in main.py)
+# ------------------------------------------------------------------------------------
 
-@app.get("/")
-def read_root():
-    return {"message": "Hello, FastAPI!"}
-
-
-@app.post("/chat/", response_model=ChatResponse)
-async def chat_endpoint(
-    conversation_id: Optional[int] = Form(None),
-    text: str = Form(...),
-    model: str = Form(...),
-    summary: Optional[str] = Form(None),
-    files: List[UploadFile] = File(None),
-):
-    # Delegate full conversation handling (message persistence, attachments, AI call) to service
-    ai_reply: MessageOut = await chat_call(
-        text=text,
-        files=files,
-        conversation_id=conversation_id,
-        model=model,
-        summary=summary,
+@app.post("/chat/send")
+async def send_message(payload: SendPayload):
+    if not payload.text.strip():
+        raise HTTPException(400, "Empty text")
+    result = await app.state.pipeline.handle_user_message(
+        conversation_id=payload.conversation_id,
+        user_text=payload.text,
     )
-    return ChatResponse(**ai_reply.model_dump())
+    return result
 
+@app.get("/chat/{conversation_id}/messages")
+async def get_messages(conversation_id: int, offset: int = 0, limit: int = 50):
+    res = await app.state.repo.list_messages(conversation_id, offset=offset, limit=limit)
+    return res.model_dump()
 
+@app.get("/chat/attachments/{attachment_id}")
+async def download_attachment_chat(attachment_id: int):
+    meta = await app.state.repo.get_attachment_meta(attachment_id)
+    if not meta:
+        raise HTTPException(404, "Not found")
+    blob = await app.state.repo.get_attachment_blob(attachment_id)
+    if blob is None:
+        raise HTTPException(404, "Not found")
+    return Response(
+        content=blob,
+        media_type=meta.content_type or "application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{meta.filename}"'},
+    )
+
+# ------------------------------------------------------------------------------------
+# Legacy-style conversation routes (directly in main.py)
+# ------------------------------------------------------------------------------------
+
+# POST /conversations/ -> int
 @app.post("/conversations/", response_model=int)
 async def create_conversation_endpoint(conversation: ConversationCreate):
-    return await create_conversation(conversation)
+    conv = await app.state.repo.create_conversation(conversation)
+    return conv.id
 
-
+# PUT /conversations/{conversation_id}/rename
 @app.put("/conversations/{conversation_id}/rename")
 async def rename_conversation_endpoint(conversation_id: int, new_title: str):
-    await rename_conversation(conversation_id, new_title)
+    ok = await app.state.repo.rename_conversation(conversation_id, new_title)
+    if not ok:
+        raise HTTPException(404, "Conversation not found")
     return {"detail": "Conversation renamed successfully"}
 
-
+# GET /conversations/ -> List[ConversationOut]
 @app.get("/conversations/", response_model=List[ConversationOut])
 async def get_conversations_endpoint():
-    return await get_conversations()
+    convs = await app.state.repo.list_conversations()
+    return [ConversationOut(**c.model_dump()) for c in convs]
 
-
+# DELETE /conversations/{conversation_id}
 @app.delete("/conversations/{conversation_id}")
 async def delete_conversation_endpoint(conversation_id: int):
-    await delete_conversation(conversation_id)
+    ok = await app.state.repo.delete_conversation(conversation_id)
+    if not ok:
+        raise HTTPException(404, "Conversation not found")
     return {"detail": "Conversation deleted"}
 
-
-@app.get(
-    "/conversations/{conversation_id}/messages", response_model=ConversationMessages
-)
+# GET /conversations/{conversation_id}/messages -> ConversationMessages
+@app.get("/conversations/{conversation_id}/messages", response_model=ConversationMessages)
 async def get_conversation_messages_endpoint(conversation_id: int):
-    return await get_messages_for_conversation(conversation_id)
+    conv = await app.state.repo.get_conversation(conversation_id)
+    if not conv:
+        raise HTTPException(404, "Conversation not found")
+    page = await app.state.repo.list_messages(conversation_id, offset=0, limit=10_000)
+    return ConversationMessages(conversation_id=conversation_id, messages=page.items)
 
-
+# GET /conversations/{conversation_id}/context -> str
 @app.get("/conversations/{conversation_id}/context", response_model=str)
 async def get_conversation_context_endpoint(conversation_id: int):
-    return await get_conversation_context(conversation_id)
+    conv = await app.state.repo.get_conversation(conversation_id)
+    if not conv:
+        raise HTTPException(404, "Conversation not found")
+    compact = await app.state.context.get_compact_conversation_context(
+        conversation_id, max_messages=50, prefer_summaries=True
+    )
+    # Return a compact string: role: content\n---\nrole: content...
+    lines = []
+    for m in compact:
+        role = m.get("role", "user")
+        content = (m.get("content") or "").strip()
+        lines.append(f"{role}: {content}")
+    return "\n---\n".join(lines)
 
-
+# GET /models -> dict
 @app.get("/models", response_model=dict)
 async def get_models_endpoint():
-    return get_available_models()
+    return get_available_models_from_pricing(app.state.pricing_path)
 
-
+# GET /attachments/{attachment_id}  (legacy path)
 @app.get("/attachments/{attachment_id}")
 async def download_attachment(attachment_id: int):
-    """
-    Download raw attachment content by ID.
-    """
-    try:
-        attachment = await get_attachment(attachment_id)
-    except ValueError:
+    meta = await app.state.repo.get_attachment_meta(attachment_id)
+    if not meta:
         raise HTTPException(status_code=404, detail="Attachment not found")
-    
-    headers = {"Content-Disposition": f'attachment; filename="{attachment.filename}"'}
-    return Response(attachment.content, media_type=attachment.content_type, headers=headers)
+    blob = await app.state.repo.get_attachment_blob(attachment_id)
+    if blob is None:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+    return Response(
+        blob,
+        media_type=meta.content_type or "application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{meta.filename}"'},
+    )
