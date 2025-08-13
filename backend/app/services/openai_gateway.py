@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
-from typing import List, Optional
+import json
+from typing import List, Optional, Dict, Any
 from openai import OpenAI
 from pydantic import BaseModel
 from ..models.intents import IntentEnvelope
@@ -46,11 +47,12 @@ class OpenAIGateway:
             model=INTENT_MODEL,
             input=[
                 {"role":"system","content":(
-                    "You label the user's request. "
-                    "Return JSON with fields: intent, context_need, titles, filter{genres,themes,random,limit}. "
-                    "Use 'book_recommendations' when asking for recs; 'book_summary' when asking a summary for specific titles; "
-                    "'smalltalk' for greetings; otherwise 'other'. "
-                    "Prefer context_need: 'none'|'light'|'full' based on how much chat history is useful."
+                    "Analyze the user's message and determine how much conversation context is needed to respond appropriately. "
+                    "Return JSON with field: context_need. "
+                    "Use 'none' if the message is standalone (greetings, general questions, clear requests). "
+                    "Use 'last_message' if the message refers to something from the immediate previous exchange "
+                    "(like 'yes', 'tell me more', 'what about X', follow-up questions). "
+                    "Use 'full' if the message requires understanding the entire conversation history."
                 )},
                 {"role":"user","content": user_message}
             ],
@@ -118,4 +120,132 @@ class OpenAIGateway:
             cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
             model=model
         )
+        return text, usage
+
+    # 5) Tools definitions for function calling
+    def get_tools_definition(self) -> List[Dict[str, Any]]:
+        return [
+            {
+                "type": "function",
+                "name": "get_book_recommendations",
+                "description": "Get book recommendations based on genres, themes, or random selection.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "genres": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of book genres to filter by (e.g., ['fantasy', 'sci-fi'])"
+                        },
+                        "themes": {
+                            "type": "array", 
+                            "items": {"type": "string"},
+                            "description": "List of themes to filter by (e.g., ['adventure', 'romance'])"
+                        },
+                        "limit": {
+                            "type": "integer",
+                            "description": "Maximum number of recommendations to return",
+                            "default": 5
+                        },
+                        "random": {
+                            "type": "boolean",
+                            "description": "Whether to return random recommendations",
+                            "default": False
+                        }
+                    },
+                    "required": ["genres", "themes", "limit", "random"],
+                    "additionalProperties": False
+                },
+                "strict": True
+            },
+            {
+                "type": "function",
+                "name": "get_book_summaries",
+                "description": "Get detailed summaries for specific book titles.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "titles": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of book titles to get summaries for"
+                        }
+                    },
+                    "required": ["titles"],
+                    "additionalProperties": False
+                },
+                "strict": True
+            }
+        ]
+
+    # 6) Generate response with tools
+    def generate_with_tools(
+        self,
+        *,
+        user_message: str,
+        compact_context: List[dict],
+        model: str = DEFAULT_MODEL,
+        max_output_tokens: int = 600,
+    ) -> tuple[dict, OpenAIUsage]:
+        """
+        Generate a response that may include function calls.
+        Returns the full response object and usage info.
+        """
+        system_prompt = (
+            "You are a book recommendation assistant. "
+            "Use the get_book_recommendations tool when users ask for book suggestions, recommendations, or want to find books. "
+            "Use the get_book_summaries tool when users ask about specific book titles or want summaries. "
+            "For general conversation, greetings, or follow-up questions that don't require book data, respond directly without using tools."
+        )
+        
+        input_messages = [{"role": "system", "content": system_prompt}]
+        input_messages.extend(compact_context)
+        input_messages.append({"role": "user", "content": user_message})
+        
+        tools = self.get_tools_definition()
+        
+        resp = self.client.responses.create(
+            model=model,
+            tools=tools,
+            input=input_messages,
+            max_output_tokens=max_output_tokens,
+        )
+        
+        usage = OpenAIUsage(
+            input_tokens=resp.usage.input_tokens if resp.usage else 0,
+            output_tokens=resp.usage.output_tokens if resp.usage else 0,
+            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
+            model=model
+        )
+        
+        return resp, usage
+
+    # 7) Generate final response after tool calls
+    def generate_final_response(
+        self,
+        *,
+        input_messages: List[dict],
+        model: str = DEFAULT_MODEL,
+        max_output_tokens: int = 600,
+    ) -> tuple[str, OpenAIUsage]:
+        """
+        Generate the final response after tool calls have been processed.
+        """
+        tools = self.get_tools_definition()
+        
+        resp = self.client.responses.create(
+            model=model,
+            tools=tools,
+            input=input_messages,
+            max_output_tokens=max_output_tokens,
+        )
+        
+        text = resp.output_text.strip()
+        usage = OpenAIUsage(
+            input_tokens=resp.usage.input_tokens if resp.usage else 0,
+            output_tokens=resp.usage.output_tokens if resp.usage else 0,
+            cached_tokens=resp.usage.input_tokens_details.cached_tokens if resp.usage else 0,
+            model=model
+        )
+        
         return text, usage

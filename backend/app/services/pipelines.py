@@ -33,16 +33,31 @@ class ChatPipeline:
 
     async def _get_compact_ctx_cached(self, conversation_id: int, need: str) -> List[dict]:
         """
-        'none' => 0 messages, 'light' => last ~10, 'full' => up to 50
+        'none' => 0 messages
+        'last_message' => last request/response pair only 
+        'full' => up to 50 messages
         """
         key = f"ctx:{conversation_id}"
         cached = await self.cache.get(key)
-        limit = 0 if need == "none" else (10 if need == "light" else 50)
+        
+        if need == "none":
+            return []
+        elif need == "last_message":
+            # Get last 2 messages (user request + assistant response)
+            limit = 2
+        else:  # need == "full"
+            limit = 50
+            
         if cached:
-            return cached[-limit:] if limit else []
-        msgs = await self.context.get_compact_conversation_context(conversation_id, max_messages=50, prefer_summaries=True)
+            return cached[-limit:] if limit and len(cached) > 0 else []
+            
+        msgs = await self.context.get_compact_conversation_context(
+            conversation_id, 
+            max_messages=50, 
+            prefer_summaries=True
+        )
         await self.cache.set(key, msgs, ttl_seconds=60)
-        return msgs[-limit:] if limit else []
+        return msgs[-limit:] if limit and len(msgs) > 0 else []
 
     async def handle_user_message(
         self,
@@ -85,36 +100,54 @@ class ChatPipeline:
         ))
         await self._invalidate_context_cache(conversation_id)
 
-        # 3) Intent detection
+        # 3) Intent detection (context needs only)
         intent, intent_usage = self.oa.detect_intent(user_text)
 
         # 4) Decide context scope & fetch compact context
         compact_ctx = await self._get_compact_ctx_cached(conversation_id, intent.context_need)
 
-        # 5) Tooling
-        tool_payload: Optional[dict] = None
-        if intent.intent == "book_recommendations":
-            f = intent.filter or {}
-            recs = self.rag.recommend(
-                genres=f.genres if getattr(f, "genres", None) else None,
-                themes=f.themes if getattr(f, "themes", None) else None,
-                limit=f.limit if getattr(f, "limit", None) else 5,
-                random=bool(getattr(f, "random", False))
-            )
-            tool_payload = {"type":"recommendations","items":recs}
-        elif intent.intent == "book_summary":
-            titles = intent.titles or []
-            sums = self.rag.get_summaries(titles)
-            tool_payload = {"type":"summaries","items":sums}
-        else:
-            tool_payload = None
-
-        # 6) Final answer
-        answer_text, answer_usage = self.oa.generate_final_answer(
+        # 5) Always try tools-based approach first
+        # Let the AI decide whether to use tools or respond directly
+        resp, tool_usage = self.oa.generate_with_tools(
             user_message=user_text,
             compact_context=compact_ctx,
-            tool_data=tool_payload,
         )
+        
+        # Process any function calls
+        input_messages = [{"role": "system", "content": "You are a book recommendation assistant."}]
+        input_messages.extend(compact_ctx)
+        input_messages.append({"role": "user", "content": user_text})
+        input_messages += resp.output
+        
+        # Execute function calls if any
+        has_function_calls = False
+        for item in resp.output:
+            if item.type == "function_call":
+                has_function_calls = True
+                result = await self._execute_function_call(item)
+                input_messages.append({
+                    "type": "function_call_output",
+                    "call_id": item.call_id,
+                    "output": result
+                })
+        
+        # Generate final response
+        if has_function_calls:
+            # Final response with tool results
+            answer_text, answer_usage = self.oa.generate_final_response(
+                input_messages=input_messages
+            )
+            # Combine usage from tool call and final response
+            total_usage = OpenAIUsage(
+                input_tokens=tool_usage.input_tokens + answer_usage.input_tokens,
+                output_tokens=tool_usage.output_tokens + answer_usage.output_tokens,
+                cached_tokens=tool_usage.cached_tokens + answer_usage.cached_tokens,
+                model=answer_usage.model
+            )
+        else:
+            # No tools used, use the direct response
+            answer_text = resp.output_text.strip()
+            total_usage = tool_usage
 
         # 7) Summarize long assistant answer for compact context
         ans_summary = None
@@ -130,13 +163,12 @@ class ChatPipeline:
         ))
 
         # 9) Usage & pricing aggregation and persistence
-        # For simplicity we attach only the final answer usage to the assistant message.
-        # You can also record title/intent/summarization usage on their own rows if preferred.
-        total_input = answer_usage.input_tokens
-        total_output = answer_usage.output_tokens
-        total_cached = answer_usage.cached_tokens
+        # Use the total_usage from the tools or direct response
+        total_input = total_usage.input_tokens
+        total_output = total_usage.output_tokens
+        total_cached = total_usage.cached_tokens
         price = self.pricing.price_chat_usage(
-            model=answer_usage.model,
+            model=total_usage.model,
             input_tokens=total_input,
             output_tokens=total_output,
             cached_tokens=total_cached,
@@ -146,7 +178,7 @@ class ChatPipeline:
             input_tokens=total_input,
             output_tokens=total_output,
             cached_tokens=total_cached,
-            model=answer_usage.model,
+            model=total_usage.model,
             price=price,
         )
 
@@ -155,13 +187,28 @@ class ChatPipeline:
             "request_message_id": user_msg.id,
             "response_message_id": assistant_msg.id,
             "answer": answer_text,
-            "intent": intent.model_dump(),
-            "tool_payload": tool_payload,
+            "context_need": intent.context_need,
             "usage": {
                 "input_tokens": total_input,
                 "output_tokens": total_output,
                 "cached_tokens": total_cached,
-                "model": answer_usage.model,
+                "model": total_usage.model,
                 "price": price,
             }
         }
+
+    async def _execute_function_call(self, function_call) -> str:
+        """Execute a function call and return the result as a JSON string."""
+        import json
+        
+        name = function_call.name
+        args = json.loads(function_call.arguments)
+        
+        if name == "get_book_recommendations":
+            result = self.rag.recommend(**args)
+            return json.dumps({"recommendations": result})
+        elif name == "get_book_summaries":
+            result = self.rag.get_summaries(**args)
+            return json.dumps({"summaries": result})
+        else:
+            return json.dumps({"error": f"Unknown function: {name}"})
