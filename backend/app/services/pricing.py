@@ -17,7 +17,7 @@ class PricingService:
         """
         Computes price using your pricing_data.json structure:
         {
-          "gpt-4o-mini": {"input_per_million": 0.15, "output_per_million": 0.6, "cached_per_million": 0.075},
+          "gpt-4o-mini": {"input": 0.15, "output": 0.6, "cached_input": 0.075},
           ...
         }
         """
@@ -27,7 +27,7 @@ class PricingService:
         def _cost(tokens: int, per_million: float) -> float:
             return (tokens / 1_000_000) * per_million
         price = 0.0
-        price += _cost(input_tokens, float(m.get("input_per_million", 0)))
-        price += _cost(output_tokens, float(m.get("output_per_million", 0)))
-        price += _cost(cached_tokens, float(m.get("cached_per_million", 0)))
+        price += _cost(input_tokens, float(m.get("input", 0)))
+        price += _cost(output_tokens, float(m.get("output", 0)))
+        price += _cost(cached_tokens, float(m.get("cached_input", 0)))
         return round(price, 7)
