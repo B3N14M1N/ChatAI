@@ -73,6 +73,7 @@ class ChatPipeline:
         5) Final answer, then summarize if long
         6) Persist assistant message with usage+price
         """
+        title_usage = None  # silence type checker reuse
         # 1) Conversation bootstrap
         if conversation_id is None:
             title, title_usage = self.oa.generate_title(user_text)
@@ -83,11 +84,11 @@ class ChatPipeline:
             conversation_id = conv.id
         else:
             conv = await self.repo.get_conversation(conversation_id)
-            
+
         # 2) Persist user message (with optional summary)
         # Heuristic: summarize if > 400 chars
         summary_text = None
-        title_usage = None  # silence type checker reuse
+        summ_usage = None
         if len(user_text) > 400:
             summary_text, sum_usage = self.oa.summarize(user_text)
         # user message create
@@ -163,9 +164,18 @@ class ChatPipeline:
 
         # 9) Usage & pricing aggregation and persistence
         # Use the total_usage from the tools or direct response
-        total_input = total_usage.input_tokens
-        total_output = total_usage.output_tokens
-        total_cached = total_usage.cached_tokens
+        total_input = total_usage.input_tokens + intent_usage.input_tokens
+        total_output = total_usage.output_tokens + intent_usage.output_tokens
+        total_cached = total_usage.cached_tokens + intent_usage.cached_tokens
+        if title_usage:
+            total_input += title_usage.input_tokens
+            total_output += title_usage.output_tokens
+            total_cached += title_usage.cached_tokens
+        if summ_usage:
+            total_input += summ_usage.input_tokens
+            total_output += summ_usage.output_tokens
+            total_cached += summ_usage.cached_tokens
+            
         price = self.pricing.price_chat_usage(
             model=total_usage.model,
             input_tokens=total_input,

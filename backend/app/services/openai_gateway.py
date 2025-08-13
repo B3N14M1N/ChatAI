@@ -128,19 +128,19 @@ class OpenAIGateway:
             {
                 "type": "function",
                 "name": "get_book_recommendations",
-                "description": "Get book recommendations based on genres, themes, or random selection.",
+                "description": "Get book recommendations. Only include genres/themes that the user explicitly mentions. Do not infer or add additional genres/themes.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "genres": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "List of book genres to filter by (e.g., ['fantasy', 'sci-fi'])"
+                            "description": "List of book genres ONLY if explicitly mentioned by user (e.g., ['fantasy', 'sci-fi'])"
                         },
                         "themes": {
                             "type": "array", 
                             "items": {"type": "string"},
-                            "description": "List of themes to filter by (e.g., ['adventure', 'romance'])"
+                            "description": "List of themes ONLY if explicitly mentioned by user (e.g., ['friendship', 'adventure'])"
                         },
                         "limit": {
                             "type": "integer",
@@ -153,10 +153,8 @@ class OpenAIGateway:
                             "default": False
                         }
                     },
-                    "required": ["genres", "themes", "limit", "random"],
                     "additionalProperties": False
-                },
-                "strict": True
+                }
             },
             {
                 "type": "function",
@@ -173,8 +171,7 @@ class OpenAIGateway:
                     },
                     "required": ["titles"],
                     "additionalProperties": False
-                },
-                "strict": True
+                }
             }
         ]
 
@@ -194,7 +191,8 @@ class OpenAIGateway:
         system_prompt = (
             "You are a book recommendation assistant. "
             "Use the get_book_recommendations tool when users ask for book suggestions, recommendations, or want to find books. "
-            "Use the get_book_summaries tool when users ask about specific book titles or want summaries. "
+            "ONLY include genres/themes that the user explicitly mentions - do not infer or add additional categories. "
+            "Use the get_book_summaries tool when users ask about specific book titles or want summaries."
         )
         
         input_messages = [{"role": "system", "content": system_prompt}]
