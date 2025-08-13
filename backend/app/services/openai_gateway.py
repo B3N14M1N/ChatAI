@@ -60,7 +60,7 @@ class OpenAIGateway:
                         "Use 'none' if the message is standalone (greetings, general questions, clear requests). "
                         "Use 'last_message' if the message refers to something from the immediate previous exchange "
                         "(like 'yes', 'tell me more', 'what about X', follow-up questions). "
-                        "Use 'full' if the message requires understanding the entire conversation history."
+                        "Use 'full' if the message requires understanding the entire conversation history, or something from the beginning of the conversation."
                     ),
                 },
                 {"role": "user", "content": user_message},
