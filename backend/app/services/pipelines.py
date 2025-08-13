@@ -63,6 +63,7 @@ class ChatPipeline:
         *,
         conversation_id: Optional[int],
         user_text: str,
+        model: str = "gpt-4.1-nano",
     ) -> Dict[str, Any]:
         """
         1) Create conversation (with title) if needed
@@ -98,6 +99,7 @@ class ChatPipeline:
                 request_id=None,
                 text=user_text,
                 summary=summary_text,
+                model=model
             )
         )
         await self._invalidate_context_cache(conversation_id)
@@ -115,6 +117,7 @@ class ChatPipeline:
         resp, tool_usage = self.oa.generate_with_tools(
             user_message=user_text,
             compact_context=compact_ctx,
+            model=model,
         )
 
         # Process any function calls
@@ -143,7 +146,8 @@ class ChatPipeline:
         if has_function_calls:
             # Final response with tool results
             answer_text, answer_usage = self.oa.generate_final_response(
-                input_messages=input_messages
+                input_messages=input_messages,
+                model=model,
             )
             # Combine usage from tool call and final response
             total_usage = OpenAIUsage(

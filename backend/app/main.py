@@ -83,6 +83,7 @@ async def send_message(payload: SendPayload):
     result = await app.state.pipeline.handle_user_message(
         conversation_id=payload.conversation_id,
         user_text=payload.text,
+        model="gpt-4.1-nano",
     )
     return result
 
@@ -90,7 +91,7 @@ async def send_message(payload: SendPayload):
 @app.post("/chat/", response_model=SendMessageResponse)
 async def send_message_with_files(
     text: str = Form(...),
-    model: str = Form(default="gpt-4o"),
+    model: str = Form(default="gpt-4.1-nano"),
     conversation_id: Optional[int] = Form(default=None),
     files: List[UploadFile] = File(default=[]),
 ):
@@ -102,6 +103,7 @@ async def send_message_with_files(
     result = await app.state.pipeline.handle_user_message(
         conversation_id=conversation_id,
         user_text=text,
+        model=model,
     )
 
     # If files were uploaded, attach them to the user message
