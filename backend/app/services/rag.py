@@ -79,15 +79,9 @@ class BookRAG:
                 {
                     "title": title,
                     "author": author,
-                    "year": year,
-                    "genres": genres,  # Store as list
-                    "themes": themes,  # Store as list
-                    "genres_str": ", ".join(
-                        genres
-                    ),  # Keep string version for compatibility
-                    "themes_str": ", ".join(
-                        themes
-                    ),  # Keep string version for compatibility
+                    "year": str(year) if year else "",
+                    "genres": ", ".join(genres),  # Store as comma-separated string
+                    "themes": ", ".join(themes),  # Store as comma-separated string
                     "short_summary": short_summary,
                     "full_summary": full_summary,
                 }
@@ -100,6 +94,7 @@ class BookRAG:
         *,
         genres: Optional[List[str]] = None,
         themes: Optional[List[str]] = None,
+        authors: Optional[List[str]] = None,
         limit: int = 5,
         random: bool = False,
     ) -> List[Dict[str, Any]]:
@@ -109,13 +104,15 @@ class BookRAG:
                 return []
 
             # For random search with constraints, get a larger sample to filter from
-            if genres or themes:
+            if genres or themes or authors:
                 # Create a query that's more likely to find relevant books
                 query_parts = []
                 if genres:
                     query_parts.extend(genres)
                 if themes:
                     query_parts.extend(themes)
+                if authors:
+                    query_parts.extend(authors)
 
                 if query_parts:
                     # Use a query that matches the constraints for better initial results
@@ -133,9 +130,9 @@ class BookRAG:
             res = self.collection.query(query_texts=[query], n_results=search_limit)
             results = self._pack_results(res)
 
-            # Apply genre/theme filtering if specified
-            if genres or themes:
-                results = self._filter_by_metadata(results, genres, themes)
+            # Apply genre/theme/author filtering if specified
+            if genres or themes or authors:
+                results = self._filter_by_metadata(results, genres, themes, authors)
 
             # Randomly shuffle and take the limit
             import random as rand
@@ -149,6 +146,8 @@ class BookRAG:
             query_parts.extend(themes)
         if genres:
             query_parts.extend(genres)
+        if authors:
+            query_parts.extend(authors)
 
         # Create a natural language query for better embedding matching
         if query_parts:
@@ -159,6 +158,9 @@ class BookRAG:
             if genres:
                 genre_text = f"{', '.join(genres)} genre books"
                 query_parts.append(genre_text)
+            if authors:
+                author_text = f"books by {', '.join(authors)}"
+                query_parts.append(author_text)
             query = f"{' '.join(query_parts)} book recommendations"
         else:
             query = "book recommendations"
@@ -171,10 +173,10 @@ class BookRAG:
 
         # Apply light filtering if specific constraints are given
         # But prioritize embedding similarity over exact metadata matches
-        if genres or themes:
+        if genres or themes or authors:
             distances = res.get("distances", [[]])[0] if res.get("distances") else []
             filtered_results = self._score_and_filter_results(
-                results, genres, themes, distances
+                results, genres, themes, authors, distances
             )
             return filtered_results[:limit]
 
@@ -185,33 +187,40 @@ class BookRAG:
         results: List[Dict],
         genres: Optional[List[str]],
         themes: Optional[List[str]],
+        authors: Optional[List[str]],
     ) -> List[Dict]:
         """Simple metadata filtering for exact matches (used for random selection)."""
-        if not genres and not themes:
+        if not genres and not themes and not authors:
             return results
 
         filtered = []
         for book in results:
             book_genres = [g.lower() for g in book.get("genres", [])]
             book_themes = [t.lower() for t in book.get("themes", [])]
+            book_author = (book.get("author") or "").lower()
 
             # Check for matches - more lenient for random selection
             genre_match = not genres or any(g.lower() in book_genres for g in genres)
             theme_match = not themes or any(t.lower() in book_themes for t in themes)
+            # For authors, use OR logic between multiple authors (any author can match)
+            author_match = not authors or any(a.lower() in book_author for a in authors)
 
-            # Fixed logic: if we have both constraints, use OR logic
-            # If we have only one constraint, just check that one
-            if genres and themes:
-                # Both constraints specified - either one can match
-                if genre_match or theme_match:
+            # If we have multiple constraint types, use OR logic between them
+            # If we have only one constraint type, just check that one
+            constraints_present = [genres, themes, authors]
+            active_constraints = [c for c in constraints_present if c]
+            
+            if len(active_constraints) > 1:
+                # Multiple constraint types - any one can match
+                if genre_match or theme_match or author_match:
                     filtered.append(book)
-            elif genres:
-                # Only genre constraint - must match genres
-                if genre_match:
+            else:
+                # Only one constraint type - must match that specific constraint
+                if genres and genre_match:
                     filtered.append(book)
-            elif themes:
-                # Only theme constraint - must match themes
-                if theme_match:
+                elif themes and theme_match:
+                    filtered.append(book)
+                elif authors and author_match:
                     filtered.append(book)
 
         return filtered
@@ -221,6 +230,7 @@ class BookRAG:
         results: List[Dict],
         genres: Optional[List[str]],
         themes: Optional[List[str]],
+        authors: Optional[List[str]],
         distances: List[float],
     ) -> List[Dict]:
         """Score results by both embedding similarity and metadata relevance, but prioritize similarity."""
@@ -239,6 +249,7 @@ class BookRAG:
             # Add bonus points for exact metadata matches, but don't require them
             book_genres = [g.lower() for g in book.get("genres", [])]
             book_themes = [t.lower() for t in book.get("themes", [])]
+            book_author = (book.get("author") or "").lower()
 
             metadata_bonus = 0
             if genres:
@@ -253,11 +264,25 @@ class BookRAG:
                     theme_matches * 0.3
                 )  # Small bonus for exact theme matches
 
+            if authors:
+                # For authors, prioritize metadata matches over embedding similarity
+                author_matches = sum(1 for a in authors if a.lower() in book_author)
+                if author_matches > 0:
+                    # If we found an author match, include this result regardless of similarity
+                    metadata_bonus += author_matches * 0.5
+                    total_score += metadata_bonus
+                    book["_total_score"] = total_score
+                    book["_similarity_score"] = similarity_score
+                    book["_metadata_bonus"] = metadata_bonus
+                    scored_results.append(book)
+                    continue
+
             total_score += metadata_bonus
 
-            # Always include results with decent embedding similarity
-            # This allows for semantic matches even without exact metadata matches
-            if similarity_score > 0.7:  # Lower threshold for more results
+            # For non-author searches or when no author match found,
+            # rely on embedding similarity with metadata bonus
+            min_similarity = 0.3 if authors else 0.7  # Lower threshold when searching by author
+            if similarity_score > min_similarity:  
                 book["_total_score"] = total_score
                 book["_similarity_score"] = similarity_score
                 book["_metadata_bonus"] = metadata_bonus
@@ -315,6 +340,7 @@ class BookRAG:
             out.append(
                 {
                     "title": md.get("title"),
+                    "author": md.get("author"),
                     "genres": genres,
                     "themes": themes,
                     "short_summary": md.get("short_summary"),

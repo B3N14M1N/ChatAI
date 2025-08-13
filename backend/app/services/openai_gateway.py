@@ -148,7 +148,7 @@ class OpenAIGateway:
             {
                 "type": "function",
                 "name": "get_book_recommendations",
-                "description": "Get book recommendations. Only include genres/themes that the user explicitly mentions. Do not infer or add additional genres/themes.",
+                "description": "Get book recommendations. Only include genres/themes/authors that the user explicitly mentions. Do not infer or add additional genres/themes/authors.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -161,6 +161,11 @@ class OpenAIGateway:
                             "type": "array",
                             "items": {"type": "string"},
                             "description": "List of themes ONLY if explicitly mentioned by user (e.g., ['friendship', 'adventure'])",
+                        },
+                        "authors": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of author names ONLY if explicitly mentioned by user (e.g., ['George Orwell', 'Jane Austen'])",
                         },
                         "limit": {
                             "type": "integer",
@@ -211,7 +216,7 @@ class OpenAIGateway:
         system_prompt = (
             "You are a book recommendation assistant. "
             "Use the get_book_recommendations tool when users ask for book suggestions, recommendations, or want to find books. "
-            "ONLY include genres/themes that the user explicitly mentions - do not infer or add additional categories. "
+            "ONLY include genres/themes/authors that the user explicitly mentions - do not infer or add additional categories. "
             "Use the get_book_summaries tool when users ask about specific book titles or want summaries."
         )
 
