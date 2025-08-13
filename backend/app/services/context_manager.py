@@ -2,206 +2,122 @@ from typing import List, Optional
 from openai import OpenAI
 
 from app.models.schemas import MessageIntent, ContextStrategy, MessageOut
-from app.core.crud import get_messages_for_conversation
 from app.services.chat_utils import generate_message_summary
 
 client = OpenAI()
 
 
-async def classify_intent(message: str) -> MessageIntent:
-    """Classify the user's intent to determine context needs"""
+async def classify_intent(message: str, conversation_id: int) -> MessageIntent:
+    """Classify the user's intent to determine context needs.
     
-    # Quick keyword-based classification for common cases
-    message_lower = message.lower()
-    
-    # Book-related keywords
-    book_keywords = ["recommend", "suggestion", "book", "author", "genre", "read", "novel", "fiction"]
-    summary_keywords = ["summary", "summarize", "about", "plot", "what is"]
-    
-    # Context-dependent keywords
-    context_keywords = ["it", "that", "we discussed", "you said", "earlier", "before", "previous", 
-                       "what did", "continue", "follow up", "also", "additionally"]
-    
-    # New topic keywords
-    new_topic_keywords = ["let's talk about", "change topic", "new question", "different subject"]
-    
-    if any(keyword in message_lower for keyword in new_topic_keywords):
-        return MessageIntent.NEW_TOPIC
-    
-    if any(keyword in message_lower for keyword in context_keywords):
-        return MessageIntent.CONTEXT_DEPENDENT
-    
-    if any(keyword in message_lower for keyword in book_keywords):
-        if any(keyword in message_lower for keyword in summary_keywords):
-            return MessageIntent.BOOK_SUMMARY
-        else:
-            return MessageIntent.BOOK_RECOMMENDATION
-    
-    # For ambiguous cases, use OpenAI classification
-    if len(message) > 100 or any(word in message_lower for word in ["help", "explain", "what", "how"]):
-        return await _ai_classify_intent(message)
-    
-    # Default to general chat for simple messages
-    return MessageIntent.GENERAL_CHAT
-
-
-async def _ai_classify_intent(message: str) -> MessageIntent:
-    """Use OpenAI for complex intent classification"""
-    
-    classification_prompt = f"""
-    Classify this message into one of these categories:
-    - book_recommendation: User wants book suggestions
-    - book_summary: User wants summaries of specific books
-    - general_chat: Standalone question/chat (no previous context needed)
-    - context_dependent: References previous conversation
-    - new_topic: Starting a completely new discussion
-    
-    Message: "{message}"
-    
-    Return only the category name.
+    Uses AI classification with recent conversation context for accurate intent detection
+    across multiple languages.
     """
     
+    # Always use AI classification with context for accuracy and language support
+    return await _ai_classify_intent_with_context(message, conversation_id)
+
+
+async def _ai_classify_intent_with_context(message: str, conversation_id: int) -> MessageIntent:
+    """Use OpenAI for complex intent classification with recent conversation context"""
+    
+    # Get recent context (last user and assistant message)
     try:
+        from app.core.crud import get_last_user_message, get_last_assistant_message
+        
+        # Get last exchange for context
+        last_user_msg = await get_last_user_message(conversation_id)
+        last_assistant_msg = await get_last_assistant_message(conversation_id)
+        
+        context_info = ""
+        if last_user_msg and last_assistant_msg:
+            # Use summary if available, otherwise use text
+            user_text = last_user_msg.summary or last_user_msg.text
+            assistant_text = last_assistant_msg.summary or last_assistant_msg.text
+            context_info = f"\nRecent conversation:\nUser: {user_text}\nAssistant: {assistant_text}\n"
+        
+        classification_prompt = f"""
+        You are a multilingual intent classifier. Determine if this message needs previous conversation context to be understood properly.
+        
+        Categories:
+        - needs_context: User references something from previous conversation (like "yes", "tell me more", "what about that book", "continue", etc.) OR asks follow-up questions
+        - no_context: Standalone question or request that can be understood without previous conversation
+        
+        {context_info}
+        Current message: "{message}"
+        
+        Guidelines:
+        - Consider the language of the message (English, Spanish, French, etc.)
+        - Short affirmative responses (yes/si/oui/ja, please/por favor/s'il vous plaît, tell me more, etc.) usually need context
+        - References to "it", "that", "the book we discussed", etc. need context
+        - New standalone questions about books, weather, etc. don't need context
+        - If in doubt and there's recent conversation, lean towards needs_context
+        
+        Return only: needs_context OR no_context
+        """
+        
         response = client.responses.create(
             model="gpt-4o-mini",  # Fast, cheap model for classification
             input=classification_prompt,
-            max_tokens=20
+            max_output_tokens=20
         )
         
         intent_str = response.output_text.strip().lower()
+        print(f"AI Classification with context - Input: '{message}', Context: {bool(context_info)}, Result: '{intent_str}'")
         
         # Map to enum
         intent_mapping = {
-            "book_recommendation": MessageIntent.BOOK_RECOMMENDATION,
-            "book_summary": MessageIntent.BOOK_SUMMARY,
-            "general_chat": MessageIntent.GENERAL_CHAT,
-            "context_dependent": MessageIntent.CONTEXT_DEPENDENT,
-            "new_topic": MessageIntent.NEW_TOPIC
+            "needs_context": MessageIntent.NEEDS_CONTEXT,
+            "no_context": MessageIntent.NO_CONTEXT,
         }
         
-        return intent_mapping.get(intent_str, MessageIntent.CONTEXT_DEPENDENT)
+        return intent_mapping.get(intent_str, MessageIntent.NEEDS_CONTEXT)
         
     except Exception as e:
-        print(f"Error in AI intent classification: {e}")
-        # Fallback to context-dependent for safety
-        return MessageIntent.CONTEXT_DEPENDENT
+        print(f"Error in AI intent classification with context: {e}")
+        # Fallback to needs_context for safety
+        return MessageIntent.NEEDS_CONTEXT
 
 
 def determine_context_strategy(intent: MessageIntent, conversation_length: int = 0) -> ContextStrategy:
-    """Determine how much context to include based on intent and conversation length"""
+    """Determine how much context to include based on intent"""
     
-    strategy_map = {
-        MessageIntent.BOOK_RECOMMENDATION: ContextStrategy.NONE,
-        MessageIntent.BOOK_SUMMARY: ContextStrategy.NONE,
-        MessageIntent.GENERAL_CHAT: ContextStrategy.NONE,
-        MessageIntent.NEW_TOPIC: ContextStrategy.NONE,
-        MessageIntent.CONTEXT_DEPENDENT: ContextStrategy.RECENT
-    }
-    
-    base_strategy = strategy_map[intent]
-    
-    # Upgrade strategy for long conversations
-    if base_strategy == ContextStrategy.RECENT and conversation_length > 20:
-        return ContextStrategy.SUMMARY
-    
-    return base_strategy
+    # Simple mapping: either include context or don't
+    if intent == MessageIntent.NEEDS_CONTEXT:
+        return ContextStrategy.RECENT
+    else:
+        return ContextStrategy.NONE
 
 
 async def get_contextual_messages(
     conversation_id: int, 
-    strategy: ContextStrategy,
-    current_message: str = ""
+    strategy: ContextStrategy
 ) -> str:
-    """Get the appropriate amount of context based on strategy.
-    
-    Reuses existing CRUD functions to get messages.
-    """
+    """Get the appropriate amount of context based on strategy."""
     
     if strategy == ContextStrategy.NONE:
         return ""
     
-    # Reuse existing function to get all messages
-    conversation_data = await get_messages_for_conversation(conversation_id)
-    messages = conversation_data.messages
+    # For RECENT strategy, get last few messages using db summary method
+    from app.core.db import db_handler
+    message_summaries = await db_handler.get_conversation_summary(conversation_id)
     
-    if not messages:
+    if not message_summaries:
         return ""
     
-    if strategy == ContextStrategy.RECENT:
-        # Last 6 messages (3 user + 3 assistant pairs max)
-        recent_messages = messages[-6:] if len(messages) > 6 else messages
-        context = _format_messages_for_context(recent_messages)
-        return f"Recent conversation:\n{context}\n\n"
-    
-    elif strategy == ContextStrategy.SUMMARY:
-        # Use existing summary functionality for long conversations
-        if len(messages) > 15:
-            # Get a few recent messages plus summary of older ones
-            recent_messages = messages[-4:]  # Last 2 exchanges
-            older_messages = messages[:-4]
-            
-            # Create summary of older messages
-            older_context = _format_messages_for_context(older_messages)
-            summary = await _summarize_conversation_context(older_context)
-            
-            recent_context = _format_messages_for_context(recent_messages)
-            
-            return f"Conversation summary: {summary}\n\nRecent messages:\n{recent_context}\n\n"
-        else:
-            # Fall back to recent for shorter conversations
-            return await get_contextual_messages(conversation_id, ContextStrategy.RECENT, current_message)
-    
-    elif strategy == ContextStrategy.FULL:
-        # Full context (existing behavior)
-        context = _format_messages_for_context(messages)
-        return f"Full conversation:\n{context}\n\n"
-    
-    return ""
+    context = _format_summaries_for_context(message_summaries)
+    return f"Recent conversation:\n{context}\n\n"
 
 
-def _format_messages_for_context(messages: List[MessageOut]) -> str:
-    """Format messages for context inclusion.
+def _format_summaries_for_context(messages) -> str:
+    """Format message summaries for context inclusion.
     
-    Reuses the display_text property from MessageOut schema.
+    Works with MessageSummary objects from get_conversation_summary.
     """
     return "\n".join([
-        f"{'User' if msg.sender.value == 'user' else 'Assistant'}: {msg.display_text}"
+        f"{'User' if msg.sender.value == 'user' else 'Assistant'}: {msg.text}"
         for msg in messages
     ])
-
-
-async def _summarize_conversation_context(conversation_text: str) -> str:
-    """Create a summary of conversation context.
-    
-    Reuses existing summarization approach from chat_utils.
-    """
-    
-    if len(conversation_text) < 200:
-        return conversation_text
-    
-    summary_prompt = f"""
-    Summarize this conversation in 2-3 sentences, focusing on:
-    - Main topics discussed
-    - Any decisions or conclusions reached
-    - Current context the user might be referring to
-    
-    Conversation:
-    {conversation_text}
-    """
-    
-    try:
-        response = client.responses.create(
-            model="gpt-4o-mini",
-            input=summary_prompt,
-            max_output_tokens=100
-        )
-        
-        return response.output_text.strip()
-        
-    except Exception as e:
-        print(f"Error generating conversation summary: {e}")
-        # Fallback to truncated original text
-        return conversation_text[:300] + "..." if len(conversation_text) > 300 else conversation_text
 
 
 async def smart_context_handler(
@@ -215,17 +131,18 @@ async def smart_context_handler(
         tuple: (context_string, detected_intent, strategy_used)
     """
     
-    # Get conversation length for strategy determination
-    conversation_data = await get_messages_for_conversation(conversation_id)
-    conversation_length = len(conversation_data.messages)
+    # Get conversation length for strategy determination using db method
+    from app.core.db import db_handler
+    message_summaries = await db_handler.get_conversation_summary(conversation_id)
+    conversation_length = len(message_summaries)
     
-    # Classify intent
-    intent = await classify_intent(message)
+    # Classify intent with conversation context
+    intent = await classify_intent(message, conversation_id)
     
     # Determine strategy
     strategy = determine_context_strategy(intent, conversation_length)
     
     # Get appropriate context
-    context = await get_contextual_messages(conversation_id, strategy, message)
+    context = await get_contextual_messages(conversation_id, strategy)
     
     return context, intent, strategy

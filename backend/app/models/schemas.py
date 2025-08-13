@@ -20,18 +20,13 @@ class ContentType(str, Enum):
 
 
 class MessageIntent(str, Enum):
-    BOOK_RECOMMENDATION = "book_recommendation"
-    BOOK_SUMMARY = "book_summary"
-    GENERAL_CHAT = "general_chat"
-    CONTEXT_DEPENDENT = "context_dependent"
-    NEW_TOPIC = "new_topic"
+    NEEDS_CONTEXT = "needs_context"      # User references previous conversation
+    NO_CONTEXT = "no_context"            # Standalone question/request
 
 
 class ContextStrategy(str, Enum):
     NONE = "none"           # No context needed
-    RECENT = "recent"       # Last few messages
-    SUMMARY = "summary"     # Summarized context
-    FULL = "full"          # All conversation history
+    RECENT = "recent"       # Include recent conversation context
 
 
 # Usage metrics schema
@@ -104,10 +99,17 @@ class MessageOut(BaseModel):
     
     @property
     def display_text(self) -> str:
-        """Get display text: summary with ID if available, otherwise full text"""
+        """Get display text for user-facing output: summary if available, otherwise full text"""
+        if self.summary:
+            return self.summary
+        return self.text or ""
+    
+    @property
+    def debug_text(self) -> str:
+        """Get debug text with ID for internal use: includes ID prefix"""
         if self.summary:
             return f"[ID: {self.id}] {self.summary}"
-        return self.text or ""
+        return f"[ID: {self.id}] {self.text or ''}"
     
     @property
     def usage_metrics(self) -> UsageMetrics:

@@ -12,14 +12,18 @@ from app.core.crud import (
 
 
 async def generate_conversation_title(client: OpenAI, prompt: str, model: str) -> str:
-    title_prompt = (
-        f"Generate a very short and concise title for the following conversation topic: {prompt}"
+    title_prompt = f"Generate a very short and concise title for the following conversation topic: {prompt}"
+    resp = client.responses.create(
+        model=model,
+        input=title_prompt,
+        max_output_tokens=20
     )
-    resp = client.responses.create(model=model, input=title_prompt)
     return resp.output_text.strip()
 
 
-async def generate_message_summary(client: OpenAI, text: str, model: str = "gpt-4o-mini") -> Optional[str]:
+async def generate_message_summary(
+    client: OpenAI, text: str, model: str = "gpt-4o-mini"
+) -> Optional[str]:
     """
     Generate a concise summary for long messages.
     Returns None if the message is short enough to not need summarization.
@@ -27,17 +31,17 @@ async def generate_message_summary(client: OpenAI, text: str, model: str = "gpt-
     # Only summarize if text is longer than 500 characters
     if len(text) < 500:
         return None
-    
+
     summary_prompt = (
         f"Create a very concise 1-2 sentence summary of the following text. "
         f"Keep it under 100 characters:\n\n{text}"
     )
-    
+
     try:
         resp = client.responses.create(
-            model=model, 
+            model=model,
             input=summary_prompt,
-            max_tokens=50  # Keep summary short
+            max_output_tokens=50,  # Keep summary short
         )
         return resp.output_text.strip()
     except Exception as e:
@@ -89,7 +93,9 @@ class ModelUsage:
         cached_tokens = 0
         if details and hasattr(details, "cached_tokens"):
             cached_tokens = details.cached_tokens
-        self.input_tokens_details = type("_Details", (), {"cached_tokens": cached_tokens})()
+        self.input_tokens_details = type(
+            "_Details", (), {"cached_tokens": cached_tokens}
+        )()
 
 
 def call_model(client: OpenAI, model: str, full_prompt: str, tools):
@@ -114,7 +120,8 @@ async def maybe_summarize_context(
     if not cached or len(cached) <= threshold:
         return
     summary_prompt = (
-        "Summarize the key points of this conversation in a concise bullet list:\n" + cached
+        "Summarize the key points of this conversation in a concise bullet list:\n"
+        + cached
     )
     summary_resp = client.responses.create(model=model, input=summary_prompt)
     summary_text = summary_resp.output_text.strip()

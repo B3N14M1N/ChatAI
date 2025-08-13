@@ -66,7 +66,7 @@ def summarize_tool_output(model: str, tool_name: str, tool_result, arguments=Non
     return "[No output text returned]"
 
 
-def dispatch_tool_call(model: str, prompt: str, context: str):
+def dispatch_tool_call(model: str, prompt: str):
     model_tools = determine_tools(model)
     model_tools.extend(tools)
     response = client.responses.create(

@@ -106,9 +106,6 @@ async def get_conversation_context_endpoint(conversation_id: int):
 
 @app.get("/models", response_model=dict)
 async def get_models_endpoint():
-    """
-    Retrieve available models along with their version, pricing, and capabilities metadata.
-    """
     return get_available_models()
 
 

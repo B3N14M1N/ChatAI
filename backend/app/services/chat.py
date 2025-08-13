@@ -3,8 +3,7 @@ from openai import OpenAI
 
 from app.services.pricing import calculate_price
 from app.models.schemas import (
-    MessageCreate, 
-    MessageOut, 
+    MessageOut,
     ConversationCreate,
     UserMessageCreate,
     AssistantResponseCreate,
@@ -21,7 +20,6 @@ from app.core.crud import (
 )
 
 from .chat_utils import (
-    ModelUsage,
     generate_conversation_title,
     generate_message_summary,
     prepare_files_and_prompt,
@@ -29,32 +27,12 @@ from .chat_utils import (
     maybe_summarize_context,
 )
 from .context_manager import smart_context_handler
-from app.models.schemas import MessageIntent
 
 client = OpenAI()
 
 
-async def _get_regular_chat_response(model: str, prompt: str) -> tuple[str, ModelUsage]:
-    """Handle regular chat completions for non-tool messages"""
-    try:
-        response = client.responses.create(
-            model=model,
-            input=prompt,
-            max_output_tokens=4000
-        )
-        reply = response.output_text
-        usage = ModelUsage(response.usage)
-        return reply, usage
-    except Exception as e:
-        print(f"Error in regular chat completion: {e}")
-        # Fallback to dispatch if regular chat fails
-        return dispatch_tool_call(model, prompt, "")
-
-
 async def _ensure_conversation(
-    conversation_id: Optional[int],
-    first_user_text: str,
-    model: str
+    conversation_id: Optional[int], first_user_text: str, model: str
 ) -> int:
     """Create a conversation (with generated title) if needed and return its id."""
     if conversation_id is not None:
@@ -102,10 +80,10 @@ async def _persist_assistant_message(
             usage_metrics=UsageMetrics(
                 input_tokens=usage.input_tokens,
                 output_tokens=usage.output_tokens,
-                cached_tokens=getattr(usage, 'cached_tokens', None),
+                cached_tokens=getattr(usage, "cached_tokens", None),
                 model=model,
                 price=price,
-            )
+            ),
         )
     )
     await append_to_conversation_context(conversation_id, "assistant", reply_text)
@@ -124,12 +102,14 @@ async def chat_call(
 
     # Use smart context management instead of always including full context
     smart_context, intent, strategy = await smart_context_handler(text, conversation_id)
-    
+
     # Optional: Log context decisions for debugging
-    print(f"Intent: {intent.value}, Strategy: {strategy.value}, Context length: {len(smart_context)}")
-    
+    print(
+        f"Intent: {intent.value}, Strategy: {strategy.value}, Context length: {len(smart_context)}"
+    )
+
     prompt, file_attachments = await prepare_files_and_prompt(text, files)
-    
+
     # Build prompt with smart context instead of cached context
     full_prompt = build_full_prompt(smart_context, prompt)
 
@@ -138,24 +118,16 @@ async def chat_call(
         summary = await generate_message_summary(client, text, model)
 
     user_msg_id = await _persist_user_message(
-        conversation_id,
-        text,
-        summary,
-        file_attachments
+        conversation_id, text, summary, file_attachments
     )
-    
-    # Choose response method based on intent
-    if intent in [MessageIntent.BOOK_RECOMMENDATION, MessageIntent.BOOK_SUMMARY]:
-        # Use tool dispatch for book-related queries
-        tool_response, usage = dispatch_tool_call(model, full_prompt, smart_context)
-        ai_reply = str(tool_response)
-    else:
-        # Use regular chat completion for general conversation
-        ai_reply, usage = await _get_regular_chat_response(model, full_prompt)
-    
+
+    # Always use tool dispatch which can handle both book queries and general chat
+    tool_response, usage = dispatch_tool_call(model, full_prompt)
+    ai_reply = str(tool_response)
+
     # Generate summary for AI response if needed
     ai_summary = await generate_message_summary(client, ai_reply, model)
-    
+
     price = calculate_price(
         model,
         usage.input_tokens,
@@ -170,9 +142,9 @@ async def chat_call(
         model,
         usage,
         price,
-        ai_summary  # Pass AI response summary
+        ai_summary,  # Pass AI response summary
     )
 
-    await maybe_summarize_context(client, conversation_id, model, text, ai_reply)
+    #await maybe_summarize_context(client, conversation_id, model, text, ai_reply)
 
     return await get_last_assistant_message(conversation_id)
