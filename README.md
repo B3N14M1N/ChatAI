@@ -1,41 +1,67 @@
 # ChatAI
 
-ChatAI is a full-stack chat application that uses OpenAI’s LLM API to simulate a ChatGPT-like experience. It supports:
+ChatAI is a full-stack chat application that uses OpenAI's LLM API to simulate a ChatGPT-like experience. It supports:
 - Persistent conversations stored in async SQLite
 - File attachments (PDF, DOCX, CSV) with re-download feature
 - Model switching and request metrics (tokens & cost)
+- RAG (Retrieval-Augmented Generation) with ChromaDB for enhanced responses
+- Intent detection and conversation context management
+- **Book recommendations** from a curated dataset of classic literature using the RAG system
 
-Tech Stack
-- Backend: Python, FastAPI, Uvicorn, Pydantic, async SQLite, OpenAI API, PyPDF2, python-docx, CSV
+## Book Recommendation Feature
+
+ChatAI includes an intelligent book recommendation system that leverages RAG (Retrieval-Augmented Generation) technology. The system can recommend books from a curated dataset of classic literature including works by:
+- George Orwell (*1984*, *Animal Farm*)
+- J.R.R. Tolkien (*The Hobbit*, *The Lord of the Rings*)
+- Harper Lee (*To Kill a Mockingbird*)
+- Jane Austen (*Pride and Prejudice*)
+- F. Scott Fitzgerald (*The Great Gatsby*)
+- J.K. Rowling (*Harry Potter series*)
+- And many other renowned authors
+
+The system only recommends books that exist in its knowledge base, ensuring accurate and detailed information about plot, themes, characters, and publication details.
+
+## Tech Stack
+- Backend: Python, FastAPI, Uvicorn, Pydantic, async SQLite, OpenAI API, ChromaDB, PyPDF2, python-docx, CSV
 - Frontend: React, Vite, TypeScript
 
-Project Structure
+## Project Structure
 ```
 backend/      FastAPI service
   app/
-    main.py   entry point
-    core/     config, DB, CRUD, schemas
-    services/ chat logic, file processing, pricing
+    main.py     entry point
+    db/         database connector, CRUD operations, repository
+    models/     Pydantic schemas and API models
+    services/   chat pipelines, OpenAI gateway, RAG, pricing, caching
+    data/       static data files (books.json, pricing_data.json)
 frontend/     React + Vite client
   src/        components, styles, types
 ```
 
-Prerequisites
-- Python 3.10+  Node.js LTS
+## Prerequisites
+- Python 3.10+, Node.js LTS
+- OpenAI API Key
 
-Installation & Run
-1. Backend (PowerShell):
+## Installation & Run
+1. Set OpenAI API Key (PowerShell):
+   ```powershell
+   setx OPENAI_API_KEY "your-openai-api-key-here"
+   ```
+   *Note: Restart your terminal after setting the environment variable*
+
+2. Backend (PowerShell):
    ```powershell
    cd backend
    python -m venv .venv; .\.venv\Scripts\Activate.ps1
    pip install -r requirements.txt
    uvicorn app.main:app --reload
    ```
-2. Frontend:
+
+3. Frontend:
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
 
-Open http://localhost:5173 to start chatting.
+Open http://localhost:5173 to start chatting and getting book recommendations!
