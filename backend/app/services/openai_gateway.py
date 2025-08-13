@@ -25,7 +25,7 @@ class OpenAIGateway:
         resp = self.client.responses.create(
             model=TITLE_MODEL,
             input=[
-                {"role":"system","content":"Create a 3-8 word concise title for a book-recommendation chat."},
+                {"role":"system","content":"Create a 3-8 word concise title based on the user's message."},
                 {"role":"user","content": user_message}
             ],
             max_output_tokens=32,
@@ -41,8 +41,8 @@ class OpenAIGateway:
 
     # 2) Intent detection with structured output
     def detect_intent(self, user_message: str) -> tuple[IntentEnvelope, OpenAIUsage]:
-        # responses API structured outputs via json_schema
-        resp = self.client.responses.create(
+        # responses API structured outputs via parse
+        resp = self.client.responses.parse(
             model=INTENT_MODEL,
             input=[
                 {"role":"system","content":(
@@ -54,14 +54,9 @@ class OpenAIGateway:
                 )},
                 {"role":"user","content": user_message}
             ],
-            response_format={"type":"json_schema","json_schema":{
-                "name":"intent_schema",
-                "schema": IntentEnvelope.model_json_schema()
-            }},
-            max_output_tokens=256,
+            text_format=IntentEnvelope,
         )
-        j = resp.output[0].content[0].text  # responses API returns JSON string chunk
-        intent = IntentEnvelope.model_validate_json(j)
+        intent = resp.output_parsed
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,

@@ -8,4 +8,4 @@ def get_available_models_from_pricing(pricing_path: Path) -> dict:
     Adjust as needed if you have embeddings/tools too.
     """
     data = json.loads(Path(pricing_path).read_text(encoding="utf-8"))
-    return {"chat": sorted(list(data.keys()))}
+    return {"chat": list(data.keys())}

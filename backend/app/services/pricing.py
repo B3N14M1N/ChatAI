@@ -1,7 +1,6 @@
 from __future__ import annotations
 import json
 from pathlib import Path
-from typing import Optional
 
 class PricingService:
     def __init__(self, pricing_path: Path):
@@ -31,4 +30,4 @@ class PricingService:
         price += _cost(input_tokens, float(m.get("input_per_million", 0)))
         price += _cost(output_tokens, float(m.get("output_per_million", 0)))
         price += _cost(cached_tokens, float(m.get("cached_per_million", 0)))
-        return round(price, 6)
+        return round(price, 7)
