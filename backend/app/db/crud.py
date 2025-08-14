@@ -238,3 +238,61 @@ class Crud:
             )
             await conn.commit()
             return True
+
+    # ---------- Usage Details ----------
+    async def create_usage_detail(self, data: dict) -> int:
+        """Create a new usage detail record"""
+        keys = "message_id, scope, model, input_tokens, output_tokens, cached_tokens, price"
+        placeholders = ",".join("?" for _ in keys.split(", "))
+        values = tuple(
+            data.get(k.strip())
+            for k in [
+                "message_id",
+                "scope",
+                "model", 
+                "input_tokens",
+                "output_tokens",
+                "cached_tokens",
+                "price",
+            ]
+        )
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                f"INSERT INTO usage_details ({keys}) VALUES ({placeholders})",
+                values,
+            )
+            await conn.commit()
+            return cur.lastrowid
+
+    async def get_usage_details_for_message(self, message_id: int) -> list[dict]:
+        """Get all usage details for a specific message"""
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                """
+                SELECT id, message_id, scope, model, input_tokens, output_tokens, 
+                       cached_tokens, price, created_at 
+                FROM usage_details 
+                WHERE message_id=? 
+                ORDER BY created_at ASC, id ASC
+                """,
+                (message_id,),
+            )
+            rows = await cur.fetchall()
+            return [_row_to_dict(cur.description, r) for r in rows]
+
+    async def get_usage_details_for_conversation(self, conversation_id: int) -> list[dict]:
+        """Get all usage details for all messages in a conversation"""
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                """
+                SELECT ud.id, ud.message_id, ud.scope, ud.model, ud.input_tokens, 
+                       ud.output_tokens, ud.cached_tokens, ud.price, ud.created_at
+                FROM usage_details ud
+                JOIN messages m ON ud.message_id = m.id
+                WHERE m.conversation_id = ?
+                ORDER BY m.created_at ASC, ud.created_at ASC
+                """,
+                (conversation_id,),
+            )
+            rows = await cur.fetchall()
+            return [_row_to_dict(cur.description, r) for r in rows]

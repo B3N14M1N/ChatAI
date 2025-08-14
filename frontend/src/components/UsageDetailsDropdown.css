@@ -1,0 +1,246 @@
+/* Usage Details Dropdown Overlay Styles */
+.usage-details-overlay {
+  background-color: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 12px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: fadeInScale 0.2s ease-out;
+  /* Prevent any potential layout shifts */
+  contain: layout;
+  will-change: transform, opacity;
+  /* Ensure it appears above other content */
+  z-index: 999999;
+  /* Better opacity for readability */
+  backdrop-filter: blur(8px);
+  /* Make background more opaque */
+  background-color: rgba(255, 255, 255, 0.95);
+  /* Ensure pointer events work properly */
+  pointer-events: auto;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .usage-details-overlay {
+    background-color: rgba(31, 41, 55, 0.95);
+    border-color: rgba(75, 85, 99, 0.8);
+  }
+}
+
+/* Prevent other components from interfering when dropdown is open */
+body.usage-dropdown-open .message-bubble,
+body.usage-dropdown-open .metric-item,
+body.usage-dropdown-open .price-clickable {
+  z-index: 1 !important;
+  transform: none !important;
+  will-change: auto !important;
+}
+
+body.usage-dropdown-open .message-bubble:hover,
+body.usage-dropdown-open .metric-item:hover,
+body.usage-dropdown-open .price-clickable:hover {
+  z-index: 1 !important;
+  transform: none !important;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.92) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+}
+
+.usage-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+}
+
+.usage-details-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.usage-details-content {
+  padding: 0.5rem;
+  overflow-y: auto;
+  /* Use the maxHeight calculated in JavaScript */
+  max-height: inherit;
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  /* Prevent scroll bounce on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Allow text selection */
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+}
+
+.loading, .error, .no-data {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.875rem;
+}
+
+.loading {
+  color: var(--color-text-secondary);
+}
+
+.error {
+  color: var(--color-error, #ef4444);
+  background-color: var(--color-error-bg, rgba(239, 68, 68, 0.1));
+  border-radius: 6px;
+  margin: -0.5rem;
+  padding: 1rem;
+}
+
+.no-data {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.usage-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  border-radius: 6px;
+  overflow: hidden;
+  table-layout: fixed; /* Enable fixed layout for better column control */
+  margin: 0; /* Remove any default margins */
+}
+
+.usage-details-table th {
+  background-color: var(--color-bg-tertiary);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.15rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  line-height: 1;
+  height: 1.5rem;
+}
+
+.usage-details-table td {
+  padding: 0.15rem 0.15rem;
+  color: var(--color-text-secondary);
+  /*border-bottom: 1px solid rgba(var(--color-border-rgb, 229, 229, 229), 0.5);*/
+  transition: background-color 0.2s ease;
+  word-wrap: break-word; /* Allow text to wrap within cells */
+  overflow-wrap: break-word; /* Alternative for better browser support */
+  hyphens: auto; /* Enable automatic hyphenation */
+  /*vertical-align: top; /* Align content to top when text wraps */
+  height: 1.8rem;
+}
+
+
+.usage-details-table tbody tr:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.usage-details-table .model-cell {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--color-text-tertiary);
+  /* Allow text to wrap instead of truncating */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.usage-details-table .token-cell {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--color-text-secondary);
+}
+
+.usage-details-table .price-cell {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--color-text-secondary);
+}
+
+.usage-details-table .total-row {
+  border-top: 2px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+}
+
+.usage-details-table .total-row td {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  border-bottom: none;
+}
+
+.usage-details-table .total-row:hover {
+  background-color: var(--color-bg-secondary) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .usage-details-overlay {
+    left: -50% !important;
+    right: -50%;
+    width: calc(100vw - 32px) !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    transform: translateX(0) !important;
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+  
+  .usage-details-table {
+    font-size: 0.75rem;
+  }
+  
+  .usage-details-table th,
+  .usage-details-table td {
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .usage-details-table .model-cell {
+    max-width: 60px;
+  }
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.92) translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+}

@@ -135,6 +135,22 @@ async def get_messages(conversation_id: int, offset: int = 0, limit: int = 50):
     return res.model_dump()
 
 
+@app.get("/chat/messages/{message_id}/usage-details")
+async def get_message_usage_details(message_id: int):
+    """Get detailed usage breakdown for a specific message"""
+    result = await app.state.repo.get_message_with_usage_details(message_id)
+    if not result:
+        raise HTTPException(404, "Message not found")
+    return result.model_dump()
+
+
+@app.get("/chat/{conversation_id}/usage-details")
+async def get_conversation_usage_details(conversation_id: int):
+    """Get detailed usage breakdown for all messages in a conversation"""
+    usage_details = await app.state.repo.get_usage_details_for_conversation(conversation_id)
+    return {"usage_details": [ud.model_dump() for ud in usage_details]}
+
+
 @app.get("/chat/attachments/{attachment_id}")
 async def download_attachment_chat(attachment_id: int):
     meta = await app.state.repo.get_attachment_meta(attachment_id)

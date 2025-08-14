@@ -3,6 +3,7 @@ import type { Message } from "../types";
 import { getSender, getDisplayText } from "../types";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import MetricsDisplay from "./MetricsDisplay";
 import "./MessageBubble.css";
 
 interface MessageBubbleProps {
@@ -61,21 +62,7 @@ const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
         )}
         {sender === "assistant" && (
           <div className="bubble-footer">
-            <div className="metrics">
-              {(msg.input_tokens != null || msg.output_tokens != null) && (
-                <span>
-                  Tokens: {(msg.input_tokens || 0) + (msg.output_tokens || 0)}
-                  {msg.input_tokens != null && msg.output_tokens != null && 
-                    ` (${msg.input_tokens}→${msg.output_tokens})`
-                  }
-                  {msg.cached_tokens != null && msg.cached_tokens > 0 && 
-                    ` +${msg.cached_tokens} cached`
-                  }
-                </span>
-              )}
-              {msg.price != null && <span>Price: ${msg.price.toFixed(6)}</span>}
-              {msg.model && <span>Model: {msg.model}</span>}
-            </div>
+            <MetricsDisplay message={msg} />
           </div>
         )}
       </div>

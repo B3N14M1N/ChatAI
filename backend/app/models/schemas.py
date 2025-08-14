@@ -23,6 +23,7 @@ class ConversationUpdate(BaseModel):
 
 
 Role = Literal["user", "assistant"]
+UsageScope = Literal["title", "intent", "summary", "tool", "final"]
 
 
 class Message(BaseModel):
@@ -91,3 +92,32 @@ class PaginatedMessages(BaseModel):
     total: int
     offset: int
     limit: int
+
+
+# New usage tracking schemas
+class UsageDetail(BaseModel):
+    id: int
+    message_id: int
+    scope: UsageScope
+    model: str
+    input_tokens: int
+    output_tokens: int
+    cached_tokens: int
+    price: float
+    created_at: str
+
+
+class UsageDetailCreate(BaseModel):
+    message_id: int
+    scope: UsageScope
+    model: str
+    input_tokens: int
+    output_tokens: int
+    cached_tokens: int
+    price: float
+
+
+class MessageWithUsageDetails(BaseModel):
+    """Message with detailed usage breakdown"""
+    message: Message
+    usage_details: List[UsageDetail]

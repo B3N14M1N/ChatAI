@@ -13,6 +13,25 @@ export interface UsageMetrics {
   price?: number;
 }
 
+export type UsageScope = "title" | "intent" | "summary" | "tool" | "final";
+
+export interface UsageDetail {
+  id: number;
+  message_id: number;
+  scope: UsageScope;
+  model: string;
+  input_tokens: number;
+  output_tokens: number;
+  cached_tokens: number;
+  price: number;
+  created_at: string;
+}
+
+export interface MessageWithUsageDetails {
+  message: Message;
+  usage_details: UsageDetail[];
+}
+
 export interface Attachment {
   id: number;
   message_id: number;

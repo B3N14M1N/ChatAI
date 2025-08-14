@@ -10,6 +10,9 @@ from ..models.schemas import (
     Attachment,
     RequestResponsePair,
     PaginatedMessages,
+    UsageDetail,
+    UsageDetailCreate,
+    MessageWithUsageDetails,
 )
 
 
@@ -145,3 +148,38 @@ class Repository:
         # full history for UI; ordered ASC (already in list_messages)
         page = await self.list_messages(conversation_id, offset=0, limit=10_000)
         return page.items
+
+    # Usage Details
+    async def create_usage_detail(self, data: UsageDetailCreate) -> UsageDetail:
+        """Create a new usage detail record"""
+        uid = await self.crud.create_usage_detail(data.model_dump())
+        row = await self.crud.get_usage_details_for_message(data.message_id)
+        # Find the newly created record
+        usage_detail = next(r for r in row if r["id"] == uid)
+        return UsageDetail(**usage_detail)
+
+    async def get_usage_details_for_message(self, message_id: int) -> List[UsageDetail]:
+        """Get all usage details for a specific message"""
+        rows = await self.crud.get_usage_details_for_message(message_id)
+        return [UsageDetail(**r) for r in rows]
+
+    async def get_message_with_usage_details(self, message_id: int) -> Optional[MessageWithUsageDetails]:
+        """Get a message with its detailed usage breakdown"""
+        message_row = await self.crud.get_message(message_id)
+        if not message_row:
+            return None
+        
+        message_row["role"] = _derive_role(message_row.get("request_id"))
+        message = Message(**message_row)
+        
+        usage_details = await self.get_usage_details_for_message(message_id)
+        
+        return MessageWithUsageDetails(
+            message=message,
+            usage_details=usage_details
+        )
+
+    async def get_usage_details_for_conversation(self, conversation_id: int) -> List[UsageDetail]:
+        """Get all usage details for all messages in a conversation"""
+        rows = await self.crud.get_usage_details_for_conversation(conversation_id)
+        return [UsageDetail(**r) for r in rows]

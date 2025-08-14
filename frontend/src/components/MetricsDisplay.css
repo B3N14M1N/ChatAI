@@ -1,0 +1,95 @@
+/* Metrics Display Styles */
+.metrics-container {
+  position: relative;
+  /* Create a positioning context for the dropdown */
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  /* Prevent layout shifts */
+  contain: layout;
+}
+
+.metric-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(var(--color-bg-secondary-rgb, 248, 250, 252), 0.5);
+  border-radius: 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  border: 1px solid rgba(var(--color-border-rgb, 229, 229, 229), 0.3);
+  transition: all 0.2s ease;
+}
+
+.price-clickable {
+  cursor: pointer;
+  user-select: none;
+  background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.1) !important;
+  border-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.2) !important;
+  color: var(--color-primary, #3b82f6) !important;
+  /* Prevent layout shifts on interaction */
+  transform-origin: center;
+  backface-visibility: hidden;
+  will-change: transform, background-color;
+}
+
+.price-clickable:hover {
+  background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.15) !important;
+  border-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.3) !important;
+  color: var(--color-primary-dark, #2563eb) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.price-clickable:active {
+  transform: translateY(0);
+  transition: transform 0.1s ease;
+}
+
+.model-info {
+  background-color: rgba(var(--color-accent-rgb, 16, 185, 129), 0.1) !important;
+  border-color: rgba(var(--color-accent-rgb, 16, 185, 129), 0.2) !important;
+  color: var(--color-accent, #10b981) !important;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .metric-item {
+    background-color: rgba(55, 65, 81, 0.5);
+    border-color: rgba(75, 85, 99, 0.3);
+  }
+  
+  .price-clickable {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    border-color: rgba(59, 130, 246, 0.25) !important;
+  }
+  
+  .price-clickable:hover {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+    border-color: rgba(59, 130, 246, 0.35) !important;
+  }
+  
+  .model-info {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .metrics {
+    gap: 0.5rem;
+  }
+  
+  .metric-item {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+  }
+}

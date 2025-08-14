@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional, List, Dict, Any
 
 from ..db.repository import Repository
-from ..models.schemas import MessageCreate
+from ..models.schemas import MessageCreate, UsageDetailCreate
 from .cache import TTLCache
 from .pricing import PricingService
 from .openai_gateway import OpenAIGateway, OpenAIUsage
@@ -177,7 +177,120 @@ class ChatPipeline:
         )
 
         # 9) Usage & pricing aggregation and persistence
-        # Use the total_usage from the tools or direct response
+        # Track individual usage details for detailed breakdown
+        usage_details = []
+        
+        # Add title generation usage if it occurred
+        if title_usage:
+            title_price = self.pricing.price_chat_usage(
+                model=title_usage.model,
+                input_tokens=title_usage.input_tokens,
+                output_tokens=title_usage.output_tokens,
+                cached_tokens=title_usage.cached_tokens,
+            )
+            usage_details.append(UsageDetailCreate(
+                message_id=assistant_msg.id,
+                scope="title",
+                model=title_usage.model,
+                input_tokens=title_usage.input_tokens,
+                output_tokens=title_usage.output_tokens,
+                cached_tokens=title_usage.cached_tokens,
+                price=title_price,
+            ))
+
+        # Add intent detection usage
+        intent_price = self.pricing.price_chat_usage(
+            model=intent_usage.model,
+            input_tokens=intent_usage.input_tokens,
+            output_tokens=intent_usage.output_tokens,
+            cached_tokens=intent_usage.cached_tokens,
+        )
+        usage_details.append(UsageDetailCreate(
+            message_id=assistant_msg.id,
+            scope="intent",
+            model=intent_usage.model,
+            input_tokens=intent_usage.input_tokens,
+            output_tokens=intent_usage.output_tokens,
+            cached_tokens=intent_usage.cached_tokens,
+            price=intent_price,
+        ))
+
+        # Add summary usage if it occurred
+        if summ_usage:
+            summary_price = self.pricing.price_chat_usage(
+                model=summ_usage.model,
+                input_tokens=summ_usage.input_tokens,
+                output_tokens=summ_usage.output_tokens,
+                cached_tokens=summ_usage.cached_tokens,
+            )
+            usage_details.append(UsageDetailCreate(
+                message_id=assistant_msg.id,
+                scope="summary",
+                model=summ_usage.model,
+                input_tokens=summ_usage.input_tokens,
+                output_tokens=summ_usage.output_tokens,
+                cached_tokens=summ_usage.cached_tokens,
+                price=summary_price,
+            ))
+
+        # Add tool/final response usage
+        if has_function_calls:
+            # Tool usage
+            tool_price = self.pricing.price_chat_usage(
+                model=tool_usage.model,
+                input_tokens=tool_usage.input_tokens,
+                output_tokens=tool_usage.output_tokens,
+                cached_tokens=tool_usage.cached_tokens,
+            )
+            usage_details.append(UsageDetailCreate(
+                message_id=assistant_msg.id,
+                scope="tool",
+                model=tool_usage.model,
+                input_tokens=tool_usage.input_tokens,
+                output_tokens=tool_usage.output_tokens,
+                cached_tokens=tool_usage.cached_tokens,
+                price=tool_price,
+            ))
+            
+            # Final response usage
+            final_price = self.pricing.price_chat_usage(
+                model=answer_usage.model,
+                input_tokens=answer_usage.input_tokens,
+                output_tokens=answer_usage.output_tokens,
+                cached_tokens=answer_usage.cached_tokens,
+            )
+            usage_details.append(UsageDetailCreate(
+                message_id=assistant_msg.id,
+                scope="final",
+                model=answer_usage.model,
+                input_tokens=answer_usage.input_tokens,
+                output_tokens=answer_usage.output_tokens,
+                cached_tokens=answer_usage.cached_tokens,
+                price=final_price,
+            ))
+        else:
+            # Direct response usage
+            direct_price = self.pricing.price_chat_usage(
+                model=tool_usage.model,
+                input_tokens=tool_usage.input_tokens,
+                output_tokens=tool_usage.output_tokens,
+                cached_tokens=tool_usage.cached_tokens,
+            )
+            usage_details.append(UsageDetailCreate(
+                message_id=assistant_msg.id,
+                scope="final",
+                model=tool_usage.model,
+                input_tokens=tool_usage.input_tokens,
+                output_tokens=tool_usage.output_tokens,
+                cached_tokens=tool_usage.cached_tokens,
+                price=direct_price,
+            ))
+
+        # Create all usage detail records
+        for usage_detail in usage_details:
+            await self.repo.create_usage_detail(usage_detail)
+
+        # Calculate totals for the message record (legacy/summary fields)
         total_input = total_usage.input_tokens + intent_usage.input_tokens
         total_output = total_usage.output_tokens + intent_usage.output_tokens
         total_cached = total_usage.cached_tokens + intent_usage.cached_tokens
@@ -190,19 +303,15 @@ class ChatPipeline:
             total_output += summ_usage.output_tokens
             total_cached += summ_usage.cached_tokens
 
-        price = self.pricing.price_chat_usage(
-            model=total_usage.model,
-            input_tokens=total_input,
-            output_tokens=total_output,
-            cached_tokens=total_cached,
-        )
+        total_price = sum(ud.price for ud in usage_details)
+        
         await self.repo.set_message_usage(
             assistant_msg.id,
             input_tokens=total_input,
             output_tokens=total_output,
             cached_tokens=total_cached,
             model=total_usage.model,
-            price=price,
+            price=total_price,
         )
 
         return {
@@ -216,7 +325,7 @@ class ChatPipeline:
                 "output_tokens": total_output,
                 "cached_tokens": total_cached,
                 "model": total_usage.model,
-                "price": price,
+                "price": total_price,
             },
         }
 

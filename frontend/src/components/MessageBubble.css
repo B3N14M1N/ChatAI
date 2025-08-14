@@ -108,7 +108,3 @@
   display: flex;
   gap: 0.5rem;
 }
-
-.message .bubble-footer .metrics span {
-  margin-left: 0.5rem;
-}
