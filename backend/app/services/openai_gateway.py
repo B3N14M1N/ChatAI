@@ -3,7 +3,7 @@ import os
 from typing import List, Optional, Dict, Any
 from openai import OpenAI
 from pydantic import BaseModel
-from ..models.intents import IntentEnvelope
+from ..models.schemas import IntentEnvelope, TitleEnvelope
 
 DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-nano")
 TITLE_MODEL = os.getenv("OPENAI_TITLE_MODEL", "gpt-4.1-nano")
@@ -22,20 +22,21 @@ class OpenAIGateway:
     def __init__(self):
         self.client = OpenAI()
 
-    # 1) Title generation (short & concise)
+    # 1) Title generation (short & concise) with structured output
     def generate_title(self, user_message: str) -> tuple[str, OpenAIUsage]:
-        resp = self.client.responses.create(
+        resp = self.client.responses.parse(
             model=TITLE_MODEL,
             input=[
                 {
                     "role": "system",
-                    "content": "Create a 3-8 word concise title based on the user's message.",
+                    "content": "Create a short 3-8 word conversation title that summarizes what the user is requesting. Return JSON with field: title.",
                 },
                 {"role": "user", "content": user_message},
             ],
             max_output_tokens=32,
+            text_format=TitleEnvelope,
         )
-        title = (resp.output_text or "").strip().strip('"')
+        title = resp.output_parsed.title.strip()
         usage = OpenAIUsage(
             input_tokens=resp.usage.input_tokens if resp.usage else 0,
             output_tokens=resp.usage.output_tokens if resp.usage else 0,

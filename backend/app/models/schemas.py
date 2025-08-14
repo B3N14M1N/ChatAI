@@ -2,8 +2,6 @@ from __future__ import annotations
 from typing import Optional, List, Literal
 from pydantic import BaseModel, Field
 
-# Core entities
-
 
 class Conversation(BaseModel):
     id: int
@@ -24,6 +22,7 @@ class ConversationUpdate(BaseModel):
 
 Role = Literal["user", "assistant"]
 UsageScope = Literal["title", "intent", "summary", "tool", "final"]
+ContextNeed = Literal["none", "last_message", "full"]
 
 
 class Message(BaseModel):
@@ -119,5 +118,14 @@ class UsageDetailCreate(BaseModel):
 
 class MessageWithUsageDetails(BaseModel):
     """Message with detailed usage breakdown"""
+
     message: Message
     usage_details: List[UsageDetail]
+
+
+class IntentEnvelope(BaseModel):
+    context_need: ContextNeed = "none"
+
+
+class TitleEnvelope(BaseModel):
+    title: str
