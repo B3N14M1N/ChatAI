@@ -121,12 +121,16 @@ const App: React.FC = () => {
     const userMsg: Message = {
       id: Date.now(),
       conversation_id: selectedConv?.id ?? 0,
-      sender: "user",
+      request_id: null, // Explicitly set to null for user messages
       text: trimmed,
       created_at: new Date().toISOString(),
-      metadata: 'pending',
-      // show attachments immediately
-      attachments: files?.map((file, idx) => ({ id: Date.now() + idx, filename: file.name }))
+      // show attachments immediately (temporary structure for display)
+      attachments: files?.map((file, idx) => ({ 
+        id: Date.now() + idx, 
+        message_id: Date.now(),
+        filename: file.name,
+        content_type: file.type || 'application/octet-stream'
+      }))
     };
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
@@ -137,19 +141,23 @@ const App: React.FC = () => {
       if (selectedConv?.id != null) {
         form.append('conversation_id', selectedConv.id.toString());
       }
-      form.append('sender', 'user');
+      // Remove the sender parameter - it's now determined by request_id
       form.append('text', trimmed);
       form.append('model', model);
-      // metadata is optional; omit if not used
       // append files
       if (files && files.length) {
         files.forEach(file => form.append('files', file, file.name));
       }
-      const res = await axios.post<Message>('/api/chat/', form, {
+      const res = await axios.post<{
+        conversation_id: number;
+        request_message_id: number;
+        response_message_id: number;
+        answer: string;
+      }>('/api/chat/', form, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       // On first message, select the new conversation
-      let convId = selectedConv?.id;
+      let convId = selectedConv?.id || res.data.conversation_id;
       if (!selectedConv) {
         const listRes = await axios.get<Conversation[]>('/api/conversations/');
         setConversations(listRes.data);
@@ -166,9 +174,6 @@ const App: React.FC = () => {
           `/api/conversations/${convId}/messages`
         );
         setMessages(msgsRes.data.messages);
-      } else {
-        // fallback to optimistic append
-        setMessages(prev => [...prev, res.data]);
       }
     } catch (err) {
       console.error(err);

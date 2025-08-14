@@ -31,6 +31,20 @@ body {
   /* Ensure theme background and text applied */
   background-color: var(--color-bg);
   color: var(--color-text-primary);
+  /* Prevent scroll restoration issues */
+  scroll-behavior: smooth;
+}
+
+/* Prevent scroll bouncing and layout shifts */
+html {
+  overflow-x: hidden;
+}
+
+/* Ensure overlays don't cause layout shifts */
+body.overlay-open {
+  overflow: hidden;
+  /* Prevent content jumping when scrollbar disappears */
+  padding-right: var(--scrollbar-width, 0);
 }
 
 h1 {

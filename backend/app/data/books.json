@@ -1,0 +1,102 @@
+[
+  {
+    "title": "1984",
+    "author": "George Orwell",
+    "year": 1949,
+    "short_summary": "A dystopian society under total surveillance and ideological control.",
+    "full_summary": "Set in the oppressive super‑state of Oceania, 1984 follows Winston Smith, a minor clerk who secretly longs for truth in a world saturated by propaganda, perpetual war, and invasive surveillance. The Party rewrites history, polices language through Newspeak, and enforces conformity with fear and psychological manipulation. Winston’s brief rebellion—through a forbidden romance and clandestine questioning—highlights the fragility of individual freedom when reality itself is state‑manufactured. The novel examines power, identity, memory, and the mechanisms by which authoritarian systems sustain themselves.",
+    "themes": ["dystopia", "surveillance", "freedom", "totalitarianism"],
+    "genres": ["dystopian", "political fiction"],
+    "language": "en"
+  },
+  {
+    "title": "The Hobbit",
+    "author": "J.R.R. Tolkien",
+    "year": 1937,
+    "short_summary": "Bilbo joins dwarves on a quest, discovering courage amid magic and peril.",
+    "full_summary": "Bilbo Baggins, a reluctant hobbit content with quiet comforts, is swept into a quest to help a band of dwarves reclaim their mountain home from the dragon Smaug. Along the journey through trolls, goblins, riddles in the dark, giant spiders, and elven halls, Bilbo grows from timid observer to resourceful hero—finding a cleverness and bravery he never suspected. Themes of friendship, the corrupting allure of treasure, and the unexpected potential in ordinary people run through the episodic adventure.",
+    "themes": ["adventure", "friendship", "courage", "fantasy"],
+    "genres": ["fantasy", "adventure"],
+    "language": "en"
+  },
+  {
+    "title": "To Kill a Mockingbird",
+    "author": "Harper Lee",
+    "year": 1960,
+    "short_summary": "Childhood perspective on racial injustice and moral growth in the American South.",
+    "full_summary": "Told through the curious, candid eyes of young Scout Finch, the story explores racial injustice and moral responsibility in Depression‑era Alabama. Her father, lawyer Atticus Finch, defends a Black man falsely accused of assault, modeling integrity against entrenched prejudice. Scout and her brother Jem confront the complexities of empathy, the limits of the law, and the tension between innocence and harsh social realities. The novel blends coming‑of‑age reflection with a critique of systemic bias.",
+    "themes": ["justice", "racism", "empathy", "morality"],
+    "genres": ["classic", "coming-of-age"],
+    "language": "en"
+  },
+  {
+    "title": "Pride and Prejudice",
+    "author": "Jane Austen",
+    "year": 1813,
+    "short_summary": "Elizabeth Bennet navigates manners, morality, and mistaken judgments in Regency England.",
+    "full_summary": "Elizabeth Bennet’s sharp wit and independent spirit clash with societal expectations and her early misread of the reserved Mr. Darcy. Through a series of social encounters, misunderstandings, and revelations, she confronts her own biases (‘prejudice’) while Darcy tempers his class‑based pride. Themes of reputation, gender constraints, economic security, and moral discernment are explored through irony and incisive social observation, culminating in mutual growth and earned respect.",
+    "themes": ["love", "society", "class", "marriage"],
+    "genres": ["romance", "classic"],
+    "language": "en"
+  },
+  {
+    "title": "The Catcher in the Rye",
+    "author": "J.D. Salinger",
+    "year": 1951,
+    "short_summary": "Holden Caulfield's journey through alienation and grief in postwar America.",
+    "full_summary": "Expelled from yet another prep school, Holden Caulfield wanders New York City wrestling with loss, disillusionment, and a longing to protect childhood innocence. His caustic observations about ‘phoniness’ mask unresolved grief and fear of growing up. The narrative’s conversational style exposes fragmented identity, adolescent vulnerability, and the search for authenticity in a world that feels performative and uncaring.",
+    "themes": ["alienation", "identity", "adolescence"],
+    "genres": ["coming-of-age", "literary fiction"],
+    "language": "en"
+  },
+  {
+    "title": "Brave New World",
+    "author": "Aldous Huxley",
+    "year": 1932,
+    "short_summary": "Engineered society trades individuality for comfort and control.",
+    "full_summary": "In a future engineered for stability, citizens are biologically stratified, psychologically conditioned, and pacified by constant pleasure, entertainment, and a mood‑altering drug. Individual aspiration and deep relationships are sacrificed to efficiency and consumption. When an outsider (‘the Savage’) confronts this ‘utopia,’ the moral cost of trading freedom, art, and suffering for managed happiness becomes starkly clear.",
+    "themes": ["dystopia", "technology", "control", "identity"],
+    "genres": ["dystopian", "science fiction"],
+    "language": "en"
+  },
+  {
+    "title": "Moby-Dick",
+    "author": "Herman Melville",
+    "year": 1851,
+    "short_summary": "Captain Ahab's obsessive hunt for the white whale explores fate and madness.",
+    "full_summary": "Narrator Ishmael joins the whaling ship Pequod and becomes witness to Captain Ahab’s consuming quest to kill the enigmatic white whale that maimed him. The voyage blends action, philosophical reflection, and detailed lore about the sea. Ahab’s obsession embodies struggles with fate, nature’s indifference, and the peril of monomaniacal purpose, culminating in a tragic collision between will and the vast, unknowable oceanic world.",
+    "themes": ["obsession", "fate", "nature", "madness"],
+    "genres": ["adventure", "classic"],
+    "language": "en"
+  },
+  {
+    "title": "The Lord of the Rings: The Fellowship of the Ring",
+    "author": "J.R.R. Tolkien",
+    "year": 1954,
+    "short_summary": "Frodo begins a perilous quest to destroy a ring of absolute power.",
+    "full_summary": "After inheriting the One Ring, a seemingly simple heirloom with immense corrupting power, Frodo Baggins leaves the Shire to prevent its return to a rising dark lord. Allies from diverse peoples form the Fellowship, embodying cooperation against encroaching evil. The book explores courage under burden, temptation, loyalty, and the long shadows cast by ancient conflicts across a richly realized secondary world.",
+    "themes": ["friendship", "good vs evil", "sacrifice", "journey"],
+    "genres": ["fantasy", "epic"],
+    "language": "en"
+  },
+  {
+    "title": "The Great Gatsby",
+    "author": "F. Scott Fitzgerald",
+    "year": 1925,
+    "short_summary": "Jazz Age tale of ambition, illusion, and the elusive American Dream.",
+    "full_summary": "Through narrator Nick Carraway’s wary eyes, the novel dissects glamour and moral vacancy in Roaring Twenties Long Island. Jay Gatsby’s lavish parties and reinvention conceal longing for an idealized past and a personified dream. The story critiques class stratification, performative wealth, and the fragility of aspiration when built on illusion and selective memory.",
+    "themes": ["wealth", "illusion", "love", "class"],
+    "genres": ["classic", "tragedy"],
+    "language": "en"
+  },
+  {
+    "title": "Harry Potter and the Sorcerer's Stone",
+    "author": "J.K. Rowling",
+    "year": 1997,
+    "short_summary": "Young wizard discovers identity, friendship, and danger at magic school.",
+    "full_summary": "An orphaned boy learns he is a wizard and begins his education at a magical school where he forms deep friendships and confronts the lingering threat of a dark sorcerer. The narrative weaves themes of belonging, courage, ethical choice, and the shaping of identity through community and adversity, setting the stage for a broader conflict between resilience and fear.",
+    "themes": ["friendship", "magic", "identity", "courage"],
+    "genres": ["fantasy", "young adult"],
+    "language": "en"
+  }
+]
