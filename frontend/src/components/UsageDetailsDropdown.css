@@ -133,47 +133,57 @@ body.usage-dropdown-open .price-clickable:hover {
 .usage-details-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   border-radius: 6px;
   overflow: hidden;
-  table-layout: fixed; /* Enable fixed layout for better column control */
-  margin: 0; /* Remove any default margins */
+  table-layout: auto;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .usage-details-table th {
   background-color: var(--color-bg-tertiary);
   font-weight: 600;
   color: var(--color-text-primary);
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  padding: 0.15rem 0.15rem;
+  padding: 0.2rem 0.3rem;
   text-align: left;
-  border-bottom: 1px solid var(--color-border);
-  line-height: 1;
-  height: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  line-height: 1.2;
+  height: auto;
 }
 
 .usage-details-table td {
-  padding: 0.15rem 0.15rem;
+  padding: 0.2rem 0.3rem;
   color: var(--color-text-secondary);
-  /*border-bottom: 1px solid rgba(var(--color-border-rgb, 229, 229, 229), 0.5);*/
+  border-bottom: none;
   transition: background-color 0.2s ease;
   word-wrap: break-word; /* Allow text to wrap within cells */
-  overflow-wrap: break-word; /* Alternative for better browser support */
+  overflow-wrap: break-word;
   hyphens: auto; /* Enable automatic hyphenation */
-  /*vertical-align: top; /* Align content to top when text wraps */
-  height: 1.8rem;
+  line-height: 1.2;
+  vertical-align: middle;
+  height: auto; /* Let content determine height */
 }
 
 
 .usage-details-table tbody tr:hover {
-  background-color: var(--color-bg-hover);
+  background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.05);
+  transition: background-color 0.15s ease;
+}
+
+/* Override hover for total row to maintain its background */
+.usage-details-table .total-row:hover {
+  background-color: rgba(var(--color-bg-secondary-rgb, 248, 250, 252), 0.7) !important;
 }
 
 .usage-details-table .model-cell {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--color-text-tertiary);
   /* Allow text to wrap instead of truncating */
   word-wrap: break-word;
@@ -182,29 +192,32 @@ body.usage-dropdown-open .price-clickable:hover {
 
 .usage-details-table .token-cell {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--color-text-secondary);
+  font-weight: 500;
 }
 
 .usage-details-table .price-cell {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--color-text-secondary);
+  font-weight: 500;
 }
 
 .usage-details-table .total-row {
-  border-top: 2px solid var(--color-border);
-  background-color: var(--color-bg-secondary);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .usage-details-table .total-row td {
   font-weight: 600;
   color: var(--color-text-primary);
   border-bottom: none;
+  font-size: 0.75rem;
 }
 
+/* Override hover for total row to maintain normal hover behavior */
 .usage-details-table .total-row:hover {
-  background-color: var(--color-bg-secondary) !important;
+  background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.05) !important;
 }
 
 /* Responsive adjustments */
