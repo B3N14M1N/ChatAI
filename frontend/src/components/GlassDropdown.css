@@ -1,0 +1,122 @@
+.glass-dropdown {
+  width: 8rem;
+  padding: 8px 12px;
+  background: rgba(40, 40, 40, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  height: 40px;
+  box-sizing: border-box;
+}
+
+.glass-dropdown:hover:not(.disabled) {
+  background: rgba(50, 50, 50, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.glass-dropdown:focus:not(.disabled) {
+  outline: none;
+  border-color: rgba(187, 134, 252, 0.5);
+  box-shadow: 0 0 0 3px rgba(187, 134, 252, 0.1);
+}
+
+.glass-dropdown.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Open state styling */
+.glass-dropdown.open {
+  background: rgba(50, 50, 50, 0.95);
+  border-radius: 4px 4px 12px 12px;
+  transform: scaleY(1.05);
+  transform-origin: bottom;
+  border-color: rgba(187, 134, 252, 0.5);
+  box-shadow: 0 0 0 3px rgba(187, 134, 252, 0.1);
+}
+
+.selected-value {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
+  transition: transform 0.2s ease;
+  margin-left: 8px;
+}
+
+.glass-dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+  color: rgba(187, 134, 252, 0.8);
+}
+
+.dropdown-options {
+  position: absolute;
+  top: -2px;
+  left: -1px;
+  right: -1px;
+  background: rgba(50, 50, 50, 0.95);
+  border: 1px solid rgba(187, 134, 252, 0.3);
+  border-radius: 12px 12px 4px 4px;
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 -8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  z-index: 1000;
+  transform: translateY(-100%);
+  margin-top: -4px;
+  overflow: hidden;
+}
+
+.dropdown-option {
+  padding: 6px 10px;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-option:last-child {
+  border-bottom: none;
+}
+
+.dropdown-option:hover {
+  background: rgba(187, 134, 252, 0.3);
+  color: rgba(255, 255, 255, 1);
+}
+
+.dropdown-option.selected {
+  background: rgba(187, 134, 252, 0.2);
+  color: rgba(255, 255, 255, 1);
+}
+
+/* Compact variant */
+.glass-dropdown.compact {
+  width: 6rem;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  height: 32px;
+}
+
+.glass-dropdown.compact .dropdown-option {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}

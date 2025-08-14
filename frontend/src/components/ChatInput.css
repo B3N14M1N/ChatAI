@@ -156,32 +156,6 @@
   flex: 1;
 }
 
-.model-select {
-  /* fixed width for compact dropdown */
-  width: 8rem;
-  padding: 10px 12px;
-  background: rgba(40, 40, 40, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.9rem;
-  appearance: none;
-  backdrop-filter: blur(10px);
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.model-select:hover {
-  background: rgba(50, 50, 50, 0.9);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.model-select:focus {
-  outline: none;
-  border-color: rgba(100, 150, 255, 0.5);
-  box-shadow: 0 0 0 3px rgba(100, 150, 255, 0.1);
-}
-
 .chat-textarea {
   border: none;
   background: transparent;
