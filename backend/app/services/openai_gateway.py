@@ -148,38 +148,23 @@ class OpenAIGateway:
             {
                 "type": "function",
                 "name": "get_book_recommendations",
-                "description": "Get book recommendations. Only include genres/themes/authors that the user explicitly mentions. Use content parameter for plot/story descriptions to find similar books.",
+                "description": "Get book recommendations based on user preferences",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "genres": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "List of book genres ONLY if explicitly mentioned by user (e.g., ['fantasy', 'sci-fi'])",
-                        },
-                        "themes": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "List of themes ONLY if explicitly mentioned by user (e.g., ['friendship', 'adventure'])",
+                        "content": {
+                            "type": "string",
+                            "description": "Any description: genres (fantasy, sci-fi), themes (adventure, romance), plot elements, time periods, or story details",
                         },
                         "authors": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "List of author names ONLY if explicitly mentioned by user (e.g., ['George Orwell', 'Jane Austen'])",
-                        },
-                        "content": {
-                            "type": "string",
-                            "description": "Story content, plot description, or narrative elements to search for in book summaries (e.g., 'quest to help dwarves reclaim mountain home', 'dystopian society surveillance')",
+                            "description": "Specific author names only if explicitly mentioned",
                         },
                         "limit": {
                             "type": "integer",
                             "description": "Maximum number of recommendations to return",
                             "default": 5,
-                        },
-                        "random": {
-                            "type": "boolean",
-                            "description": "Whether to return random recommendations",
-                            "default": False,
                         },
                     },
                     "additionalProperties": False,
@@ -219,10 +204,8 @@ class OpenAIGateway:
         """
         system_prompt = (
             "You are a book recommendation assistant. "
-            "Use the get_book_recommendations tool when users ask for book suggestions, recommendations, or want to find books. "
-            "ONLY include genres/themes/authors that the user explicitly mentions - do not infer or add additional categories. "
-            "When users describe a plot, story, or narrative elements they're looking for, use the 'content' parameter to search by story content. "
-            "Use the get_book_summaries tool when users ask about specific book titles or want summaries."
+            "Use 'content' parameter for ANY book description - genres, themes, plot elements, time periods, etc. "
+            "Only use 'authors' for specific author names. Keep it simple."
         )
 
         input_messages = [{"role": "system", "content": system_prompt}]
