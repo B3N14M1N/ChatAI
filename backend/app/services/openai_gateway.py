@@ -162,6 +162,20 @@ class OpenAIGateway:
                             "items": {"type": "string"},
                             "description": "Specific author names only if explicitly mentioned",
                         },
+                        "exclude_titles": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Specific book titles to exclude from recommendations (e.g., books already mentioned or not wanted)",
+                        },
+                        "exclude_content": {
+                            "type": "string",
+                            "description": "Content themes/genres to avoid entirely (e.g., 'horror', 'romance', 'dystopian') - only use when user explicitly says they don't want certain types of content",
+                        },
+                        "exclude_authors": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Author names to exclude from recommendations",
+                        },
                         "limit": {
                             "type": "integer",
                             "description": "Maximum number of recommendations to return",
@@ -206,7 +220,12 @@ class OpenAIGateway:
         system_prompt = (
             "You are a book recommendation assistant. "
             "Use 'content' parameter for ANY book description - genres, themes, plot elements, time periods, etc. "
-            "Only use 'authors' for specific author names. Keep it simple."
+            "Only use 'authors' for specific author names. "
+            "IMPORTANT: Use 'exclude_titles' when user asks for 'another one', 'something else', 'different book', or wants to avoid books already mentioned in the conversation. "
+            "Always check conversation history and exclude any books already recommended or mentioned. "
+            "Use 'exclude_content' only when user explicitly doesn't want certain types/genres (e.g., 'no horror', 'avoid romance', 'but not dystopian'). "
+            "Use 'exclude_authors' when user wants to avoid specific authors. "
+            "Keep it simple."
         )
 
         input_messages = [{"role": "system", "content": system_prompt}]
