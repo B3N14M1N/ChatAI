@@ -1,23 +1,26 @@
 .theme-switcher {
-  display: flex;
+  /* Fixed-size circular control so the icon never shifts horizontally.
+     The label is rendered absolutely to the right when visible so
+     it doesn't affect layout of the footer or other items. */
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.75rem;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   background: transparent;
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: 50%;
   color: var(--color-text-secondary);
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
+  position: relative; /* so the label can be absolutely positioned */
+  overflow: visible; /* allow label to extend outside the button */
 }
 
 .theme-switcher:hover {
   background: var(--color-surface-hover);
-  border-color: var(--color-border-hover);
   color: var(--color-text-primary);
   transform: translateY(-1px);
 }
@@ -27,18 +30,19 @@
   transition: transform 0.1s ease;
 }
 
-.theme-switcher.collapsed {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  justify-content: center;
-  border-radius: 50%;
+/* border color on hover only when collapsed */
+.theme-switcher.collapsed:hover {
+  border-color: var(--color-border-hover);
 }
 
 .theme-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   font-size: 1.2rem;
-  transition: transform 0.2s ease;
-  min-width: 1.2rem;
+  transition: transform 0.18s ease;
   text-align: center;
 }
 
@@ -48,12 +52,22 @@
 
 .theme-label {
   font-weight: 500;
-  transition: opacity 0.2s ease;
-}
-
-.theme-switcher.collapsed .theme-label {
+  position: absolute;
+  left: calc(44px + 8px); /* place to the right of the circular button */
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background: transparent; /* label overlays, does not affect layout */
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+/* When sidebar is not collapsed, show the label near the icon without moving it */
+.theme-switcher:not(.collapsed) .theme-label {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  pointer-events: auto;
 }
 
 /* Glass effect for theme switcher */
@@ -65,11 +79,12 @@
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.1) 0%, 
-    rgba(255, 255, 255, 0.05) 100%);
+    rgba(255, 255, 255, 0.08) 0%, 
+    rgba(255, 255, 255, 0.04) 100%);
   opacity: 0;
   transition: opacity 0.2s ease;
   border-radius: inherit;
+  pointer-events: none; /* ensure button remains clickable */
 }
 
 .theme-switcher:hover::before {
@@ -83,13 +98,4 @@
     rgba(255, 255, 255, 0.02) 100%);
 }
 
-/* Animation for theme changes */
-@keyframes themeChange {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.95); }
-  100% { transform: scale(1); }
-}
-
-.theme-switcher:active {
-  animation: themeChange 0.2s ease;
-}
+/* Removed click animation to keep theme switcher static on press */

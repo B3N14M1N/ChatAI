@@ -1,6 +1,5 @@
 .sidebar-footer {
   margin-top: auto;
-  padding: 1rem;
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
   backdrop-filter: blur(8px);
@@ -20,10 +19,27 @@
   .sidebar-footer.collapsed { border-radius: 50%; width: 48px; height: 48px; }
 }
 
-/* Smooth transition when collapsing */
-.sidebar-footer {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Desktop: keep footer height stable so collapsing sidebar doesn't change layout height */
+@media (min-width: 769px) {
+  .sidebar-footer {
+  min-height: 72px; /* fixed footer area height on desktop */
+  display: flex;
+  align-items: center;
+  padding: 0em 0.5em; /* keep some horizontal padding so the circular button has room */
+  overflow: visible; /* allow label popup to be visible outside the button */
+  }
+
+  /* When collapsed, keep the footer area the same height but center the smaller button */
+  .sidebar-footer.collapsed {
+  padding: 0; /* remove extra padding but keep min-height */
+  justify-content: center;
+  align-items: center;
+  /* keep the same height visually when collapsed */
+  height: 72px;
+  }
 }
+
+/* Remove transition to avoid distracting footer height animation: nothing to add here */
 
 /* Glass effect for footer */
 .sidebar-footer::before {
