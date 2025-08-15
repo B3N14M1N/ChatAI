@@ -19,33 +19,53 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.5rem;
-  background-color: rgba(var(--color-bg-secondary-rgb, 248, 250, 252), 0.5);
+  background: var(--color-surface);
   border-radius: 12px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.7rem;
   line-height: 1.2;
-  border: 1px solid rgba(var(--color-border-rgb, 229, 229, 229), 0.3);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
   transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .price-clickable {
   cursor: pointer;
   user-select: none;
-  background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.1) !important;
-  border-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.2) !important;
-  color: var(--color-primary, #3b82f6) !important;
+  background: rgba(59, 130, 246, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  color: var(--color-primary) !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15) !important;
   /* Prevent layout shifts on interaction */
   transform-origin: center;
   backface-visibility: hidden;
   will-change: transform, background-color;
+  /* Ensure consistent width regardless of arrow icon */
+  min-width: fit-content;
+}
+
+/* Style the arrow icon to have consistent width */
+.price-clickable::after {
+  content: '▶';
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+  margin-left: 4px;
+  transition: transform 0.2s ease;
+}
+
+.price-clickable.expanded::after {
+  content: '▼';
+  transform: none;
 }
 
 .price-clickable:hover {
-  background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.15) !important;
-  border-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.3) !important;
-  color: var(--color-primary-dark, #2563eb) !important;
+  background: rgba(59, 130, 246, 0.18) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  color: var(--color-primary) !important;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25) !important;
 }
 
 .price-clickable:active {
@@ -54,32 +74,58 @@
 }
 
 .model-info {
-  background-color: rgba(var(--color-accent-rgb, 16, 185, 129), 0.1) !important;
-  border-color: rgba(var(--color-accent-rgb, 16, 185, 129), 0.2) !important;
-  color: var(--color-accent, #10b981) !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  color: var(--color-accent) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15) !important;
 }
 
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .metric-item {
-    background-color: rgba(55, 65, 81, 0.5);
-    border-color: rgba(75, 85, 99, 0.3);
-  }
-  
-  .price-clickable {
-    background-color: rgba(59, 130, 246, 0.15) !important;
-    border-color: rgba(59, 130, 246, 0.25) !important;
-  }
-  
-  .price-clickable:hover {
-    background-color: rgba(59, 130, 246, 0.2) !important;
-    border-color: rgba(59, 130, 246, 0.35) !important;
-  }
-  
-  .model-info {
-    background-color: rgba(16, 185, 129, 0.15) !important;
-    border-color: rgba(16, 185, 129, 0.25) !important;
-  }
+/* Dark theme specific adjustments */
+:root[data-theme="dark"] .metric-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme="dark"] .price-clickable {
+  background: rgba(96, 165, 250, 0.15) !important;
+  border: 1px solid rgba(96, 165, 250, 0.25) !important;
+  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.05) !important;
+}
+
+:root[data-theme="dark"] .price-clickable:hover {
+  background: rgba(96, 165, 250, 0.22) !important;
+  border-color: rgba(96, 165, 250, 0.35) !important;
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3) !important;
+}
+
+:root[data-theme="dark"] .model-info {
+  background: rgba(52, 211, 153, 0.15) !important;
+  border: 1px solid rgba(52, 211, 153, 0.25) !important;
+  box-shadow: 0 2px 8px rgba(52, 211, 153, 0.05) !important;
+}
+
+/* Light theme specific adjustments */
+:root[data-theme="light"] .metric-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .price-clickable {
+  background: rgba(59, 130, 246, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.2) !important;
+  color: var(--color-primary) !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1) !important;
+}
+
+:root[data-theme="light"] .model-info {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  color: var(--color-accent) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1) !important;
 }
 
 /* Responsive adjustments */

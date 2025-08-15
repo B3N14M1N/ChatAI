@@ -1,0 +1,101 @@
+.theme-switcher {
+  /* Fixed-size circular control so the icon never shifts horizontally.
+     The label is rendered absolutely to the right when visible so
+     it doesn't affect layout of the footer or other items. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
+  position: relative; /* so the label can be absolutely positioned */
+  overflow: visible; /* allow label to extend outside the button */
+}
+
+.theme-switcher:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
+.theme-switcher:active {
+  transform: translateY(0);
+  transition: transform 0.1s ease;
+}
+
+/* border color on hover only when collapsed */
+.theme-switcher.collapsed:hover {
+  border-color: var(--color-border-hover);
+}
+
+.theme-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 1.2rem;
+  transition: transform 0.18s ease;
+  text-align: center;
+}
+
+.theme-switcher:hover .theme-icon {
+  transform: scale(1.1);
+}
+
+.theme-label {
+  font-weight: 500;
+  position: absolute;
+  left: calc(44px + 8px); /* place to the right of the circular button */
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background: transparent; /* label overlays, does not affect layout */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+/* When sidebar is not collapsed, show the label near the icon without moving it */
+.theme-switcher:not(.collapsed) .theme-label {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  pointer-events: auto;
+}
+
+/* Glass effect for theme switcher */
+.theme-switcher::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.08) 0%, 
+    rgba(255, 255, 255, 0.04) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: inherit;
+  pointer-events: none; /* ensure button remains clickable */
+}
+
+.theme-switcher:hover::before {
+  opacity: 1;
+}
+
+/* Dark theme specific adjustments */
+:root[data-theme="dark"] .theme-switcher::before {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0.02) 100%);
+}
+
+/* Removed click animation to keep theme switcher static on press */

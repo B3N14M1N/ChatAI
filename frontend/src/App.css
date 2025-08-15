@@ -48,28 +48,163 @@
 }
 
 :root {
-  /* Dark Theme Palette */
-  --color-bg: #121212;
-  --color-surface: #1f1f1f;
-  --color-hover: #333333;
-  --color-primary: #bb86fc;
-  --color-secondary: #03dac6;
-  --color-error: #cf6679;
-  --color-text-primary: #e0e0e0;
-  --color-text-secondary: #a0a0a0;
-  --color-border: #272727;
+  /* Base Theme Variables */
+  /* Light Theme */
+  --light-bg: #f8fafc;
+  --light-surface: #ffffff;
+  --light-surface-hover: #f1f5f9;
+  --light-hover: #e2e8f0;
+  --light-primary: #3b82f6;
+  --light-secondary: #06b6d4;
+  --light-accent: #10b981;
+  --light-error: #ef4444;
+  --light-warning: #f59e0b;
+  --light-success: #22c55e;
+  --light-text-primary: #1e293b;
+  --light-text-secondary: #64748b;
+  --light-text-tertiary: #94a3b8;
+  --light-border: #e2e8f0;
+  --light-border-hover: #cbd5e1;
+  
+  /* Dark Theme */
+  --dark-bg: #0f172a;
+  --dark-surface: #1e293b;
+  --dark-surface-hover: #334155;
+  --dark-hover: #475569;
+  --dark-primary: #60a5fa;
+  --dark-secondary: #22d3ee;
+  --dark-accent: #34d399;
+  --dark-error: #f87171;
+  --dark-warning: #fbbf24;
+  --dark-success: #4ade80;
+  --dark-text-primary: #f1f5f9;
+  --dark-text-secondary: #cbd5e1;
+  --dark-text-tertiary: #94a3b8;
+  --dark-border: #334155;
+  --dark-border-hover: #475569;
 
-  /* Component Variables */
+  /* Default to dark theme */
+  --color-bg: var(--dark-bg);
+  --color-surface: var(--dark-surface);
+  --color-surface-hover: var(--dark-surface-hover);
+  --color-hover: var(--dark-hover);
+  --color-primary: var(--dark-primary);
+  --color-secondary: var(--dark-secondary);
+  --color-accent: var(--dark-accent);
+  --color-error: var(--dark-error);
+  --color-warning: var(--dark-warning);
+  --color-success: var(--dark-success);
+  --color-text-primary: var(--dark-text-primary);
+  --color-text-secondary: var(--dark-text-secondary);
+  --color-text-tertiary: var(--dark-text-tertiary);
+  --color-border: var(--dark-border);
+  --color-border-hover: var(--dark-border-hover);
+
+  /* Component Variables that respond to theme changes */
   --sidebar-bg: var(--color-surface);
   --sidebar-text: var(--color-text-primary);
   --sidebar-selected-bg: var(--color-hover);
   --chat-bg: var(--color-bg);
   --user-msg-bg: var(--color-primary);
   --assistant-msg-bg: var(--color-surface);
+  --user-msg-text-color: var(--color-text-primary);
   --input-bg: var(--color-surface);
   --input-text: var(--color-text-primary);
   --primary-color: var(--color-primary);
   --danger-color: var(--color-error);
+  --color-bg-hover: var(--color-surface-hover);
+  --color-link-hover: var(--color-primary);
+  
+  /* Glass effect variables */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  /* Scrollbar theming */
+  --scrollbar-track: transparent;
+  /* stronger default thumb so it's visible in dark theme */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.12);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.18);
+  --scrollbar-glow: transparent; /* glow removed */
+  /* send button theming (defaults - can be overridden per theme) */
+  --send-btn-start: var(--color-primary);
+  --send-btn-end: var(--color-secondary);
+  --send-btn-glow: rgba(59, 130, 246, 0.28);
+}
+
+
+/* Light theme overrides */
+:root[data-theme="light"] {
+  --color-bg: var(--light-bg);
+  --color-surface: var(--light-surface);
+  --color-surface-hover: var(--light-surface-hover);
+  --color-hover: var(--light-hover);
+  --color-primary: var(--light-primary);
+  --color-secondary: var(--light-secondary);
+  --color-accent: var(--light-accent);
+  --color-error: var(--light-error);
+  --color-warning: var(--light-warning);
+  --color-success: var(--light-success);
+  --color-text-primary: var(--light-text-primary);
+  --color-text-secondary: var(--light-text-secondary);
+  --color-text-tertiary: var(--light-text-tertiary);
+  --color-border: var(--light-border);
+  --color-border-hover: var(--light-border-hover);
+  
+  /* Light theme specific overrides for better contrast */
+  --assistant-msg-bg: #e2e8f0;
+  --user-msg-bg: var(--light-primary);
+  /* ensure user message text is white on the blue primary background in light theme */
+  --user-msg-text-color: #ffffff;
+  --sidebar-bg: var(--light-surface);
+  --chat-bg: var(--light-bg);
+  --input-bg: var(--light-surface);
+  
+  /* Light theme glass effects */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  /* Light theme scrollbar colors */
+  --scrollbar-track: rgba(15, 23, 42, 0.02);
+  --scrollbar-thumb: rgba(15, 23, 42, 0.18);
+  --scrollbar-thumb-hover: rgba(15, 23, 42, 0.28);
+  --scrollbar-glow: transparent;
+}
+
+/* Dark theme overrides (explicit) */
+:root[data-theme="dark"] {
+  --color-bg: var(--dark-bg);
+  --color-surface: var(--dark-surface);
+  --color-surface-hover: var(--dark-surface-hover);
+  --color-hover: var(--dark-hover);
+  --color-primary: var(--dark-primary);
+  --color-secondary: var(--dark-secondary);
+  --color-accent: var(--dark-accent);
+  --color-error: var(--dark-error);
+  --color-warning: var(--dark-warning);
+  --color-success: var(--dark-success);
+  --color-text-primary: var(--dark-text-primary);
+  --color-text-secondary: var(--dark-text-secondary);
+  --color-text-tertiary: var(--dark-text-tertiary);
+  --color-border: var(--dark-border);
+  --color-border-hover: var(--dark-border-hover);
+  
+  /* Dark theme component overrides */
+  --assistant-msg-bg: var(--dark-surface);
+  --user-msg-bg: var(--dark-primary);
+  --user-msg-text-color: var(--dark-text-primary);
+  --sidebar-bg: var(--dark-surface);
+  --chat-bg: var(--dark-bg);
+  --input-bg: var(--dark-surface);
+  
+  /* Dark theme glass effects */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  /* Dark theme scrollbar colors */
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.14);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
+  --scrollbar-glow: transparent;
 }
 
 /* Responsive layout for smaller screens */
@@ -325,4 +460,48 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Custom scrollbars for WebKit browsers */
+/* Targets messages pane, input textarea, and conversation list */
+.messages::-webkit-scrollbar,
+.conversations-list::-webkit-scrollbar,
+.input-area textarea::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.messages::-webkit-scrollbar-track,
+.conversations-list::-webkit-scrollbar-track,
+.input-area textarea::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 12px;
+}
+
+.messages::-webkit-scrollbar-thumb,
+.conversations-list::-webkit-scrollbar-thumb,
+.input-area textarea::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px; /* fully rounded */
+  border: 3px solid transparent; /* spacing effect */
+  background-clip: padding-box;
+  transition: background-color 0.12s ease;
+}
+
+.messages::-webkit-scrollbar-thumb:hover,
+.conversations-list::-webkit-scrollbar-thumb:hover,
+.input-area textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.messages::-webkit-scrollbar-thumb:active,
+.conversations-list::-webkit-scrollbar-thumb:active,
+.input-area textarea::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }

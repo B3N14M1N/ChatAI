@@ -94,6 +94,9 @@ class BookRAG:
         *,
         content: Optional[str] = None,
         authors: Optional[List[str]] = None,
+        exclude_titles: Optional[List[str]] = None,
+        exclude_content: Optional[str] = None,
+        exclude_authors: Optional[List[str]] = None,
         limit: int = 5,
         # Legacy parameters for backward compatibility - will be merged into content
         genres: Optional[List[str]] = None,
@@ -102,7 +105,7 @@ class BookRAG:
         **kwargs  # Catch any other parameters
     ) -> List[Dict[str, Any]]:
         """
-        Simplified content-based book recommendation.
+        Simplified content-based book recommendation with exclusion support.
         All search is now purely semantic based on content similarity.
         """
         try:
@@ -120,13 +123,39 @@ class BookRAG:
             if not search_query:
                 search_query = "book recommendations"
             
-            # Perform simple semantic search
-            results = self._semantic_search(search_query, limit * 2)  # Get extra for filtering
+            # Perform simple semantic search - get more results for filtering
+            results = self._semantic_search(search_query, limit * 3)  # Get extra for filtering
             
-            # Simple author filtering if specified
+            # Filter by authors if specified
             if authors:
                 author_names = [name.lower() for name in authors]
                 results = [r for r in results if any(author.lower() in r.get('author', '').lower() for author in author_names)]
+            
+            # Exclude specific titles if specified
+            if exclude_titles:
+                exclude_title_names = [title.lower() for title in exclude_titles]
+                results = [r for r in results if r.get('title', '').lower() not in exclude_title_names]
+            
+            # Exclude authors if specified
+            if exclude_authors:
+                exclude_author_names = [name.lower() for name in exclude_authors]
+                results = [r for r in results if not any(author.lower() in r.get('author', '').lower() for author in exclude_author_names)]
+            
+            # Exclude content (genres/themes) if specified - only for content-based exclusions
+            if exclude_content:
+                exclude_terms = exclude_content.lower().split()
+                filtered_results = []
+                for result in results:
+                    # Check if any exclude terms match genres or themes
+                    book_genres = [g.lower() for g in result.get('genres', [])]
+                    book_themes = [t.lower() for t in result.get('themes', [])]
+                    book_content = (result.get('short_summary', '') + ' ' + result.get('full_summary', '')).lower()
+                    
+                    # Skip if any exclude term is found in genres, themes, or content
+                    if not any(term in ' '.join(book_genres + book_themes + [book_content]) for term in exclude_terms):
+                        filtered_results.append(result)
+                
+                results = filtered_results
             
             # Return top results
             return results[:limit]

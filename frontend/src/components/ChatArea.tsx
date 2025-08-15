@@ -33,6 +33,18 @@ const ChatArea: FC<ChatAreaProps> = ({ messages, loading, handleSend }) => {
         {messages.map(msg => (
           <MessageBubble key={msg.id} msg={msg} />
         ))}
+        {/* Show thinking bubble when loading */}
+        {loading && (
+          <div className="message assistant">
+            <div className="bubble thinking-bubble">
+              <div className="thinking-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       {/* Input component handles divider and form */}
       <ChatInput

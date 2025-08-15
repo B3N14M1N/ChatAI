@@ -9,19 +9,31 @@
   flex-direction: column;
   /* Stack header, textarea, footer vertically */
   align-items: stretch;
-  padding: 8px 12px;
-  gap: 8px;
-  background-color: var(--input-bg, rgba(31, 31, 31, 0.9));
-  border-radius: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
+  padding: 16px 20px;
+  gap: 12px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.input-container:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 0 0 1px var(--glass-border);
 }
 
 .send-btn:disabled {
-  background-color: var(--color-border);
-  opacity: 0.6;
+  background: rgba(100, 100, 100, 0.3);
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: scale(0.95);
 }
 
 /* Mobile responsive adjustments */
@@ -56,33 +68,53 @@
 .attachments {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  padding: 6px 8px;
+  gap: 8px;
+  padding: 0;
   margin-bottom: 8px;
-  background-color: var(--secondary-bg, rgba(50, 50, 50, 0.8));
-  border-radius: 8px;
-  max-height: 4rem;
-  overflow-y: auto;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
 }
 
 .attachment-item {
   display: flex;
   align-items: center;
-  padding: 2px 6px;
-  background-color: var(--input-bg);
-  border-radius: 4px;
+  padding: 6px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
   font-size: 0.9rem;
-  color: var(--input-text);
+  color: var(--color-text-primary);
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.attachment-item:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+  transform: translateY(-1px);
 }
 
 .remove-attach-btn {
   background: transparent;
   border: none;
-  color: var(--input-text);
-  margin-left: 4px;
+  color: var(--color-text-tertiary);
+  margin-left: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.remove-attach-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-error);
+  transform: scale(1.1);
 }
 
 .input-footer {
@@ -90,18 +122,28 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 8px;
+  /*margin-top: 8px; */
 }
 
 .attach-btn {
-  background: transparent;
-  border: none;
-  color: var(--input-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   display: flex;
   align-items: center;
-  padding: 4px;
+  padding: 10px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.attach-btn:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
 }
 
 /* Group attach and model select */
@@ -112,35 +154,35 @@
   flex: 1;
 }
 
-.model-select {
-  /* fixed width for compact dropdown */
-  width: 8rem;
-  padding: 6px 8px;
-  background-color: var(--input-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  color: var(--input-text);
-  font-size: 0.9rem;
-  appearance: none;
-}
-
 .chat-textarea {
   border: none;
   background: transparent;
-  padding: 10px 10px;
-  font-size: 14px;
-  line-height: 1.5;
+  padding: 0px 16px;
+  font-size: 15px;
+  line-height: 1.6;
   width: 100%;
   resize: none;
   outline: none;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.chat-textarea::placeholder {
+  color: var(--color-text-tertiary);
+  transition: color 0.2s ease;
+}
+
+.chat-textarea:focus::placeholder {
+  color: var(--color-text-secondary);
 }
 
 .send-btn {
   /* Remove default margin to let flex spacing handle alignment */
   margin-left: 0;
-  background-color: var(--primary-color);
-  color: var(--input-text);
-  border: none;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -148,10 +190,30 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+/* Active state when text is present */
+.send-btn:not(:disabled) {
+  background: linear-gradient(135deg, var(--send-btn-start), var(--send-btn-end));
+  color: white;
+  box-shadow: 0 4px 12px var(--send-btn-glow), 0 0 0 1px var(--color-border);
+}
+
+.send-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--send-btn-end), var(--send-btn-start));
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 18px var(--send-btn-glow), 0 0 0 1px var(--color-border);
+}
+
+.send-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
 
 .send-btn:disabled {
-  background-color: var(--color-border);
-  opacity: 0.6;
+  background: var(--color-surface);
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: scale(0.95);
 }

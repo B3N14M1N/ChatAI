@@ -21,7 +21,6 @@ from app.services.models_catalog import get_available_models_from_pricing
 from app.models.api_schemas import (
     ConversationOut,
     ConversationMessages,
-    SendPayload,
     SendMessageResponse,
 )
 
@@ -76,18 +75,6 @@ app = FastAPI(
 )
 
 
-@app.post("/chat/send")
-async def send_message(payload: SendPayload):
-    if not payload.text.strip():
-        raise HTTPException(400, "Empty text")
-    result = await app.state.pipeline.handle_user_message(
-        conversation_id=payload.conversation_id,
-        user_text=payload.text,
-        model="gpt-4.1-nano",
-    )
-    return result
-
-
 @app.post("/chat/", response_model=SendMessageResponse)
 async def send_message_with_files(
     text: str = Form(...),
@@ -127,43 +114,11 @@ async def send_message_with_files(
     )
 
 
-@app.get("/chat/{conversation_id}/messages")
-async def get_messages(conversation_id: int, offset: int = 0, limit: int = 50):
-    res = await app.state.repo.list_messages(
-        conversation_id, offset=offset, limit=limit
-    )
-    return res.model_dump()
-
-
-@app.get("/chat/messages/{message_id}/usage-details")
-async def get_message_usage_details(message_id: int):
-    """Get detailed usage breakdown for a specific message"""
-    result = await app.state.repo.get_message_with_usage_details(message_id)
-    if not result:
-        raise HTTPException(404, "Message not found")
-    return result.model_dump()
-
-
 @app.get("/chat/{conversation_id}/usage-details")
 async def get_conversation_usage_details(conversation_id: int):
     """Get detailed usage breakdown for all messages in a conversation"""
     usage_details = await app.state.repo.get_usage_details_for_conversation(conversation_id)
     return {"usage_details": [ud.model_dump() for ud in usage_details]}
-
-
-@app.get("/chat/attachments/{attachment_id}")
-async def download_attachment_chat(attachment_id: int):
-    meta = await app.state.repo.get_attachment_meta(attachment_id)
-    if not meta:
-        raise HTTPException(404, "Not found")
-    blob = await app.state.repo.get_attachment_blob(attachment_id)
-    if blob is None:
-        raise HTTPException(404, "Not found")
-    return Response(
-        content=blob,
-        media_type=meta.content_type or "application/octet-stream",
-        headers={"Content-Disposition": f'attachment; filename="{meta.filename}"'},
-    )
 
 
 @app.post("/conversations/", response_model=int)
@@ -203,6 +158,15 @@ async def get_conversation_messages_endpoint(conversation_id: int):
         raise HTTPException(404, "Conversation not found")
     page = await app.state.repo.list_messages(conversation_id, offset=0, limit=10_000)
     return ConversationMessages(conversation_id=conversation_id, messages=page.items)
+
+
+@app.get("/chat/messages/{message_id}/usage-details")
+async def get_message_usage_details(message_id: int):
+    """Get detailed usage breakdown for a specific message"""
+    result = await app.state.repo.get_message_with_usage_details(message_id)
+    if not result:
+        raise HTTPException(404, "Message not found")
+    return result.model_dump()
 
 
 @app.get("/conversations/{conversation_id}/context", response_model=str)

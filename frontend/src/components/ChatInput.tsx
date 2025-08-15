@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, type FormEvent } from "react";
 import { FaPaperPlane, FaPaperclip, FaTimes } from 'react-icons/fa';
 import type { FC } from "react";
+import GlassDropdown from './GlassDropdown';
 import './ChatInput.css';
 
 interface ChatInputProps {
@@ -143,16 +144,14 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
           >
             <FaPaperclip />
           </button>
-          <select
-            className="model-select"
+          
+          <GlassDropdown
+            options={models}
             value={selectedModel}
-            onChange={e => setSelectedModel(e.target.value)}
+            onChange={setSelectedModel}
             disabled={loading || models.length === 0}
-          >
-            {models.map(m => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
+            placeholder="Select model"
+          />
         </div>
         <button
           type="submit"

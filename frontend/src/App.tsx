@@ -3,6 +3,7 @@ import axios from "axios";
 import "./App.css";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import type { Conversation, Message } from "./types";
 import { useSearchParams } from 'react-router-dom';
 
@@ -183,24 +184,26 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="app-container">
-      <Sidebar
-        conversations={conversations}
-        selectedId={selectedConv?.id ?? null}
-        onSelect={conv => setSearchParams({ id: conv.id.toString(), collapsed: collapsed.toString() })}
-        onCreate={createConversation}
-        onDelete={deleteConversation}
-        onRename={renameConversation}
-        collapsed={collapsed}
-        onToggle={toggleCollapsed}
-      />
-      <ChatArea
-        key={selectedConv?.id ?? 'new'}
-        messages={messages}
-        loading={loading}
-        handleSend={handleSend}
-      />
-    </div>
+    <ThemeProvider>
+      <div className="app-container">
+        <Sidebar
+          conversations={conversations}
+          selectedId={selectedConv?.id ?? null}
+          onSelect={conv => setSearchParams({ id: conv.id.toString(), collapsed: collapsed.toString() })}
+          onCreate={createConversation}
+          onDelete={deleteConversation}
+          onRename={renameConversation}
+          collapsed={collapsed}
+          onToggle={toggleCollapsed}
+        />
+        <ChatArea
+          key={selectedConv?.id ?? 'new'}
+          messages={messages}
+          loading={loading}
+          handleSend={handleSend}
+        />
+      </div>
+    </ThemeProvider>
   );
 };
 export default App;
