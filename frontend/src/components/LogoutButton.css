@@ -1,0 +1,92 @@
+/* Mirrors ThemeSwitcher.css layout and behavior */
+.logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
+  position: relative;
+  overflow: visible;
+}
+
+.logout-button:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
+.logout-button:active {
+  transform: translateY(0);
+  transition: transform 0.1s ease;
+}
+
+.logout-button.collapsed:hover {
+  border-color: var(--color-border-hover);
+}
+
+.logout-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.logout-label {
+  font-weight: 500;
+  position: absolute;
+  left: calc(44px + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.logout-button:not(.collapsed) .logout-label {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  pointer-events: auto;
+}
+
+/* Glass effect overlay similar to ThemeSwitcher */
+.logout-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.04) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.logout-button:hover::before {
+  opacity: 1;
+}
+
+:root[data-theme="dark"] .logout-button::before {
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.02) 100%);
+}
+
+/* When sidebar is expanded, leave room for the ThemeSwitcher label to the left */
+.sidebar-footer:not(.collapsed) .logout-button {
+  margin-left: 96px; /* 44px circle + 8px gap + ~label width */
+}

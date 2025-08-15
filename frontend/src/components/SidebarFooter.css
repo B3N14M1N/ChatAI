@@ -5,11 +5,22 @@
   backdrop-filter: blur(8px);
 }
 
+/* Stack controls vertically when expanded */
+.sidebar-footer:not(.collapsed) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
 .sidebar-footer.collapsed {
   padding: 0.75rem;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: left;
+  gap: 0.5rem;
+  padding: 0.5rem;
 }
 
 @media (max-width: 768px) {
@@ -24,8 +35,10 @@
   .sidebar-footer {
   min-height: 72px; /* fixed footer area height on desktop */
   display: flex;
-  align-items: center;
-  padding: 0em 0.5em; /* keep some horizontal padding so the circular button has room */
+  flex-direction: column; /* vertical stack on desktop too */
+  align-items: left;
+  gap: 0.5rem;
+  padding: 0.5em; /* some padding so circular buttons have room */
   overflow: visible; /* allow label popup to be visible outside the button */
   }
 
@@ -33,13 +46,12 @@
   .sidebar-footer.collapsed {
   padding: 0; /* remove extra padding but keep min-height */
   justify-content: center;
-  align-items: center;
-  /* keep the same height visually when collapsed */
-  height: 72px;
+  align-items: left;
+  gap: 0.5rem;
+  padding: 0.5em; /* some padding so circular buttons have room */
+  min-height: 72px; /* fixed footer area height on desktop */
   }
 }
-
-/* Remove transition to avoid distracting footer height animation: nothing to add here */
 
 /* Glass effect for footer */
 .sidebar-footer::before {
@@ -60,3 +72,6 @@
     transparent 0%, 
     rgba(255, 255, 255, 0.02) 100%);
 }
+
+/* Ensure LogoutButton aligns under ThemeSwitcher in expanded mode */
+.sidebar-footer:not(.collapsed) .logout-button { margin-left: 0 !important; }
