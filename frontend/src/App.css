@@ -107,6 +107,7 @@
   --chat-bg: var(--color-bg);
   --user-msg-bg: var(--color-primary);
   --assistant-msg-bg: var(--color-surface);
+  --user-msg-text-color: var(--color-text-primary);
   --input-bg: var(--color-surface);
   --input-text: var(--color-text-primary);
   --primary-color: var(--color-primary);
@@ -142,6 +143,8 @@
   /* Light theme specific overrides for better contrast */
   --assistant-msg-bg: #e2e8f0;
   --user-msg-bg: var(--light-primary);
+  /* ensure user message text is white on the blue primary background in light theme */
+  --user-msg-text-color: #ffffff;
   --sidebar-bg: var(--light-surface);
   --chat-bg: var(--light-bg);
   --input-bg: var(--light-surface);
@@ -173,6 +176,7 @@
   /* Dark theme component overrides */
   --assistant-msg-bg: var(--dark-surface);
   --user-msg-bg: var(--dark-primary);
+  --user-msg-text-color: var(--dark-text-primary);
   --sidebar-bg: var(--dark-surface);
   --chat-bg: var(--dark-bg);
   --input-bg: var(--dark-surface);
