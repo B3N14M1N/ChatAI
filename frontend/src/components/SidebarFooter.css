@@ -13,6 +13,13 @@
   align-items: center;
 }
 
+@media (max-width: 768px) {
+  .sidebar-footer { background: var(--color-surface); }
+  /* Make footer full-width and stick to bottom in the mobile overlay */
+  .sidebar-footer { position: sticky; bottom: 0; }
+  .sidebar-footer.collapsed { border-radius: 50%; width: 48px; height: 48px; }
+}
+
 /* Smooth transition when collapsing */
 .sidebar-footer {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

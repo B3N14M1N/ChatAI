@@ -80,3 +80,58 @@ hr {
     background-color: var(--sidebar-bg);
   }
 }
+
+/* Mobile floating open button (circular) */
+.mobile-open-btn {
+  position: fixed;
+  top: 18px;
+  left: 12px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: white;
+  border: 0;
+  z-index: 90; /* above header/footer */
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+}
+
+@media (max-width: 768px) {
+  .mobile-open-btn { display: flex; }
+
+  /* When sidebar is open on mobile we want it to behave like a full page overlay */
+  .sidebar {
+    height: 100vh;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: var(--sidebar-bg);
+    transform: translateX(0);
+  }
+
+  /* collapsed state should hide the aside entirely; only the button remains visible */
+  .sidebar.collapsed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+  }
+
+  /* Pin header and footer, make conversations list the only scrollable area */
+  .sidebar .sidebar-header { position: sticky; top: 0; z-index: 30; }
+  .sidebar .sidebar-footer { position: sticky; bottom: 0; z-index: 30; }
+  .sidebar .conversations-list {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent background (chat) from scrolling when sidebar open */
+  body.sidebar-open-no-scroll { overflow: hidden; }
+}
