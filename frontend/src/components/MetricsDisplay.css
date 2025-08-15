@@ -38,6 +38,23 @@
   transform-origin: center;
   backface-visibility: hidden;
   will-change: transform, background-color;
+  /* Ensure consistent width regardless of arrow icon */
+  min-width: fit-content;
+}
+
+/* Style the arrow icon to have consistent width */
+.price-clickable::after {
+  content: '▶';
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+  margin-left: 4px;
+  transition: transform 0.2s ease;
+}
+
+.price-clickable.expanded::after {
+  content: '▼';
+  transform: none;
 }
 
 .price-clickable:hover {

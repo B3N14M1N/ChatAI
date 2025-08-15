@@ -48,11 +48,11 @@ const MetricsDisplay: FC<MetricsDisplayProps> = ({ message }) => {
         {message.price != null && (
           <span 
             ref={priceRef}
-            className="metric-item price-clickable" 
+            className={`metric-item price-clickable ${showUsageDetails ? 'expanded' : ''}`}
             onClick={handlePriceClick}
             title="Click to see detailed usage breakdown"
           >
-            Price: ${message.price.toFixed(6)} {showUsageDetails ? '▼' : '▶'}
+            Price: ${message.price.toFixed(6)}
           </span>
         )}
         {message.model && (
