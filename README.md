@@ -7,6 +7,8 @@ ChatAI is a full-stack chat application that uses OpenAI's LLM API to simulate a
 - RAG (Retrieval-Augmented Generation) with ChromaDB for enhanced responses
 - Intent detection and conversation context management
 - **Book recommendations** from a curated dataset of classic literature using the RAG system
+ - User accounts with JWT authentication (register/login) and user-scoped conversations
+ - Glassy UI with theme switching and a collapsible sidebar
 
 ## Book Recommendation Feature
 
@@ -22,8 +24,8 @@ ChatAI includes an intelligent book recommendation system that leverages RAG (Re
 The system only recommends books that exist in its knowledge base, ensuring accurate and detailed information about plot, themes, characters, and publication details.
 
 ## Tech Stack
-- Backend: Python, FastAPI, Uvicorn, Pydantic, async SQLite, OpenAI API, ChromaDB, PyPDF2, python-docx, CSV
-- Frontend: React, Vite, TypeScript
+- Backend: Python, FastAPI, Uvicorn, Pydantic, async SQLite, OpenAI API, ChromaDB, PyPDF2, python-docx, CSV, JWT (python-jose), passlib[bcrypt]
+- Frontend: React, Vite, TypeScript (animated auth background, theme switcher)
 
 ## Project Structure
 ```
@@ -41,6 +43,7 @@ frontend/     React + Vite client
 ## Prerequisites
 - Python 3.10+, Node.js LTS
 - OpenAI API Key
+- A JWT secret for the backend
 
 ## Installation & Run
 1. Set OpenAI API Key (PowerShell):
@@ -54,6 +57,8 @@ frontend/     React + Vite client
    cd backend
    python -m venv .venv; .\.venv\Scripts\Activate.ps1
    pip install -r requirements.txt
+   # JWT secret (required)
+   $env:JWT_SECRET_KEY = "replace_with_a_secure_random_value"
    uvicorn app.main:app --reload
    ```
 
@@ -65,3 +70,5 @@ frontend/     React + Vite client
    ```
 
 Open http://localhost:5173 to start chatting and getting book recommendations!
+
+Login/Register at `/auth/login` or `/auth/register`. Once authenticated, conversations and messages are scoped to your account.
