@@ -3,7 +3,6 @@ import axios from "axios";
 import "./App.css";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
-import { ThemeProvider } from "./contexts/ThemeContext";
 import type { Conversation, Message } from "./types";
 import { useSearchParams } from 'react-router-dom';
 
@@ -184,7 +183,6 @@ const App: React.FC = () => {
   };
 
   return (
-    <ThemeProvider>
       <div className="app-container">
         <Sidebar
           conversations={conversations}
@@ -203,7 +201,6 @@ const App: React.FC = () => {
           handleSend={handleSend}
         />
       </div>
-    </ThemeProvider>
   );
 };
 export default App;
