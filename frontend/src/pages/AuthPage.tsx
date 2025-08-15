@@ -3,6 +3,7 @@ import './AuthPage.css';
 import ChatBackgroundLoop from '../components/ChatBackgroundLoop';
 import AuthOverlay from '../components/AuthOverlay';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthContext';
 
 type Mode = 'login' | 'register';
 
@@ -16,6 +17,7 @@ const AuthPage: React.FC<{ mode?: Mode }> = ({ mode = 'login' }) => {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const auth = useAuth();
 
   const title = useMemo(() => (current === 'login' ? 'Welcome back' : 'Create your account'), [current]);
   const buttonLabel = useMemo(() => (current === 'login' ? 'Sign in' : 'Sign up'), [current]);
@@ -29,15 +31,14 @@ const AuthPage: React.FC<{ mode?: Mode }> = ({ mode = 'login' }) => {
     }
     setSubmitting(true);
     try {
-      // Placeholder: fake auth; store a token so we can guard routes
-      const fakeToken = 'dev-token';
-      const fakeUser = { email, name: name || email, role: 'user' };
-      localStorage.setItem('authToken', fakeToken);
-      localStorage.setItem('authUser', JSON.stringify(fakeUser));
-      // Navigate to chat root
+      if (current === 'login') {
+        await auth.login(email, password);
+      } else {
+        await auth.register(email, password, name || undefined);
+      }
       window.location.href = '/';
     } catch (err) {
-      setError('Authentication failed');
+      setError((err as Error).message || 'Authentication failed');
     } finally {
       setSubmitting(false);
     }

@@ -6,12 +6,14 @@ import App from './App.tsx';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 const isAuthed = () => !!localStorage.getItem('authToken');
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
+      <AuthProvider>
       <BrowserRouter>
         <Routes>
           {/* Auth */}
@@ -25,6 +27,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="*" element={<Navigate to={isAuthed() ? '/' : '/auth/login'} replace />} />
         </Routes>
       </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   </StrictMode>
 );

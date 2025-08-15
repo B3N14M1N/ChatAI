@@ -64,6 +64,7 @@ class ChatPipeline:
         conversation_id: Optional[int],
         user_text: str,
         model: str = "gpt-4.1-nano",
+        user_id: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         1) Create conversation (with title) if needed
@@ -81,7 +82,11 @@ class ChatPipeline:
             from ..models.schemas import ConversationCreate
 
             c = ConversationCreate(title=title.strip() or "New chat")
-            conv = await self.repo.create_conversation(c)
+            # create conversation under the authenticated user if provided
+            if user_id is not None:
+                conv = await self.repo.create_conversation(c, user_id=user_id)
+            else:
+                conv = await self.repo.create_conversation(c)
             conversation_id = conv.id
         else:
             conv = await self.repo.get_conversation(conversation_id)
