@@ -126,8 +126,8 @@
 
 /* Theme-specific overrides */
 :root[data-theme="dark"] .glass-dropdown {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(100, 116, 139, 0.3);
+  background: var(--color-surface);
+  border-color: var(--color-border);
 }
 
 :root[data-theme="dark"] .glass-dropdown:hover:not(.disabled) {
@@ -142,11 +142,6 @@
 :root[data-theme="dark"] .dropdown-options {
   background: rgba(51, 65, 85, 0.95);
   border-color: rgba(96, 165, 250, 0.5);
-}
-
-:root[data-theme="light"] .glass-dropdown {
-  background: rgba(248, 250, 252, 0.9);
-  border-color: rgba(226, 232, 240, 0.8);
 }
 
 :root[data-theme="light"] .glass-dropdown:hover:not(.disabled) {
