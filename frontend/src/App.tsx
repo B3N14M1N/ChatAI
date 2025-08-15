@@ -9,11 +9,23 @@ import { useSearchParams } from 'react-router-dom';
 const App: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const idParam = searchParams.get('id');
-  const collapsed = searchParams.get('collapsed') === 'true';
+
+  // Persist sidebar collapsed state in localStorage to avoid polluting history
+  const COLLAPSE_KEY = 'sidebar.collapsed';
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      const raw = localStorage.getItem(COLLAPSE_KEY);
+      return raw === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const toggleCollapsed = () => {
-    setSearchParams({
-      id: idParam ?? '',
-      collapsed: (!collapsed).toString(),
+    setCollapsed(prev => {
+      const next = !prev;
+      try { localStorage.setItem(COLLAPSE_KEY, next.toString()); } catch {}
+      return next;
     });
   };
 
@@ -54,7 +66,7 @@ const App: React.FC = () => {
     if (conversations.length === 0) return;
     // if no idParam, redirect to new conversation
     if (!searchParams.has('id')) {
-      setSearchParams({ id: 'new', collapsed: collapsed.toString() }, { replace: true });
+      setSearchParams({ id: 'new' }, { replace: true });
       return;
     }
     // new conversation mode: clear selection
@@ -68,14 +80,14 @@ const App: React.FC = () => {
     const conv = conversations.find(c => c.id === targetId) || conversations[0];
     // ensure URL id matches selected
     if (conv.id.toString() !== idParam) {
-      setSearchParams({ id: conv.id.toString(), collapsed: collapsed.toString() }, { replace: true });
+      setSearchParams({ id: conv.id.toString() }, { replace: true });
     }
     selectConversation(conv);
   }, [conversations, idParam, collapsed]);
 
   // Start a blank chat, will create on first message
   const createConversation = () => {
-    setSearchParams({ id: 'new', collapsed: collapsed.toString() });
+    setSearchParams({ id: 'new' });
   };
 
   // Rename a conversation
@@ -104,9 +116,9 @@ const App: React.FC = () => {
       const listRes = await axios.get<Conversation[]>('/api/conversations/');
       setConversations(listRes.data);
       // switch to first
-      if (selectedConv?.id === id && listRes.data.length) {
+        if (selectedConv?.id === id && listRes.data.length) {
         const firstId = listRes.data[0].id.toString();
-        setSearchParams({ id: firstId, collapsed: collapsed.toString() });
+        setSearchParams({ id: firstId });
       }
     } catch (err) {
       console.error(err);
@@ -164,7 +176,7 @@ const App: React.FC = () => {
         const newConv = listRes.data.find(c => c.id === res.data.conversation_id);
         if (newConv) {
           setSelectedConv(newConv);
-          setSearchParams({ id: newConv.id.toString(), collapsed: collapsed.toString() });
+          setSearchParams({ id: newConv.id.toString() });
           convId = newConv.id;
         }
       }
@@ -187,7 +199,7 @@ const App: React.FC = () => {
         <Sidebar
           conversations={conversations}
           selectedId={selectedConv?.id ?? null}
-          onSelect={conv => setSearchParams({ id: conv.id.toString(), collapsed: collapsed.toString() })}
+          onSelect={conv => setSearchParams({ id: conv.id.toString() })}
           onCreate={createConversation}
           onDelete={deleteConversation}
           onRename={renameConversation}

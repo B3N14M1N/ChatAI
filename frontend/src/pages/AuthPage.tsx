@@ -49,7 +49,19 @@ const AuthPage: React.FC<{ mode?: Mode }> = ({ mode = 'login' }) => {
       <AuthOverlay>
       <div className="auth-card" role="dialog" aria-modal="true">
         <h1 className="auth-title">{title}</h1>
-        <p className="auth-subtitle">Use your credentials to continue</p>
+        {current === 'login' ? (
+          <p className="auth-subtitle">Use your credentials to continue</p>
+        ) : (
+          <div className="auth-subtitle auth-subtitle--register">
+            <p>Create a secure account by following these rules:</p>
+            <ul>
+              <li>Use a valid email address.</li>
+              <li>Choose a password at least 8 characters long.</li>
+              <li>Include at least one number and one symbol in the password.</li>
+              <li>Do not reuse passwords from other sites.</li>
+            </ul>
+          </div>
+        )}
         <form className="auth-form" onSubmit={onSubmit}>
           {current === 'register' && (
             <div className="form-row">

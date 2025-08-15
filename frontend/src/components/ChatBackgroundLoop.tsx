@@ -9,86 +9,217 @@ type LoopMessage = {
 
 const sample: LoopMessage[] = [
   { id: 1, role: 'user', text: (
-    <>Hey, can you summarize this long article and highlight the top three takeaways?<br />
-    Keep it concise but clear, and add 1–2 actionable tips.</>
+    <>
+      I skimmed a long article — can you condense it into the top three takeaways?
+      Please add one quick, practical action I can ship today.
+    </>
   ) },
   { id: 2, role: 'assistant', text: (
     <>
-      Absolutely. Key takeaways:
+      TL;DR:
+      <ol>
+        <li>Centralize tokens for theme consistency.</li>
+        <li>Favor transform/opacity for smooth animations.</li>
+        <li>Increase contrast on translucent layers.</li>
+      </ol>
+      Quick action: run an a11y contrast check on your primary card and fix the worst offender.
+    </>
+  )},
+
+  { id: 3, role: 'user', text: 'Why can text look fuzzy over a blurred background?' },
+  { id: 4, role: 'assistant', text: 'Because blur and low contrast let background colors bleed through — add a subtle overlay and slightly bolder type to compensate.' },
+
+  { id: 5, role: 'user', text: (
+    <>
+      Quick checklist:
       <ul>
-        <li>Centralize theme tokens for consistency and faster iteration.</li>
-        <li>Prefer GPU-friendly animations (opacity/transform).</li>
-        <li>Prioritize accessible contrast on translucent surfaces.</li>
+        <li>signup</li>
+        <li>hash</li>
+        <li>store</li>
+        <li>jwt</li>
+        <li>refresh</li>
+        <li>verify</li>
+        <li>roles</li>
+        <li>limits</li>
+        <li>logs</li>
+        <li>monitor</li>
       </ul>
-      Tips: start small, validate contrast early.
     </>
   ) },
-  { id: 3, role: 'user', text: 'What are pitfalls when using translucent surfaces over dynamic content like chat threads?' },
-  { id: 4, role: 'assistant', text: 'Watch out for readability issues from bleed‑through; add overlays, tune blur, and ensure strong text contrast + spacing.' },
-  { id: 5, role: 'user', text: 'Sketch a lightweight auth approach that can scale later.' },
   { id: 6, role: 'assistant', text: (
     <>
-      Minimal plan:
+      Minimal auth plan:
       <ul>
-        <li>JWT access + rotating refresh tokens.</li>
-        <li>bcrypt for password hashing, unique email index.</li>
-        <li>Scope data by <code>user_id</code>, add <code>role</code> for admin gating.</li>
+        <li>Signup: email + password (hash with bcrypt).</li>
+        <li>Issue JWT access + refresh tokens.</li>
+        <li>Protect routes; store minimal user metadata.</li>
+      </ul>
+      Later: rotate refresh tokens and add email verification.
+    </>
+  )},
+
+  { id: 7, role: 'user', text: (
+    <>
+      Playful idea: imagine a thread with a couple of quick voice changes.
+      Start with a short curious question.
+      Then add a reflective aside that looks like someone quoted a book line.
+      Finally, finish with a tiny meme wink.
+    </>
+  )},
+  { id: 8, role: 'assistant', text: (
+    <>
+      Nice — small, recognizable references are perfect. Examples:
+      <ul>
+        <li>Star Wars nods: "May the Force be with you" style phrasing.</li>
+        <li>Internet meme wink: classic bait-and-switch (you know the one).</li>
+        <li>Short booky lines paraphrased for flavor.</li>
       </ul>
     </>
-  ) },
-  { id: 7, role: 'user', text: 'Any example to present usage metrics readable yet on-brand?' },
-  { id: 8, role: 'assistant', text: 'Transparent header with a crisp bottom border, totals row with top border, slightly bolder type, no solid fills to keep the glass vibe.' },
-  { id: 9, role: 'user', text: 'Provide a tiny code sample for a glass card using variables.' },
+  )},
+
+  { id: 9, role: 'user', text: 'Show a tiny CSS snippet for a glass card, please.' },
   { id: 10, role: 'assistant', text: (
     <>
-      .card {'{'} background: var(--glass-bg); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); border-radius: 16px; {'}'}
+      <code>.card {'{'} background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); border-radius:12px; {'}'}</code>
+    </>
+  )},
+
+  { id: 11, role: 'user', text: (
+    <>
+      On low-end devices you should:
+      <br />
+      1) Reduce heavy effects (large backdrop-filter blur values slow rendering).
+      <br />
+      2) Avoid painting massive shadows and big fixed overlays that force repaints.
+      <br />
+      3) Prefer GPU-composited transforms and cache layers where possible.
     </>
   ) },
-  { id: 11, role: 'user', text: 'What about performance on low-end devices? Practical tips only.' },
-  { id: 12, role: 'assistant', text: 'Reduce blur and shadow radii, limit repaint areas, cache layers, test with CPU throttling.' },
-  { id: 13, role: 'user', text: 'If I want the sidebar to collapse on mobile, what pattern works best?' },
-  { id: 14, role: 'assistant', text: 'Overlay modal + body scroll lock; accessible toggle; avoid label shift by absolutely positioning the label near the icon.' },
-  { id: 15, role: 'user', text: 'Make the scrollbar more visible without breaking the look.' },
-  { id: 16, role: 'assistant', text: 'Use theme variables for thumb, add a hover with slightly higher opacity, and keep the radius consistent.' },
-  { id: 17, role: 'user', text: (
-    <>Here is a slightly longer message to vary rhythm. It spans multiple sentences and helps the background feel alive without being distracting.</>
-  ) },
-  { id: 18, role: 'assistant', text: 'Loop jumps usually mean content height !== animation distance. Duplicate once; animate exactly 50% for a seamless loop.' },
+  { id: 12, role: 'assistant', text: (
+    <>
+      1) Reduce blur radius
+      <br />
+      2) Prefer opacity/transform
+      <br />
+      3) Limit large painted areas
+    </>
+  )},
+
+  { id: 13, role: 'user', text: 'Throw in a short meme reference — something cheeky but tiny.' },
+  { id: 14, role: 'assistant', text: (
+    <>
+      Classic internet energy: "rickroll (classic bait)" — keep it short so people smile, not sing along.
+    </>
+  )},
+
+  { id: 15, role: 'user', text: (
+    <>I need a how-to that sounds like documentation — a few steps and a tiny checklist would help.</>
+  )},
+  { id: 16, role: 'assistant', text: (
+    <>
+      How to ship a small UI theme update:
+      <ol>
+        <li>Audit components that use hardcoded colors.</li>
+        <li>Extract CSS variables into a central file.</li>
+        <li>Provide dark/light tokens and a switcher with localStorage persistence.</li>
+      </ol>
+      Test: toggle themes and run the contrast report.
+    </>
+  )},
+
+  { id: 17, role: 'user', text: 'Sidebar on mobile — overlay or push? Pros/cons in one line.' },
+  { id: 18, role: 'assistant', text: 'Overlay is usually best for small screens: it prevents layout shift and lets you lock body scroll.' },
+
   { id: 19, role: 'user', text: (
-    <>Could you list pros/cons of backdrop-filter quickly?<ul><li>Pro: Beautiful glass effect.</li><li>Pro: Simple to apply.</li><li>Con: Can be expensive over large areas.</li><li>Con: Varies by browser performance.</li></ul></>
+    <>Add a cinematic paraphrase — something short and uplifting, not the exact quote.</>
+  )},
+  { id: 20, role: 'assistant', text: 'Paraphrase example: an encouraging send-off like "Go with the force in your code" — short and thematic.' },
+
+  { id: 21, role: 'user', text: (
+    <>
+      Example request: give a multi-line response with these points —
+      <ul>
+        <li>explain why spacing matters in layout and when to normalize it for components</li>
+        <li>show how tokens improve theme swapping and reduce duplication in stylesheets</li>
+        <li>provide a tiny snippet demonstrating a compact button rule to copy</li>
+      </ul>
+    </>
+  )},
+  { id: 22, role: 'assistant', text: (
+    <>
+      Quick checklist:
+      <ul>
+        <li>Normalize spacing</li>
+        <li>Use tokens for colors</li>
+        <li>Test on small screens</li>
+      </ul>
+      Example:
+      <pre><code>{`button { padding: 8px 12px; border-radius: 10px; }`}</code></pre>
+    </>
+  )},
+
+  { id: 23, role: 'user', text: 'One-liner — make it short and different.' },
+  { id: 24, role: 'assistant', text: 'Short but helpful — you got it.' },
+
+  { id: 25, role: 'user', text: (
+    <>
+      Final notes:
+    <ul>
+      <li>reflect — review what worked and what didn’t</li>
+      <li>repeat — practice the process for consistency</li>
+      <li>refine — tweak details for better results</li>
+      <li>ship — deliver improvements, even if small</li>
+      <li>iterate — keep evolving with each cycle</li>
+      <li>learn — capture insights for next time</li>
+      <li>share — communicate progress and lessons</li>
+      <li>celebrate — acknowledge milestones, no matter the size</li>
+    </ul>
+    </>
   ) },
-  { id: 20, role: 'assistant', text: 'Agree. Keep blur localized where possible and layer subtle overlays to maintain legibility.' },
-  { id: 21, role: 'user', text: 'Short.' },
-  { id: 22, role: 'assistant', text: 'Longer response to balance short prompts and produce a more natural cadence in the scrolling background.' },
+  { id: 26, role: 'assistant', text: 'Paraphrased booky line: "Small consistent steps beat occasional huge leaps."' },
 ];
 
 type Batch = { id: number; user?: LoopMessage; assistant?: LoopMessage; stage: 'user' | 'typing' | 'assistant' };
 
 const ChatBackgroundLoop: React.FC = () => {
-  // Build strict user+assistant pairs for batching
-  const pairs = useMemo(() => {
+  // Helpers: build explicit user/assistant pairs and shuffle
+  const buildPairs = (msgs: LoopMessage[]) => {
     const out: Array<{ user: LoopMessage; assistant: LoopMessage }> = [];
-    for (let i = 0; i < sample.length - 1; i++) {
-      const u = sample[i];
-      const a = sample[i + 1];
+    for (let i = 0; i < msgs.length - 1; i++) {
+      const u = msgs[i];
+      const a = msgs[i + 1];
       if (u.role === 'user' && a.role === 'assistant') {
         out.push({ user: u, assistant: a });
-        i++; // advance past assistant we consumed
+        i++; // skip consumed assistant
       }
     }
-    // Fallback: if none found, synthesize with the first two messages if available
-    if (out.length === 0 && sample.length >= 2) {
-      const u = sample.find(m => m.role === 'user') ?? sample[0];
-      const a = sample.find(m => m.role === 'assistant') ?? sample[1];
+    // fallback: pair first user/assistant found
+    if (out.length === 0 && msgs.length >= 2) {
+      const u = msgs.find(m => m.role === 'user') ?? msgs[0];
+      const a = msgs.find(m => m.role === 'assistant') ?? msgs[1];
       out.push({ user: u, assistant: a });
     }
     return out;
-  }, []);
+  };
+
+  const shuffleArray = <T,>(arr: T[]) => {
+    const out = arr.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  };
 
   // Rendered batches, bottom-anchored; oldest at start, newest at end
   const [rendered, setRendered] = useState<Batch[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const batchRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  // build and shuffle pairs synchronously so the main loop starts with the final order
+  const pairs = useMemo(() => {
+    const p = buildPairs(sample);
+    return p.length > 1 ? shuffleArray(p) : p;
+  }, []);
 
   // Helper: enqueue a specific pair as a new Batch at bottom
   const enqueuePair = (pair: { user: LoopMessage; assistant: LoopMessage }) => {
@@ -108,10 +239,10 @@ const ChatBackgroundLoop: React.FC = () => {
       return;
     }
 
-  // No pairs to show; bail
-  if (pairs.length === 0) return;
+    // No pairs to show; bail
+    if (pairs.length === 0) return;
 
-  let timers: number[] = [];
+    let timers: number[] = [];
     let running = true;
 
     const runSequence = (index: number) => {
@@ -139,15 +270,15 @@ const ChatBackgroundLoop: React.FC = () => {
       timers.push(t3);
     };
 
-  // Defer initial start; if StrictMode cleans up the first run, this gets canceled
-  const t0 = window.setTimeout(() => runSequence(0), 0);
-  timers.push(t0);
+    // Defer initial start; if StrictMode cleans up the first run, this gets canceled
+    const t0 = window.setTimeout(() => runSequence(0), 0);
+    timers.push(t0);
     return () => {
       running = false;
       timers.forEach(t => clearTimeout(t));
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // restart when pairs change (we shuffle on mount)
+  }, [pairs]);
 
   // Periodically drop batches that scrolled out of view at the top (FIFO)
   useEffect(() => {
