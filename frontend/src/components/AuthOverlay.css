@@ -1,0 +1,19 @@
+/* Full-screen overlay that blurs everything behind and hosts the auth card */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10; /* above bg loop */
+  display: grid;
+  place-items: center;
+  /* Heavy blur applied once to the whole backdrop */
+  backdrop-filter: blur(var(--auth-overlay-blur, 8px)) saturate(0.96);
+  -webkit-backdrop-filter: blur(var(--auth-overlay-blur, 8px)) saturate(0.96);
+  background: var(--auth-overlay-tint, transparent);
+}
+
+/* Center container for auth card */
+.auth-overlay__center {
+  width: 100%;
+  max-width: 520px;
+  padding: 16px;
+}

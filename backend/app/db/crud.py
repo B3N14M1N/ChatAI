@@ -22,10 +22,19 @@ class Crud:
             await conn.commit()
             return cur.lastrowid
 
+    async def create_conversation_for_user(self, user_id: int, title: Optional[str], summary: Optional[str]) -> int:
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                "INSERT INTO conversations (user_id, title, summary) VALUES (?, ?, ?)",
+                (user_id, title, summary),
+            )
+            await conn.commit()
+            return cur.lastrowid
+
     async def get_conversation(self, conversation_id: int) -> Optional[dict]:
         async with self.connector.get_connection() as conn:
             cur = await conn.execute(
-                "SELECT id, title, summary, created_at FROM conversations WHERE id=?",
+                "SELECT id, user_id, title, summary, created_at FROM conversations WHERE id=?",
                 (conversation_id,),
             )
             row = await cur.fetchone()
@@ -225,7 +234,7 @@ class Crud:
     async def list_conversations(self) -> list[dict]:
         async with self.connector.get_connection() as conn:
             cur = await conn.execute(
-                "SELECT id, title, summary, created_at FROM conversations ORDER BY created_at DESC, id DESC"
+                "SELECT id, user_id, title, summary, created_at FROM conversations ORDER BY created_at DESC, id DESC"
             )
             rows = await cur.fetchall()
             return [_row_to_dict(cur.description, r) for r in rows]
@@ -238,6 +247,43 @@ class Crud:
             )
             await conn.commit()
             return True
+
+    # ---------- Users ----------
+    async def create_user(self, email: str, password_hash: str, display_name: Optional[str]) -> int:
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                "INSERT INTO users (email, password_hash, display_name) VALUES (?, ?, ?)",
+                (email, password_hash, display_name),
+            )
+            await conn.commit()
+            return cur.lastrowid
+
+    async def get_user_by_email(self, email: str) -> Optional[dict]:
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                "SELECT id, email, password_hash, display_name, created_at FROM users WHERE email=?",
+                (email,),
+            )
+            row = await cur.fetchone()
+            return _row_to_dict(cur.description, row) if row else None
+
+    async def get_user(self, user_id: int) -> Optional[dict]:
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                "SELECT id, email, display_name, created_at FROM users WHERE id=?",
+                (user_id,),
+            )
+            row = await cur.fetchone()
+            return _row_to_dict(cur.description, row) if row else None
+
+    async def list_conversations_for_user(self, user_id: int) -> list[dict]:
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                "SELECT id, title, summary, created_at FROM conversations WHERE user_id=? ORDER BY created_at DESC, id DESC",
+                (user_id,)
+            )
+            rows = await cur.fetchall()
+            return [_row_to_dict(cur.description, r) for r in rows]
 
     # ---------- Usage Details ----------
     async def create_usage_detail(self, data: dict) -> int:

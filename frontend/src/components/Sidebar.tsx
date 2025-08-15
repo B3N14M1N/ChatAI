@@ -5,6 +5,7 @@ import ConversationItem from './ConversationItem';
 import SidebarHeader from './SidebarHeader';
 import SidebarMenu from './SidebarMenu';
 import SidebarFooter from './SidebarFooter';
+import { useAuth } from '../contexts/AuthContext';
 import './Sidebar.css';
 import { MdOutlineMenu } from 'react-icons/md';
 
@@ -56,7 +57,7 @@ const Sidebar: FC<SidebarProps> = ({
           ))}
         </ul>
       )}
-      <SidebarFooter collapsed={collapsed} />
+  <SidebarFooter collapsed={collapsed} onLogout={useAuth().logout} />
     </aside>
 
     {/* Mobile floating open button - visible only on small screens when collapsed */}

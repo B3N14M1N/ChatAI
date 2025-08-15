@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, Response, Form, File, UploadFile
+from fastapi import FastAPI, HTTPException, Response, Form, File, UploadFile, Depends
 
 from app.db.connector import DatabaseConnector
 from app.db.initializer import DatabaseInitializer
@@ -22,7 +22,18 @@ from app.models.api_schemas import (
     ConversationOut,
     ConversationMessages,
     SendMessageResponse,
+    RegisterRequest,
+    LoginRequest,
 )
+from app.services.auth import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    oauth2_scheme,
+    get_current_user,
+)
+from fastapi.security import OAuth2PasswordRequestForm
 
 
 @asynccontextmanager
@@ -81,6 +92,7 @@ async def send_message_with_files(
     model: str = Form(default="gpt-4.1-nano"),
     conversation_id: Optional[int] = Form(default=None),
     files: List[UploadFile] = File(default=[]),
+    current_user=Depends(get_current_user),
 ):
     """Handle message sending with optional file attachments"""
     if not text.strip():
@@ -91,6 +103,7 @@ async def send_message_with_files(
         conversation_id=conversation_id,
         user_text=text,
         model=model,
+        user_id=current_user["id"],
     )
 
     # If files were uploaded, attach them to the user message
@@ -122,27 +135,72 @@ async def get_conversation_usage_details(conversation_id: int):
 
 
 @app.post("/conversations/", response_model=int)
-async def create_conversation_endpoint(conversation: ConversationCreate):
-    conv = await app.state.repo.create_conversation(conversation)
+async def create_conversation_endpoint(conversation: ConversationCreate, current_user=Depends(get_current_user)):
+    conv = await app.state.repo.create_conversation(conversation, user_id=current_user["id"])
     return conv.id
 
 
+@app.post("/auth/register", response_model=dict)
+async def register_user(payload: RegisterRequest):
+    # simple registration endpoint
+    crud = app.state.repo.crud
+    existing = await crud.get_user_by_email(payload.email)
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    password_hash = get_password_hash(payload.password)
+    uid = await crud.create_user(payload.email, password_hash, payload.display_name)
+    token = create_access_token({"sub": str(uid), "email": payload.email})
+    return {"access_token": token, "token_type": "bearer"}
+
+
+@app.post("/auth/token", response_model=dict)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    # Expect form with 'username' (email) and 'password'
+    username = form_data.username
+    password = form_data.password
+    crud = app.state.repo.crud
+    user = await crud.get_user_by_email(username)
+    if not user or not verify_password(password, user.get("password_hash")):
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    access_token = create_access_token({"sub": str(user["id"]), "email": user["email"]})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.post("/auth/login", response_model=dict)
+async def login_json(payload: LoginRequest):
+    crud = app.state.repo.crud
+    user = await crud.get_user_by_email(payload.email)
+    if not user or not verify_password(payload.password, user.get("password_hash")):
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    access_token = create_access_token({"sub": str(user["id"]), "email": user["email"]})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/users/me")
+async def read_users_me(current_user=Depends(get_current_user)):
+    return current_user
+
+
 @app.put("/conversations/{conversation_id}/rename")
-async def rename_conversation_endpoint(conversation_id: int, new_title: str):
-    ok = await app.state.repo.rename_conversation(conversation_id, new_title)
+async def rename_conversation_endpoint(conversation_id: int, new_title: str, current_user=Depends(get_current_user)):
+    ok = await app.state.repo.rename_conversation(conversation_id, new_title, user_id=current_user["id"])
     if not ok:
         raise HTTPException(404, "Conversation not found")
     return {"detail": "Conversation renamed successfully"}
 
 
 @app.get("/conversations/", response_model=List[ConversationOut])
-async def get_conversations_endpoint():
-    convs = await app.state.repo.list_conversations()
+async def get_conversations_endpoint(current_user=Depends(get_current_user)):
+    convs = await app.state.repo.list_conversations(user_id=current_user["id"])
     return [ConversationOut(**c.model_dump()) for c in convs]
 
 
 @app.delete("/conversations/{conversation_id}")
-async def delete_conversation_endpoint(conversation_id: int):
+async def delete_conversation_endpoint(conversation_id: int, current_user=Depends(get_current_user)):
+    # Ensure ownership
+    conv = await app.state.repo.get_conversation(conversation_id, user_id=current_user["id"])
+    if not conv:
+        raise HTTPException(404, "Conversation not found")
     ok = await app.state.repo.delete_conversation(conversation_id)
     if not ok:
         raise HTTPException(404, "Conversation not found")
@@ -152,8 +210,8 @@ async def delete_conversation_endpoint(conversation_id: int):
 @app.get(
     "/conversations/{conversation_id}/messages", response_model=ConversationMessages
 )
-async def get_conversation_messages_endpoint(conversation_id: int):
-    conv = await app.state.repo.get_conversation(conversation_id)
+async def get_conversation_messages_endpoint(conversation_id: int, current_user=Depends(get_current_user)):
+    conv = await app.state.repo.get_conversation(conversation_id, user_id=current_user["id"])
     if not conv:
         raise HTTPException(404, "Conversation not found")
     page = await app.state.repo.list_messages(conversation_id, offset=0, limit=10_000)

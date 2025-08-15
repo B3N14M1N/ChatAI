@@ -39,15 +39,15 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
   }, [inputText, minHeight, onHeightChange]);
   // Fetch available models on mount
   useEffect(() => {
-    fetch('/api/models')
-      .then(res => res.json())
-      .then(data => {
-        // Backend returns {"chat": ["model1", "model2", ...]}
-        const list = data.chat || Object.keys(data);
-        setModels(list);
-        if (list.length) setSelectedModel(list[0]);
-      })
-      .catch(console.error);
+    import('../lib/api').then(({ fetchJson }) => {
+      fetchJson('/models')
+        .then(data => {
+          const list = data.chat || Object.keys(data);
+          setModels(list);
+          if (list.length) setSelectedModel(list[0]);
+        })
+        .catch(console.error);
+    }).catch(console.error);
   }, []);
 
   // helper for sending current text

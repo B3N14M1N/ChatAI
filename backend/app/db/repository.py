@@ -25,14 +25,19 @@ class Repository:
         self.crud = crud
 
     # Conversations
-    async def create_conversation(self, data: ConversationCreate) -> Conversation:
-        cid = await self.crud.create_conversation(data.title, data.summary)
+    async def create_conversation(self, data: ConversationCreate, user_id: int) -> Conversation:
+        cid = await self.crud.create_conversation_for_user(user_id, data.title, data.summary)
         row = await self.crud.get_conversation(cid)
         return Conversation(**row)
 
-    async def get_conversation(self, conversation_id: int) -> Optional[Conversation]:
+    async def get_conversation(self, conversation_id: int, user_id: Optional[int] = None) -> Optional[Conversation]:
         row = await self.crud.get_conversation(conversation_id)
-        return Conversation(**row) if row else None
+        if not row:
+            return None
+        # Verify ownership if user_id supplied
+        if user_id is not None and row.get("user_id") != user_id:
+            return None
+        return Conversation(**row)
 
     async def update_conversation(
         self, conversation_id: int, data: ConversationUpdate
@@ -135,11 +140,19 @@ class Repository:
     async def delete_attachment(self, attachment_id: int) -> bool:
         return await self.crud.delete_attachment(attachment_id)
 
-    async def list_conversations(self) -> list[Conversation]:
-        rows = await self.crud.list_conversations()
+    async def list_conversations(self, user_id: Optional[int] = None) -> list[Conversation]:
+        if user_id is None:
+            rows = await self.crud.list_conversations()
+        else:
+            rows = await self.crud.list_conversations_for_user(user_id)
         return [Conversation(**r) for r in rows]
 
-    async def rename_conversation(self, conversation_id: int, new_title: str) -> bool:
+    async def rename_conversation(self, conversation_id: int, new_title: str, user_id: Optional[int] = None) -> bool:
+        # Optionally enforce ownership: ensure conversation belongs to user_id before renaming
+        if user_id is not None:
+            row = await self.crud.get_conversation(conversation_id)
+            if not row or row.get("user_id") != user_id:
+                return False
         return await self.crud.rename_conversation(conversation_id, new_title)
 
     async def get_messages_for_conversation(

@@ -26,3 +26,14 @@ class SendMessageResponse(BaseModel):
     request_message_id: int
     response_message_id: int
     answer: str
+
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    display_name: Optional[str] = None
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str

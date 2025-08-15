@@ -28,11 +28,8 @@ const UsageDetailsDropdown: FC<UsageDetailsDropdownProps> = ({
     setError(null);
     
     try {
-      const response = await fetch(`/api/chat/messages/${messageId}/usage-details`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch usage details');
-      }
-      const data = await response.json();
+  const { fetchJson } = await import('../lib/api');
+  const data = await fetchJson(`/chat/messages/${messageId}/usage-details`);
       setUsageDetails(data.usage_details || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');

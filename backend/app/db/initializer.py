@@ -7,12 +7,23 @@ class DatabaseInitializer:
             await conn.execute("PRAGMA foreign_keys = ON;")
             await conn.executescript(
                 """
-                -- Conversations table
+                -- Users table
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT NOT NULL UNIQUE,
+                    password_hash TEXT NOT NULL,
+                    display_name TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                -- Conversations table (now scoped to a user)
                 CREATE TABLE IF NOT EXISTS conversations (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
                     title TEXT,
                     summary TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
 
                 -- Messages table with usage metrics
