@@ -119,6 +119,16 @@
   --glass-bg: rgba(255, 255, 255, 0.1);
   --glass-border: rgba(255, 255, 255, 0.15);
   --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  /* Scrollbar theming */
+  --scrollbar-track: transparent;
+  /* stronger default thumb so it's visible in dark theme */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.12);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.18);
+  --scrollbar-glow: transparent; /* glow removed */
+  /* send button theming (defaults - can be overridden per theme) */
+  --send-btn-start: var(--color-primary);
+  --send-btn-end: var(--color-secondary);
+  --send-btn-glow: rgba(59, 130, 246, 0.28);
 }
 
 
@@ -153,6 +163,11 @@
   --glass-bg: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(0, 0, 0, 0.1);
   --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  /* Light theme scrollbar colors */
+  --scrollbar-track: rgba(15, 23, 42, 0.02);
+  --scrollbar-thumb: rgba(15, 23, 42, 0.18);
+  --scrollbar-thumb-hover: rgba(15, 23, 42, 0.28);
+  --scrollbar-glow: transparent;
 }
 
 /* Dark theme overrides (explicit) */
@@ -185,6 +200,11 @@
   --glass-bg: rgba(255, 255, 255, 0.1);
   --glass-border: rgba(255, 255, 255, 0.15);
   --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  /* Dark theme scrollbar colors */
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.14);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
+  --scrollbar-glow: transparent;
 }
 
 /* Responsive layout for smaller screens */
@@ -440,4 +460,48 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Custom scrollbars for WebKit browsers */
+/* Targets messages pane, input textarea, and conversation list */
+.messages::-webkit-scrollbar,
+.conversations-list::-webkit-scrollbar,
+.input-area textarea::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.messages::-webkit-scrollbar-track,
+.conversations-list::-webkit-scrollbar-track,
+.input-area textarea::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 12px;
+}
+
+.messages::-webkit-scrollbar-thumb,
+.conversations-list::-webkit-scrollbar-thumb,
+.input-area textarea::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px; /* fully rounded */
+  border: 3px solid transparent; /* spacing effect */
+  background-clip: padding-box;
+  transition: background-color 0.12s ease;
+}
+
+.messages::-webkit-scrollbar-thumb:hover,
+.conversations-list::-webkit-scrollbar-thumb:hover,
+.input-area textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.messages::-webkit-scrollbar-thumb:active,
+.conversations-list::-webkit-scrollbar-thumb:active,
+.input-area textarea::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }

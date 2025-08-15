@@ -91,7 +91,7 @@
 :root[data-theme="dark"] .price-clickable {
   background: rgba(96, 165, 250, 0.15) !important;
   border: 1px solid rgba(96, 165, 250, 0.25) !important;
-  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.05) !important;
 }
 
 :root[data-theme="dark"] .price-clickable:hover {
@@ -103,7 +103,7 @@
 :root[data-theme="dark"] .model-info {
   background: rgba(52, 211, 153, 0.15) !important;
   border: 1px solid rgba(52, 211, 153, 0.25) !important;
-  box-shadow: 0 2px 8px rgba(52, 211, 153, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(52, 211, 153, 0.05) !important;
 }
 
 /* Light theme specific adjustments */

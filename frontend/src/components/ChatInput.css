@@ -196,19 +196,15 @@
 
 /* Active state when text is present */
 .send-btn:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(135deg, var(--send-btn-start), var(--send-btn-end));
   color: white;
-  box-shadow: 
-    0 4px 16px rgba(59, 130, 246, 0.3),
-    0 0 0 1px var(--color-border);
+  box-shadow: 0 4px 12px var(--send-btn-glow), 0 0 0 1px var(--color-border);
 }
 
 .send-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 
-    0 8px 24px rgba(59, 130, 246, 0.4),
-    0 0 0 1px var(--color-border);
+  background: linear-gradient(135deg, var(--send-btn-end), var(--send-btn-start));
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 18px var(--send-btn-glow), 0 0 0 1px var(--color-border);
 }
 
 .send-btn:active:not(:disabled) {
