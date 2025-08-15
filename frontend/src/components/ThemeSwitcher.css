@@ -1,0 +1,95 @@
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-switcher:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
+.theme-switcher:active {
+  transform: translateY(0);
+  transition: transform 0.1s ease;
+}
+
+.theme-switcher.collapsed {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.theme-icon {
+  font-size: 1.2rem;
+  transition: transform 0.2s ease;
+  min-width: 1.2rem;
+  text-align: center;
+}
+
+.theme-switcher:hover .theme-icon {
+  transform: scale(1.1);
+}
+
+.theme-label {
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.theme-switcher.collapsed .theme-label {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Glass effect for theme switcher */
+.theme-switcher::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: inherit;
+}
+
+.theme-switcher:hover::before {
+  opacity: 1;
+}
+
+/* Dark theme specific adjustments */
+:root[data-theme="dark"] .theme-switcher::before {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(255, 255, 255, 0.02) 100%);
+}
+
+/* Animation for theme changes */
+@keyframes themeChange {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.theme-switcher:active {
+  animation: themeChange 0.2s ease;
+}

@@ -3,6 +3,7 @@ import type { Conversation } from "../types";
 import ConversationItem from './ConversationItem';
 import SidebarHeader from './SidebarHeader';
 import SidebarMenu from './SidebarMenu';
+import SidebarFooter from './SidebarFooter';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -44,6 +45,7 @@ const Sidebar: FC<SidebarProps> = ({
         ))}
       </ul>
     )}
+    <SidebarFooter collapsed={collapsed} />
   </aside>
 );
 

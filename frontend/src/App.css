@@ -48,18 +48,59 @@
 }
 
 :root {
-  /* Dark Theme Palette */
-  --color-bg: #121212;
-  --color-surface: #1f1f1f;
-  --color-hover: #333333;
-  --color-primary: #bb86fc;
-  --color-secondary: #03dac6;
-  --color-error: #cf6679;
-  --color-text-primary: #e0e0e0;
-  --color-text-secondary: #a0a0a0;
-  --color-border: #272727;
+  /* Base Theme Variables */
+  /* Light Theme */
+  --light-bg: #f8fafc;
+  --light-surface: #ffffff;
+  --light-surface-hover: #f1f5f9;
+  --light-hover: #e2e8f0;
+  --light-primary: #3b82f6;
+  --light-secondary: #06b6d4;
+  --light-accent: #10b981;
+  --light-error: #ef4444;
+  --light-warning: #f59e0b;
+  --light-success: #22c55e;
+  --light-text-primary: #1e293b;
+  --light-text-secondary: #64748b;
+  --light-text-tertiary: #94a3b8;
+  --light-border: #e2e8f0;
+  --light-border-hover: #cbd5e1;
+  
+  /* Dark Theme */
+  --dark-bg: #0f172a;
+  --dark-surface: #1e293b;
+  --dark-surface-hover: #334155;
+  --dark-hover: #475569;
+  --dark-primary: #60a5fa;
+  --dark-secondary: #22d3ee;
+  --dark-accent: #34d399;
+  --dark-error: #f87171;
+  --dark-warning: #fbbf24;
+  --dark-success: #4ade80;
+  --dark-text-primary: #f1f5f9;
+  --dark-text-secondary: #cbd5e1;
+  --dark-text-tertiary: #94a3b8;
+  --dark-border: #334155;
+  --dark-border-hover: #475569;
 
-  /* Component Variables */
+  /* Default to dark theme */
+  --color-bg: var(--dark-bg);
+  --color-surface: var(--dark-surface);
+  --color-surface-hover: var(--dark-surface-hover);
+  --color-hover: var(--dark-hover);
+  --color-primary: var(--dark-primary);
+  --color-secondary: var(--dark-secondary);
+  --color-accent: var(--dark-accent);
+  --color-error: var(--dark-error);
+  --color-warning: var(--dark-warning);
+  --color-success: var(--dark-success);
+  --color-text-primary: var(--dark-text-primary);
+  --color-text-secondary: var(--dark-text-secondary);
+  --color-text-tertiary: var(--dark-text-tertiary);
+  --color-border: var(--dark-border);
+  --color-border-hover: var(--dark-border-hover);
+
+  /* Component Variables that respond to theme changes */
   --sidebar-bg: var(--color-surface);
   --sidebar-text: var(--color-text-primary);
   --sidebar-selected-bg: var(--color-hover);
@@ -70,6 +111,76 @@
   --input-text: var(--color-text-primary);
   --primary-color: var(--color-primary);
   --danger-color: var(--color-error);
+  --color-bg-hover: var(--color-surface-hover);
+  --color-link-hover: var(--color-primary);
+  
+  /* Glass effect variables */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Light theme overrides */
+:root[data-theme="light"] {
+  --color-bg: var(--light-bg);
+  --color-surface: var(--light-surface);
+  --color-surface-hover: var(--light-surface-hover);
+  --color-hover: var(--light-hover);
+  --color-primary: var(--light-primary);
+  --color-secondary: var(--light-secondary);
+  --color-accent: var(--light-accent);
+  --color-error: var(--light-error);
+  --color-warning: var(--light-warning);
+  --color-success: var(--light-success);
+  --color-text-primary: var(--light-text-primary);
+  --color-text-secondary: var(--light-text-secondary);
+  --color-text-tertiary: var(--light-text-tertiary);
+  --color-border: var(--light-border);
+  --color-border-hover: var(--light-border-hover);
+  
+  /* Light theme specific overrides for better contrast */
+  --assistant-msg-bg: #e2e8f0;
+  --user-msg-bg: var(--light-primary);
+  --sidebar-bg: var(--light-surface);
+  --chat-bg: var(--light-bg);
+  --input-bg: var(--light-surface);
+  
+  /* Light theme glass effects */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark theme overrides (explicit) */
+:root[data-theme="dark"] {
+  --color-bg: var(--dark-bg);
+  --color-surface: var(--dark-surface);
+  --color-surface-hover: var(--dark-surface-hover);
+  --color-hover: var(--dark-hover);
+  --color-primary: var(--dark-primary);
+  --color-secondary: var(--dark-secondary);
+  --color-accent: var(--dark-accent);
+  --color-error: var(--dark-error);
+  --color-warning: var(--dark-warning);
+  --color-success: var(--dark-success);
+  --color-text-primary: var(--dark-text-primary);
+  --color-text-secondary: var(--dark-text-secondary);
+  --color-text-tertiary: var(--dark-text-tertiary);
+  --color-border: var(--dark-border);
+  --color-border-hover: var(--dark-border-hover);
+  
+  /* Dark theme component overrides */
+  --assistant-msg-bg: var(--dark-surface);
+  --user-msg-bg: var(--dark-primary);
+  --sidebar-bg: var(--dark-surface);
+  --chat-bg: var(--dark-bg);
+  --input-bg: var(--dark-surface);
+  
+  /* Dark theme glass effects */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 /* Responsive layout for smaller screens */
