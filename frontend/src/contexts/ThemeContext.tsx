@@ -20,7 +20,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     return savedTheme || 'dark'; // Default to dark instead of auto for testing
   });
 
-  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() => 
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() =>
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   );
 
@@ -41,12 +41,12 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     document.documentElement.setAttribute('data-theme', effectiveTheme);
     // Also set color-scheme to help with form controls and scrollbars
     document.documentElement.style.colorScheme = effectiveTheme;
-    
+
     // Force a style recalculation
     document.body.style.display = 'none';
     document.body.offsetHeight; // trigger reflow
     document.body.style.display = '';
-    
+
     console.log('Theme applied:', effectiveTheme, 'HTML data-theme:', document.documentElement.getAttribute('data-theme'));
   }, [theme, effectiveTheme]);
 
@@ -55,10 +55,10 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   };
 
   return (
-    <ThemeContext.Provider value={{ 
-      theme, 
-      effectiveTheme, 
-      setTheme: handleSetTheme 
+    <ThemeContext.Provider value={{
+      theme,
+      effectiveTheme,
+      setTheme: handleSetTheme
     }}>
       {children}
     </ThemeContext.Provider>

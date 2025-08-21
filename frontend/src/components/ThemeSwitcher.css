@@ -1,7 +1,4 @@
 .theme-switcher {
-  /* Fixed-size circular control so the icon never shifts horizontally.
-     The label is rendered absolutely to the right when visible so
-     it doesn't affect layout of the footer or other items. */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -15,8 +12,8 @@
   font-size: 0.875rem;
   cursor: pointer;
   transition: background-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
-  position: relative; /* so the label can be absolutely positioned */
-  overflow: visible; /* allow label to extend outside the button */
+  position: relative;
+  overflow: visible;
 }
 
 .theme-switcher:hover {
@@ -53,11 +50,13 @@
 .theme-label {
   font-weight: 500;
   position: absolute;
-  left: calc(44px + 8px); /* place to the right of the circular button */
+  left: calc(44px + 8px);
+  /* place to the right of the circular button */
   top: 50%;
   transform: translateY(-50%);
   white-space: nowrap;
-  background: transparent; /* label overlays, does not affect layout */
+  background: transparent;
+  /* label overlays, does not affect layout */
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.18s ease, transform 0.18s ease;
@@ -78,13 +77,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.08) 0%, 
-    rgba(255, 255, 255, 0.04) 100%);
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.04) 100%);
   opacity: 0;
   transition: opacity 0.2s ease;
   border-radius: inherit;
-  pointer-events: none; /* ensure button remains clickable */
+  pointer-events: none;
+  /* ensure button remains clickable */
 }
 
 .theme-switcher:hover::before {
@@ -93,9 +93,7 @@
 
 /* Dark theme specific adjustments */
 :root[data-theme="dark"] .theme-switcher::before {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.05) 0%, 
-    rgba(255, 255, 255, 0.02) 100%);
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.02) 100%);
 }
-
-/* Removed click animation to keep theme switcher static on press */

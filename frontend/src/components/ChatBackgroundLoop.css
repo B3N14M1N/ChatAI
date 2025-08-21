@@ -4,7 +4,8 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  z-index: 0; /* behind auth card */
+  z-index: 0;
+  /* behind auth card */
   filter: var(--auth-bg-filter, none);
 }
 
@@ -21,13 +22,15 @@
 .bg-loop-track {
   position: absolute;
   left: 50%;
-  bottom: 24px; /* instantiate at screen bottom with a small inset */
+  bottom: 24px;
+  /* instantiate at screen bottom with a small inset */
   transform: translateX(-50%);
   width: min(920px, 92vw);
   display: flex;
   flex-direction: column;
   row-gap: 10px;
-  padding: 0 16px; /* bottom inset handled by bottom */
+  padding: 0 16px;
+  /* bottom inset handled by bottom */
   opacity: 0.9;
 }
 
@@ -51,7 +54,7 @@
   line-height: 1.45;
   background: var(--assistant-msg-bg);
   color: var(--color-text-primary);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .bg-loop .message.user .bubble {
@@ -70,14 +73,13 @@
   --auth-bg-overlay: transparent;
 }
 
-/* keyframes removed; JS drives batching */
-
 /* Typing indicator (shared) */
 .typing {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
+
 .typing-dot {
   width: 6px;
   height: 6px;
@@ -86,9 +88,26 @@
   opacity: 0.6;
   animation: blink 1.2s infinite ease-in-out;
 }
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
 @keyframes blink {
-  0%, 80%, 100% { opacity: 0.2; transform: translateY(0); }
-  40% { opacity: 0.9; transform: translateY(-1px); }
+
+  0%,
+  80%,
+  100% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
 }

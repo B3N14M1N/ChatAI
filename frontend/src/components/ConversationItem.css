@@ -79,11 +79,11 @@
 /* When we render the context menu as a fixed overlay (mobile), use these styles */
 .context-menu[style] {
   position: fixed;
-  top: auto; /* computed inline */
-  right: auto; /* computed inline */
+  top: auto;
+  right: auto;
   left: auto;
   z-index: 1200;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
 
 .context-menu button {

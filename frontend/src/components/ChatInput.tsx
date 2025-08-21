@@ -144,7 +144,7 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
           >
             <FaPaperclip />
           </button>
-          
+
           <GlassDropdown
             options={models}
             value={selectedModel}

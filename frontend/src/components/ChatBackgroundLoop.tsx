@@ -8,174 +8,206 @@ type LoopMessage = {
 };
 
 const sample: LoopMessage[] = [
-  { id: 1, role: 'user', text: (
-    <>
-      I skimmed a long article — can you condense it into the top three takeaways?
-      Please add one quick, practical action I can ship today.
-    </>
-  ) },
-  { id: 2, role: 'assistant', text: (
-    <>
-      TL;DR:
-      <ol>
-        <li>Centralize tokens for theme consistency.</li>
-        <li>Favor transform/opacity for smooth animations.</li>
-        <li>Increase contrast on translucent layers.</li>
-      </ol>
-      Quick action: run an a11y contrast check on your primary card and fix the worst offender.
-    </>
-  )},
+  {
+    id: 1, role: 'user', text: (
+      <>
+        I skimmed a long article — can you condense it into the top three takeaways?
+        Please add one quick, practical action I can ship today.
+      </>
+    )
+  },
+  {
+    id: 2, role: 'assistant', text: (
+      <>
+        TL;DR:
+        <ol>
+          <li>Centralize tokens for theme consistency.</li>
+          <li>Favor transform/opacity for smooth animations.</li>
+          <li>Increase contrast on translucent layers.</li>
+        </ol>
+        Quick action: run an a11y contrast check on your primary card and fix the worst offender.
+      </>
+    )
+  },
 
   { id: 3, role: 'user', text: 'Why can text look fuzzy over a blurred background?' },
   { id: 4, role: 'assistant', text: 'Because blur and low contrast let background colors bleed through — add a subtle overlay and slightly bolder type to compensate.' },
 
-  { id: 5, role: 'user', text: (
-    <>
-      Quick checklist:
-      <ul>
-        <li>signup</li>
-        <li>hash</li>
-        <li>store</li>
-        <li>jwt</li>
-        <li>refresh</li>
-        <li>verify</li>
-        <li>roles</li>
-        <li>limits</li>
-        <li>logs</li>
-        <li>monitor</li>
-      </ul>
-    </>
-  ) },
-  { id: 6, role: 'assistant', text: (
-    <>
-      Minimal auth plan:
-      <ul>
-        <li>Signup: email + password (hash with bcrypt).</li>
-        <li>Issue JWT access + refresh tokens.</li>
-        <li>Protect routes; store minimal user metadata.</li>
-      </ul>
-      Later: rotate refresh tokens and add email verification.
-    </>
-  )},
+  {
+    id: 5, role: 'user', text: (
+      <>
+        Quick checklist:
+        <ul>
+          <li>signup</li>
+          <li>hash</li>
+          <li>store</li>
+          <li>jwt</li>
+          <li>refresh</li>
+          <li>verify</li>
+          <li>roles</li>
+          <li>limits</li>
+          <li>logs</li>
+          <li>monitor</li>
+        </ul>
+      </>
+    )
+  },
+  {
+    id: 6, role: 'assistant', text: (
+      <>
+        Minimal auth plan:
+        <ul>
+          <li>Signup: email + password (hash with bcrypt).</li>
+          <li>Issue JWT access + refresh tokens.</li>
+          <li>Protect routes; store minimal user metadata.</li>
+        </ul>
+        Later: rotate refresh tokens and add email verification.
+      </>
+    )
+  },
 
-  { id: 7, role: 'user', text: (
-    <>
-      Playful idea: imagine a thread with a couple of quick voice changes.
-      Start with a short curious question.
-      Then add a reflective aside that looks like someone quoted a book line.
-      Finally, finish with a tiny meme wink.
-    </>
-  )},
-  { id: 8, role: 'assistant', text: (
-    <>
-      Nice — small, recognizable references are perfect. Examples:
-      <ul>
-        <li>Star Wars nods: "May the Force be with you" style phrasing.</li>
-        <li>Internet meme wink: classic bait-and-switch (you know the one).</li>
-        <li>Short booky lines paraphrased for flavor.</li>
-      </ul>
-    </>
-  )},
+  {
+    id: 7, role: 'user', text: (
+      <>
+        Playful idea: imagine a thread with a couple of quick voice changes.
+        Start with a short curious question.
+        Then add a reflective aside that looks like someone quoted a book line.
+        Finally, finish with a tiny meme wink.
+      </>
+    )
+  },
+  {
+    id: 8, role: 'assistant', text: (
+      <>
+        Nice — small, recognizable references are perfect. Examples:
+        <ul>
+          <li>Star Wars nods: "May the Force be with you" style phrasing.</li>
+          <li>Internet meme wink: classic bait-and-switch (you know the one).</li>
+          <li>Short booky lines paraphrased for flavor.</li>
+        </ul>
+      </>
+    )
+  },
 
   { id: 9, role: 'user', text: 'Show a tiny CSS snippet for a glass card, please.' },
-  { id: 10, role: 'assistant', text: (
-    <>
-      <code>.card {'{'} background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); border-radius:12px; {'}'}</code>
-    </>
-  )},
+  {
+    id: 10, role: 'assistant', text: (
+      <>
+        <code>.card {'{'} background: rgba(255,255,255,0.06); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); border-radius:12px; {'}'}</code>
+      </>
+    )
+  },
 
-  { id: 11, role: 'user', text: (
-    <>
-      On low-end devices you should:
-      <br />
-      1) Reduce heavy effects (large backdrop-filter blur values slow rendering).
-      <br />
-      2) Avoid painting massive shadows and big fixed overlays that force repaints.
-      <br />
-      3) Prefer GPU-composited transforms and cache layers where possible.
-    </>
-  ) },
-  { id: 12, role: 'assistant', text: (
-    <>
-      1) Reduce blur radius
-      <br />
-      2) Prefer opacity/transform
-      <br />
-      3) Limit large painted areas
-    </>
-  )},
+  {
+    id: 11, role: 'user', text: (
+      <>
+        On low-end devices you should:
+        <br />
+        1) Reduce heavy effects (large backdrop-filter blur values slow rendering).
+        <br />
+        2) Avoid painting massive shadows and big fixed overlays that force repaints.
+        <br />
+        3) Prefer GPU-composited transforms and cache layers where possible.
+      </>
+    )
+  },
+  {
+    id: 12, role: 'assistant', text: (
+      <>
+        1) Reduce blur radius
+        <br />
+        2) Prefer opacity/transform
+        <br />
+        3) Limit large painted areas
+      </>
+    )
+  },
 
   { id: 13, role: 'user', text: 'Throw in a short meme reference — something cheeky but tiny.' },
-  { id: 14, role: 'assistant', text: (
-    <>
-      Classic internet energy: "rickroll (classic bait)" — keep it short so people smile, not sing along.
-    </>
-  )},
+  {
+    id: 14, role: 'assistant', text: (
+      <>
+        Classic internet energy: "rickroll (classic bait)" — keep it short so people smile, not sing along.
+      </>
+    )
+  },
 
-  { id: 15, role: 'user', text: (
-    <>I need a how-to that sounds like documentation — a few steps and a tiny checklist would help.</>
-  )},
-  { id: 16, role: 'assistant', text: (
-    <>
-      How to ship a small UI theme update:
-      <ol>
-        <li>Audit components that use hardcoded colors.</li>
-        <li>Extract CSS variables into a central file.</li>
-        <li>Provide dark/light tokens and a switcher with localStorage persistence.</li>
-      </ol>
-      Test: toggle themes and run the contrast report.
-    </>
-  )},
+  {
+    id: 15, role: 'user', text: (
+      <>I need a how-to that sounds like documentation — a few steps and a tiny checklist would help.</>
+    )
+  },
+  {
+    id: 16, role: 'assistant', text: (
+      <>
+        How to ship a small UI theme update:
+        <ol>
+          <li>Audit components that use hardcoded colors.</li>
+          <li>Extract CSS variables into a central file.</li>
+          <li>Provide dark/light tokens and a switcher with localStorage persistence.</li>
+        </ol>
+        Test: toggle themes and run the contrast report.
+      </>
+    )
+  },
 
   { id: 17, role: 'user', text: 'Sidebar on mobile — overlay or push? Pros/cons in one line.' },
   { id: 18, role: 'assistant', text: 'Overlay is usually best for small screens: it prevents layout shift and lets you lock body scroll.' },
 
-  { id: 19, role: 'user', text: (
-    <>Add a cinematic paraphrase — something short and uplifting, not the exact quote.</>
-  )},
+  {
+    id: 19, role: 'user', text: (
+      <>Add a cinematic paraphrase — something short and uplifting, not the exact quote.</>
+    )
+  },
   { id: 20, role: 'assistant', text: 'Paraphrase example: an encouraging send-off like "Go with the force in your code" — short and thematic.' },
 
-  { id: 21, role: 'user', text: (
-    <>
-      Example request: give a multi-line response with these points —
-      <ul>
-        <li>explain why spacing matters in layout and when to normalize it for components</li>
-        <li>show how tokens improve theme swapping and reduce duplication in stylesheets</li>
-        <li>provide a tiny snippet demonstrating a compact button rule to copy</li>
-      </ul>
-    </>
-  )},
-  { id: 22, role: 'assistant', text: (
-    <>
-      Quick checklist:
-      <ul>
-        <li>Normalize spacing</li>
-        <li>Use tokens for colors</li>
-        <li>Test on small screens</li>
-      </ul>
-      Example:
-      <pre><code>{`button { padding: 8px 12px; border-radius: 10px; }`}</code></pre>
-    </>
-  )},
+  {
+    id: 21, role: 'user', text: (
+      <>
+        Example request: give a multi-line response with these points —
+        <ul>
+          <li>explain why spacing matters in layout and when to normalize it for components</li>
+          <li>show how tokens improve theme swapping and reduce duplication in stylesheets</li>
+          <li>provide a tiny snippet demonstrating a compact button rule to copy</li>
+        </ul>
+      </>
+    )
+  },
+  {
+    id: 22, role: 'assistant', text: (
+      <>
+        Quick checklist:
+        <ul>
+          <li>Normalize spacing</li>
+          <li>Use tokens for colors</li>
+          <li>Test on small screens</li>
+        </ul>
+        Example:
+        <pre><code>{`button { padding: 8px 12px; border-radius: 10px; }`}</code></pre>
+      </>
+    )
+  },
 
   { id: 23, role: 'user', text: 'One-liner — make it short and different.' },
   { id: 24, role: 'assistant', text: 'Short but helpful — you got it.' },
 
-  { id: 25, role: 'user', text: (
-    <>
-      Final notes:
-    <ul>
-      <li>reflect — review what worked and what didn’t</li>
-      <li>repeat — practice the process for consistency</li>
-      <li>refine — tweak details for better results</li>
-      <li>ship — deliver improvements, even if small</li>
-      <li>iterate — keep evolving with each cycle</li>
-      <li>learn — capture insights for next time</li>
-      <li>share — communicate progress and lessons</li>
-      <li>celebrate — acknowledge milestones, no matter the size</li>
-    </ul>
-    </>
-  ) },
+  {
+    id: 25, role: 'user', text: (
+      <>
+        Final notes:
+        <ul>
+          <li>reflect — review what worked and what didn’t</li>
+          <li>repeat — practice the process for consistency</li>
+          <li>refine — tweak details for better results</li>
+          <li>ship — deliver improvements, even if small</li>
+          <li>iterate — keep evolving with each cycle</li>
+          <li>learn — capture insights for next time</li>
+          <li>share — communicate progress and lessons</li>
+          <li>celebrate — acknowledge milestones, no matter the size</li>
+        </ul>
+      </>
+    )
+  },
   { id: 26, role: 'assistant', text: 'Paraphrased booky line: "Small consistent steps beat occasional huge leaps."' },
 ];
 
@@ -277,7 +309,7 @@ const ChatBackgroundLoop: React.FC = () => {
       running = false;
       timers.forEach(t => clearTimeout(t));
     };
-  // restart when pairs change (we shuffle on mount)
+    // restart when pairs change (we shuffle on mount)
   }, [pairs]);
 
   // Periodically drop batches that scrolled out of view at the top (FIFO)

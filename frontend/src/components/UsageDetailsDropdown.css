@@ -1,7 +1,5 @@
-/* Usage Details Dropdown Overlay Styles */
 .usage-details-overlay {
   background: var(--glass-bg);
-  /* reduced blur so background content doesn't bleed through as strongly */
   backdrop-filter: blur(10px);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
@@ -14,15 +12,12 @@
   pointer-events: auto;
 }
 
-/* Theme-specific styling using data attributes */
 :root[data-theme="dark"] .usage-details-overlay {
-  /* lighter/dimmer overlay so it doesn't blend with the chat background */
   background: rgba(17, 24, 39, 0.86);
   backdrop-filter: blur(6px);
-  /* outer subtle white rim + soft dark drop shadow to lift the panel */
   box-shadow:
     0 0 0 1px rgb(87 87 87), 0 4px 12px rgb(127 127 127 / 25%), 0 16px 36px rgb(0 0 0 / 20%);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 :root[data-theme="light"] .usage-details-overlay {
@@ -31,39 +26,30 @@
   box-shadow: var(--glass-shadow);
 }
 
-/* Light theme: increase contrast for table so it doesn't blend with other white elements */
 :root[data-theme="light"] .usage-details-overlay {
-  /* stronger, more opaque surface (less see-through) and reduced blur */
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(6px);
-  /* slightly darker/more pronounced shadow to lift the panel */
   box-shadow: 0 20px 50px rgba(2, 6, 23, 0.18);
-  border: 1px solid rgba(2,6,23,0.08);
+  border: 1px solid rgba(2, 6, 23, 0.08);
 }
 
 :root[data-theme="light"] .usage-details-header {
-  /* header stays visually lightweight (no solid fill) - delimiter handled by th border */
   border-bottom-color: rgba(2, 6, 23, 0.04);
   background: transparent;
 }
 
 :root[data-theme="light"] .usage-details-table th {
-  /* make header visually match table cells (transparent) and delimit with a bottom border */
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(2,6,23,0.08);
-  color: rgba(2,6,23,0.9);
+  border-bottom: 1px solid rgba(2, 6, 23, 0.08);
+  color: rgba(2, 6, 23, 0.9);
 }
 
 :root[data-theme="light"] .usage-details-table .total-row {
-  border-top: 1px solid rgba(2,6,23,0.08);
+  border-top: 1px solid rgba(2, 6, 23, 0.08);
 }
 
-/* Dark theme: tone down header and total row highlights to be less distracting */
-
-/* Dark theme: transparent headers with bottom border, total row with top border, stronger text */
 :root[data-theme="dark"] .usage-details-header {
-  /* make the header delimiter more visible against similar dark content */
   border-bottom-color: rgba(255, 255, 255, 0.08);
   background: transparent;
 }
@@ -71,32 +57,31 @@
 :root[data-theme="dark"] .usage-details-table th {
   background: transparent;
   border: none;
-  /* stronger bottom separator so headers stand apart */
-  border-bottom: 1px solid rgba(255,255,255,0.10);
-  color: rgba(255,255,255,0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(255, 255, 255, 0.96);
   font-weight: 700;
 }
 
 :root[data-theme="dark"] .usage-details-table .total-row {
-  border-top: 1px solid rgba(255,255,255,0.10);
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
   background: transparent;
 }
 
 :root[data-theme="dark"] .usage-details-table td {
-  color: rgba(255,255,255,0.94);
+  color: rgba(255, 255, 255, 0.94);
   font-weight: 600;
 }
 
 
-/* Prevent other components from interfering when dropdown is open */
 body.usage-dropdown-open .message-bubble,
 :root[data-theme="dark"] .usage-details-table td {
-  color: rgba(241,245,249,0.95);
+  color: rgba(241, 245, 249, 0.95);
 }
 
 :root[data-theme="dark"] .usage-details-table th {
-  color: rgba(241,245,249,0.95);
+  color: rgba(241, 245, 249, 0.95);
 }
+
 body.usage-dropdown-open .metric-item,
 body.usage-dropdown-open .price-clickable {
   z-index: 1 !important;
@@ -116,6 +101,7 @@ body.usage-dropdown-open .price-clickable:hover {
     opacity: 0;
     transform: translateX(-50%) scale(0.92) translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateX(-50%) scale(1) translateY(0);
@@ -135,14 +121,14 @@ body.usage-dropdown-open .price-clickable:hover {
 .usage-details-header h4 {
   margin: 0;
   font-size: 0.9rem;
-  font-weight: 700; /* stronger title */
+  font-weight: 700;
   color: var(--color-text-primary);
 }
 
 .close-btn {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  /* font-size: 1.5rem; */
   cursor: pointer;
   color: var(--color-text-secondary);
   padding: 0;
@@ -164,19 +150,17 @@ body.usage-dropdown-open .price-clickable:hover {
 .usage-details-content {
   padding: 0.5rem;
   overflow-y: auto;
-  /* Use the maxHeight calculated in JavaScript */
   max-height: inherit;
-  /* Smooth scrolling */
   scroll-behavior: smooth;
-  /* Prevent scroll bounce on iOS */
   -webkit-overflow-scrolling: touch;
-  /* Allow text selection */
   user-select: text;
   -webkit-user-select: text;
   -moz-user-select: text;
 }
 
-.loading, .error, .no-data {
+.loading,
+.error,
+.no-data {
   text-align: center;
   padding: 1rem;
   font-size: 0.875rem;
@@ -213,7 +197,6 @@ body.usage-dropdown-open .price-clickable:hover {
 }
 
 .usage-details-table th {
-  /* transparent header (no solid fill); delimiter provided by bottom border */
   background: transparent;
   backdrop-filter: none;
   border: none;
@@ -230,17 +213,16 @@ body.usage-dropdown-open .price-clickable:hover {
 
 .usage-details-table td {
   padding: 0.2rem 0.3rem;
-  /* make cell text more pronounced */
   color: var(--color-text-primary);
   font-weight: 500;
   border-bottom: none;
   transition: background-color 0.2s ease;
-  word-wrap: break-word; /* Allow text to wrap within cells */
+  word-wrap: break-word;
   overflow-wrap: break-word;
-  hyphens: auto; /* Enable automatic hyphenation */
+  hyphens: auto;
   line-height: 1.2;
   vertical-align: middle;
-  height: auto; /* Let content determine height */
+  height: auto;
 }
 
 
@@ -250,7 +232,6 @@ body.usage-dropdown-open .price-clickable:hover {
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Override hover for total row to maintain its background */
 .usage-details-table .total-row:hover {
   background-color: rgba(255, 255, 255, 0.12) !important;
   backdrop-filter: blur(12px);
@@ -260,7 +241,6 @@ body.usage-dropdown-open .price-clickable:hover {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.7rem;
   color: var(--color-text-tertiary);
-  /* Allow text to wrap instead of truncating */
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
@@ -280,7 +260,6 @@ body.usage-dropdown-open .price-clickable:hover {
 }
 
 .usage-details-table .total-row {
-  /* total row: no solid fill, delimiter via top border; text styled like headers */
   border-top: 1px solid var(--color-border);
   background: transparent;
   backdrop-filter: none;
@@ -293,7 +272,6 @@ body.usage-dropdown-open .price-clickable:hover {
   font-size: 0.75rem;
 }
 
-/* Override hover for total row to maintain normal hover behavior */
 .usage-details-table .total-row:hover {
   background-color: rgba(255, 255, 255, 0.1) !important;
   backdrop-filter: blur(12px);
@@ -311,16 +289,16 @@ body.usage-dropdown-open .price-clickable:hover {
     margin-left: 16px;
     margin-right: 16px;
   }
-  
+
   .usage-details-table {
     font-size: 0.75rem;
   }
-  
+
   .usage-details-table th,
   .usage-details-table td {
     padding: 0.5rem 0.25rem;
   }
-  
+
   .usage-details-table .model-cell {
     max-width: 60px;
   }
@@ -330,6 +308,7 @@ body.usage-dropdown-open .price-clickable:hover {
       opacity: 0;
       transform: scale(0.92) translateY(-8px);
     }
+
     to {
       opacity: 1;
       transform: scale(1) translateY(0);

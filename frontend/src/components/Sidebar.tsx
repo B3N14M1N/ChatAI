@@ -57,7 +57,7 @@ const Sidebar: FC<SidebarProps> = ({
           ))}
         </ul>
       )}
-  <SidebarFooter collapsed={collapsed} onLogout={useAuth().logout} />
+      <SidebarFooter collapsed={collapsed} onLogout={useAuth().logout} />
     </aside>
 
     {/* Mobile floating open button - visible only on small screens when collapsed */}

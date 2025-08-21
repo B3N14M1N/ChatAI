@@ -64,7 +64,7 @@
 }
 
 .form-row input {
-  background: var(--color-input-bg, rgba(255,255,255,0.06));
+  background: var(--color-input-bg, rgba(255, 255, 255, 0.06));
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
   border-radius: 10px;
@@ -80,8 +80,13 @@
   align-items: center;
 }
 
-.input-wrapper > input { width: 100%; }
-.input-wrapper.with-toggle > input { padding-right: 44px; }
+.input-wrapper>input {
+  width: 100%;
+}
+
+.input-wrapper.with-toggle>input {
+  padding-right: 44px;
+}
 
 .pw-toggle {
   position: absolute;
@@ -94,14 +99,14 @@
   width: 32px;
   height: 32px;
   border: none !important;
-  background: transparent !important; /* override global button background */
+  background: transparent !important;
   color: var(--color-text-secondary);
   border-radius: 0;
   cursor: pointer;
-  z-index: 1; /* ensure above input */
+  z-index: 1;
   transition: color 0.15s ease;
-  padding: 0 !important; /* override global button padding */
-  line-height: 0; /* avoid extra height */
+  padding: 0 !important;
+  line-height: 0;
   -webkit-appearance: none;
   appearance: none;
 }
@@ -115,11 +120,16 @@
   outline: none;
 }
 
-.pw-toggle svg { display: block; pointer-events: none; width: 18px; height: 18px; }
+.pw-toggle svg {
+  display: block;
+  pointer-events: none;
+  width: 18px;
+  height: 18px;
+}
 
 .form-row input:focus {
-  border-color: rgba(59,130,246,0.6);
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
 .auth-error {
@@ -169,9 +179,24 @@
 
 /* Small screens */
 @media (max-width: 480px) {
-  .auth-card { width: 94vw; padding: 20px 18px 16px; }
-  .auth-title { font-size: 1.2rem; }
-  .auth-subtitle { font-size: 0.9rem; }
-  .form-row input { font-size: 1rem; }
-  .auth-submit { font-size: 1rem; }
+  .auth-card {
+    width: 94vw;
+    padding: 20px 18px 16px;
+  }
+
+  .auth-title {
+    font-size: 1.2rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .form-row input {
+    font-size: 1rem;
+  }
+
+  .auth-submit {
+    font-size: 1rem;
+  }
 }

@@ -24,7 +24,7 @@
 .input-container:hover {
   background: var(--color-surface-hover);
   border-color: var(--color-border-hover);
-  box-shadow: 
+  box-shadow:
     0 12px 40px rgba(0, 0, 0, 0.15),
     0 0 0 1px var(--glass-border);
 }
@@ -122,7 +122,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  /*margin-top: 8px; */
 }
 
 .attach-btn {
@@ -178,7 +177,6 @@
 }
 
 .send-btn {
-  /* Remove default margin to let flex spacing handle alignment */
   margin-left: 0;
   background: var(--color-surface);
   color: var(--color-text-secondary);

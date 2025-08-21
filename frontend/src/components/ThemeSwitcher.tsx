@@ -37,7 +37,7 @@ const ThemeSwitcher: FC<ThemeSwitcherProps> = ({ collapsed }) => {
   };
 
   return (
-    <button 
+    <button
       className={`theme-switcher ${collapsed ? 'collapsed' : ''}`}
       onClick={handleThemeChange}
       title={`Current theme: ${getThemeLabel()}. Click to switch.`}

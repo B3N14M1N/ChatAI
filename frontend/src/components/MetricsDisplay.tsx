@@ -16,7 +16,7 @@ const MetricsDisplay: FC<MetricsDisplayProps> = ({ message }) => {
   const handlePriceClick = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    
+
     if (priceRef.current) {
       // Get fresh rect each time to ensure accuracy
       const rect = priceRef.current.getBoundingClientRect();
@@ -37,16 +37,16 @@ const MetricsDisplay: FC<MetricsDisplayProps> = ({ message }) => {
         {(message.input_tokens != null || message.output_tokens != null) && (
           <span className="metric-item">
             Tokens: {(message.input_tokens || 0) + (message.output_tokens || 0)}
-            {message.input_tokens != null && message.output_tokens != null && 
+            {message.input_tokens != null && message.output_tokens != null &&
               ` (${message.input_tokens}→${message.output_tokens})`
             }
-            {message.cached_tokens != null && message.cached_tokens > 0 && 
+            {message.cached_tokens != null && message.cached_tokens > 0 &&
               ` +${message.cached_tokens} cached`
             }
           </span>
         )}
         {message.price != null && (
-          <span 
+          <span
             ref={priceRef}
             className={`metric-item price-clickable ${showUsageDetails ? 'expanded' : ''}`}
             onClick={handlePriceClick}
@@ -61,11 +61,11 @@ const MetricsDisplay: FC<MetricsDisplayProps> = ({ message }) => {
           </span>
         )}
       </div>
-      
+
       {showUsageDetails && (
-        <UsageDetailsDropdown 
-          messageId={message.id} 
-          isOpen={showUsageDetails} 
+        <UsageDetailsDropdown
+          messageId={message.id}
+          isOpen={showUsageDetails}
           onClose={handleCloseUsageDetails}
           anchorRect={anchorRect}
         />

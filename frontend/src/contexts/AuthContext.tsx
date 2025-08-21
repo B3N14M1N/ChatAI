@@ -34,19 +34,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user]);
 
   const login = async (email: string, password: string) => {
-  const body = { email, password };
-  const data = await fetchJson(`/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  setToken(data.access_token);
-  // Immediately fetch user info using the fresh token (localStorage update may lag)
-  const me = await fetchJson(`/users/me`, { headers: { Authorization: `Bearer ${data.access_token}` } });
+    const body = { email, password };
+    const data = await fetchJson(`/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    setToken(data.access_token);
+    // Immediately fetch user info using the fresh token (localStorage update may lag)
+    const me = await fetchJson(`/users/me`, { headers: { Authorization: `Bearer ${data.access_token}` } });
     setUser({ id: me.id, email: me.email, display_name: me.display_name });
   };
 
   const register = async (email: string, password: string, displayName?: string) => {
     const body = { email, password, display_name: displayName };
-  const data = await fetchJson(`/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  setToken(data.access_token);
-  const me = await fetchJson(`/users/me`, { headers: { Authorization: `Bearer ${data.access_token}` } });
+    const data = await fetchJson(`/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    setToken(data.access_token);
+    const me = await fetchJson(`/users/me`, { headers: { Authorization: `Bearer ${data.access_token}` } });
     setUser({ id: me.id, email: me.email, display_name: me.display_name });
   };
 

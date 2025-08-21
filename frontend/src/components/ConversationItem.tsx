@@ -107,14 +107,16 @@ const ConversationItem: FC<ConversationItemProps> = ({ conv, selected, onSelect,
           </>
         ) : (
           <>
-            <button ref={el => { menuBtnRef.current = el; }} className="icon-btn" onClick={e => { e.stopPropagation(); setMenuOpen(open => {
+            <button ref={el => { menuBtnRef.current = el; }} className="icon-btn" onClick={e => {
+              e.stopPropagation(); setMenuOpen(open => {
                 const next = !open;
                 if (next) {
                   // notify other items to close
                   window.dispatchEvent(new CustomEvent('conversation-menu-opened', { detail: conv.id }));
                 }
                 return next;
-              }); }}><FaEllipsisV /></button>
+              });
+            }}><FaEllipsisV /></button>
             {menuOpen && (
               <div className="context-menu" ref={menuRef} style={menuStyle}>
                 <button onClick={e => { e.stopPropagation(); setEditing(true); setMenuOpen(false); }}>Rename</button>

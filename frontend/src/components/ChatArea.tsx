@@ -7,7 +7,6 @@ import './ChatArea.css';
 interface ChatAreaProps {
   messages: Message[];
   loading: boolean;
-  // now supports model selection
   handleSend: (text: string, model: string) => Promise<void>;
 }
 

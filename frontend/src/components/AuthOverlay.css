@@ -2,7 +2,8 @@
 .auth-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10; /* above bg loop */
+  z-index: 10;
+  /* above bg loop */
   display: grid;
   place-items: center;
   /* Heavy blur applied once to the whole backdrop */

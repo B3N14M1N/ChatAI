@@ -13,17 +13,17 @@ interface MessageBubbleProps {
 const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
   const sender = getSender(msg);
   const displayText = getDisplayText(msg);
-  
+
   // Check if this is a pending message (optimistic UI)
-  const isPending = msg.created_at === "pending" || 
-                   !msg.created_at || 
-                   (msg.id && msg.id > Date.now() - 5000); // Recent IDs are likely pending
-  
+  const isPending = msg.created_at === "pending" ||
+    !msg.created_at ||
+    (msg.id && msg.id > Date.now() - 5000); // Recent IDs are likely pending
+
   // Display timestamp above for assistant, below for user
   const timeLabel = isPending
     ? "now"
     : new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    
+
   return (
     <div className={`message ${sender}`}>
       {/* Timestamp above (user only) */}

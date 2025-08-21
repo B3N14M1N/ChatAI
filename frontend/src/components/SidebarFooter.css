@@ -24,32 +24,50 @@
 }
 
 @media (max-width: 768px) {
-  .sidebar-footer { background: var(--color-surface); }
+  .sidebar-footer {
+    background: var(--color-surface);
+  }
+
   /* Make footer full-width and stick to bottom in the mobile overlay */
-  .sidebar-footer { position: sticky; bottom: 0; }
-  .sidebar-footer.collapsed { border-radius: 50%; width: 48px; height: 48px; }
+  .sidebar-footer {
+    position: sticky;
+    bottom: 0;
+  }
+
+  .sidebar-footer.collapsed {
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+  }
 }
 
 /* Desktop: keep footer height stable so collapsing sidebar doesn't change layout height */
 @media (min-width: 769px) {
   .sidebar-footer {
-  min-height: 72px; /* fixed footer area height on desktop */
-  display: flex;
-  flex-direction: column; /* vertical stack on desktop too */
-  align-items: left;
-  gap: 0.5rem;
-  padding: 0.5em; /* some padding so circular buttons have room */
-  overflow: visible; /* allow label popup to be visible outside the button */
+    min-height: 72px;
+    /* fixed footer area height on desktop */
+    display: flex;
+    flex-direction: column;
+    /* vertical stack on desktop too */
+    align-items: left;
+    gap: 0.5rem;
+    padding: 0.5em;
+    /* some padding so circular buttons have room */
+    overflow: visible;
+    /* allow label popup to be visible outside the button */
   }
 
   /* When collapsed, keep the footer area the same height but center the smaller button */
   .sidebar-footer.collapsed {
-  padding: 0; /* remove extra padding but keep min-height */
-  justify-content: center;
-  align-items: left;
-  gap: 0.5rem;
-  padding: 0.5em; /* some padding so circular buttons have room */
-  min-height: 72px; /* fixed footer area height on desktop */
+    padding: 0;
+    /* remove extra padding but keep min-height */
+    justify-content: center;
+    align-items: left;
+    gap: 0.5rem;
+    padding: 0.5em;
+    /* some padding so circular buttons have room */
+    min-height: 72px;
+    /* fixed footer area height on desktop */
   }
 }
 
@@ -61,17 +79,19 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(180deg, 
-    transparent 0%, 
-    rgba(0, 0, 0, 0.02) 100%);
+  background: linear-gradient(180deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.02) 100%);
   pointer-events: none;
 }
 
 :root[data-theme="dark"] .sidebar-footer::before {
-  background: linear-gradient(180deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.02) 100%);
+  background: linear-gradient(180deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.02) 100%);
 }
 
 /* Ensure LogoutButton aligns under ThemeSwitcher in expanded mode */
-.sidebar-footer:not(.collapsed) .logout-button { margin-left: 0 !important; }
+.sidebar-footer:not(.collapsed) .logout-button {
+  margin-left: 0 !important;
+}

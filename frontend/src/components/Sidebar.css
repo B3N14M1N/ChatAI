@@ -95,12 +95,15 @@ hr {
   background: var(--color-primary);
   color: white;
   border: 0;
-  z-index: 90; /* above header/footer */
-  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+  z-index: 90;
+  /* above header/footer */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
 }
 
 @media (max-width: 768px) {
-  .mobile-open-btn { display: flex; }
+  .mobile-open-btn {
+    display: flex;
+  }
 
   /* When sidebar is open on mobile we want it to behave like a full page overlay */
   .sidebar {
@@ -124,8 +127,18 @@ hr {
   }
 
   /* Pin header and footer, make conversations list the only scrollable area */
-  .sidebar .sidebar-header { position: sticky; top: 0; z-index: 30; }
-  .sidebar .sidebar-footer { position: sticky; bottom: 0; z-index: 30; }
+  .sidebar .sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .sidebar .sidebar-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+  }
+
   .sidebar .conversations-list {
     flex: 1 1 auto;
     overflow-y: auto;
@@ -133,5 +146,7 @@ hr {
   }
 
   /* Prevent background (chat) from scrolling when sidebar open */
-  body.sidebar-open-no-scroll { overflow: hidden; }
+  body.sidebar-open-no-scroll {
+    overflow: hidden;
+  }
 }

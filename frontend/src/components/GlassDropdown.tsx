@@ -10,11 +10,11 @@ interface GlassDropdownProps {
   className?: string;
 }
 
-const GlassDropdown: FC<GlassDropdownProps> = ({ 
-  options, 
-  value, 
-  onChange, 
-  disabled = false, 
+const GlassDropdown: FC<GlassDropdownProps> = ({
+  options,
+  value,
+  onChange,
+  disabled = false,
   placeholder = "Select...",
   className = ""
 }) => {
@@ -40,7 +40,7 @@ const GlassDropdown: FC<GlassDropdownProps> = ({
   };
 
   return (
-    <div 
+    <div
       ref={dropdownRef}
       className={`glass-dropdown ${isOpen ? 'open' : ''} ${disabled ? 'disabled' : ''} ${className}`}
       onClick={handleToggle}
@@ -49,7 +49,7 @@ const GlassDropdown: FC<GlassDropdownProps> = ({
     >
       <span className="selected-value">{value || placeholder}</span>
       <span className="dropdown-arrow">▼</span>
-      
+
       {isOpen && !disabled && (
         <div className="dropdown-options">
           {options.map(option => (

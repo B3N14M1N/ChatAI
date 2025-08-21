@@ -11,11 +11,11 @@ interface UsageDetailsDropdownProps {
   anchorRect: DOMRect | null;
 }
 
-const UsageDetailsDropdown: FC<UsageDetailsDropdownProps> = ({ 
-  messageId, 
-  isOpen, 
-  onClose, 
-  anchorRect 
+const UsageDetailsDropdown: FC<UsageDetailsDropdownProps> = ({
+  messageId,
+  isOpen,
+  onClose,
+  anchorRect
 }) => {
   const [usageDetails, setUsageDetails] = useState<UsageDetail[]>([]);
   const [loading, setLoading] = useState(false);
@@ -23,13 +23,13 @@ const UsageDetailsDropdown: FC<UsageDetailsDropdownProps> = ({
 
   const fetchUsageDetails = async () => {
     if (!isOpen || usageDetails.length > 0) return; // Don't fetch if already loaded
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-  const { fetchJson } = await import('../lib/api');
-  const data = await fetchJson(`/chat/messages/${messageId}/usage-details`);
+      const { fetchJson } = await import('../lib/api');
+      const data = await fetchJson(`/chat/messages/${messageId}/usage-details`);
       setUsageDetails(data.usage_details || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -75,7 +75,7 @@ const UsageDetailsDropdown: FC<UsageDetailsDropdownProps> = ({
     if (isOpen) {
       // Add class to body to prevent interference from other components
       document.body.classList.add('usage-dropdown-open');
-      
+
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleEscape);
       document.addEventListener('scroll', handleScroll, true); // Use capture phase
@@ -85,7 +85,7 @@ const UsageDetailsDropdown: FC<UsageDetailsDropdownProps> = ({
     return () => {
       // Remove class from body
       document.body.classList.remove('usage-dropdown-open');
-      
+
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('scroll', handleScroll, true);
@@ -122,10 +122,10 @@ const UsageDetailsDropdown: FC<UsageDetailsDropdownProps> = ({
   const buttonBottom = anchorRect.bottom;
   const buttonTop = anchorRect.top;
   const dropdownHeight = 300;
-  
+
   const spaceBelow = viewportHeight - buttonBottom;
   const spaceAbove = buttonTop;
-  
+
   if (spaceBelow >= dropdownHeight + 16 || spaceBelow > spaceAbove) {
     // Show below the button
     dropdownStyle.top = buttonBottom + 8;
