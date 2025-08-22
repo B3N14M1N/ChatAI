@@ -23,6 +23,12 @@ class ContextService:
         )
         prompt_msgs = []
         for m in page.items:
+            # Skip ignored (profanity/system-removed) messages from context
+            try:
+                if getattr(m, "ignored", 0):
+                    continue
+            except Exception:
+                pass
             content = (m.summary if prefer_summaries and m.summary else m.text) or ""
             prompt_msgs.append({"role": m.role, "content": content})
         return prompt_msgs

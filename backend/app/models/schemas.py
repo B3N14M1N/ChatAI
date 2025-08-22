@@ -7,6 +7,9 @@ class Conversation(BaseModel):
     id: int
     title: Optional[str] = None
     summary: Optional[str] = None
+    # Soft delete flag (not necessarily used client-side but exposed)
+    # Keeping optional for backward compatibility
+    # deleted: bool = False
     created_at: str
 
 
@@ -33,6 +36,8 @@ class Message(BaseModel):
     role: Role = Field(default="user")
     text: Optional[str] = None
     summary: Optional[str] = None
+    deleted: Optional[int] = 0
+    ignored: Optional[int] = 0
     created_at: str
     input_tokens: Optional[int] = None
     output_tokens: Optional[int] = None

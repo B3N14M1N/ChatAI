@@ -15,6 +15,7 @@ FastAPI backend powering the ChatAI application: authentication (JWT), user-scop
 	- Handles user messages, creates conversations, records usage details
 	- Optional file attachments stored and downloadable
 	- Pricing/usage summary via `GET /chat/messages/{message_id}/usage-details` and conversation-wide variant
+	- Profanity filtering: first profane message in a new chat is ignored without creating a conversation; profane messages in existing chats are saved with `ignored=1` and do not trigger an LLM call
 - Models catalog
 	- `GET /models` returns available chat models derived from `data/pricing_data.json`
 - Caching and context
@@ -129,7 +130,9 @@ Initializer creates tables if they don’t exist. To reset locally, stop the ser
 		- `model` (str, optional; default `gpt-4.1-nano`)
 		- `conversation_id` (int, optional; omitted for new conversation)
 		- `files` (file[], optional)
-	- Returns: `{ conversation_id, request_message_id, response_message_id, answer }`
+	- Returns: `{ conversation_id?, request_message_id?, response_message_id?, answer? }`
+	  - If the first message of a new chat is profane, no conversation/message is created and all fields may be null.
+	  - If a profane message is sent in an existing conversation, the user message is saved with `ignored=1`, no assistant response is created, and `response_message_id`/`answer` are null.
 - Message usage details: `GET /chat/messages/{message_id}/usage-details`
 	- Returns usage details for a specific message
 - Conversation usage details: `GET /chat/{conversation_id}/usage-details`
@@ -148,6 +151,10 @@ Initializer creates tables if they don’t exist. To reset locally, stop the ser
 - Ownership checks: most conversation routes accept the user via `Depends(get_current_user)` and validate access in the repository layer.
 - The app stores attachments and blobs in SQLite for simplicity. For large files or production, switch to external storage.
 - The RAG service (`rag.py`) reads from `data/books.json`. Replace or extend as needed.
+- Profanity & context:
+	- The pipeline pre-checks for profanity before creating a new conversation. If detected, it short-circuits without any DB writes.
+	- In existing conversations, profane user messages are persisted and flagged `ignored=1` (soft removed) and no LLM call is made.
+	- The context builder (`services/context.py`) excludes ignored messages to ensure they are never included in prompts.
 
 ## Troubleshooting
 

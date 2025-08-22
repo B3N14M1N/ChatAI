@@ -162,7 +162,7 @@ const App: React.FC = () => {
       }
   const res = await apiFetch('/chat/', { method: 'POST', body: form });
   if (!res.ok) throw new Error(await res.text());
-  const data: { conversation_id: number; request_message_id: number; response_message_id: number; answer: string } = await res.json();
+  const data: { conversation_id: number; request_message_id: number; response_message_id?: number | null; answer?: string | null } = await res.json();
       // On first message, select the new conversation
       let convId = selectedConv?.id || data.conversation_id;
       if (!selectedConv) {
@@ -175,7 +175,7 @@ const App: React.FC = () => {
           convId = newConv.id;
         }
       }
-      // Reload full conversation messages to include attachments
+  // Reload full conversation messages to include attachments and reflect ignored flags
       if (convId != null) {
         const msgsRes = await fetchJson<{ conversation_id: number; messages: Message[] }>(
           `/conversations/${convId}/messages`

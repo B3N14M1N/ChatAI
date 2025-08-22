@@ -22,10 +22,10 @@ class SendPayload(BaseModel):
 
 
 class SendMessageResponse(BaseModel):
-    conversation_id: int
-    request_message_id: int
-    response_message_id: int
-    answer: str
+    conversation_id: Optional[int] = None
+    request_message_id: Optional[int] = None
+    response_message_id: Optional[int] = None
+    answer: Optional[str] = None
 
 
 class RegisterRequest(BaseModel):

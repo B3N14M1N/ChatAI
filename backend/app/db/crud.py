@@ -34,7 +34,7 @@ class Crud:
     async def get_conversation(self, conversation_id: int) -> Optional[dict]:
         async with self.connector.get_connection() as conn:
             cur = await conn.execute(
-                "SELECT id, user_id, title, summary, created_at FROM conversations WHERE id=?",
+                "SELECT id, user_id, title, summary, created_at, deleted FROM conversations WHERE id=?",
                 (conversation_id,),
             )
             row = await cur.fetchone()
@@ -53,8 +53,10 @@ class Crud:
 
     async def delete_conversation(self, conversation_id: int) -> bool:
         async with self.connector.get_connection() as conn:
+            # Soft delete
             await conn.execute(
-                "DELETE FROM conversations WHERE id=?", (conversation_id,)
+                "UPDATE conversations SET deleted=1 WHERE id=?",
+                (conversation_id,)
             )
             await conn.commit()
             return True
@@ -101,7 +103,7 @@ class Crud:
             cur = await conn.execute(
                 """
                 SELECT * FROM messages
-                WHERE conversation_id=?
+                WHERE conversation_id=? AND deleted=0
                 ORDER BY created_at ASC, id ASC
                 LIMIT ? OFFSET ?
                 """,
@@ -111,7 +113,7 @@ class Crud:
             items = [_row_to_dict(cur.description, r) for r in rows]
 
             cur2 = await conn.execute(
-                "SELECT COUNT(*) FROM messages WHERE conversation_id=?",
+                "SELECT COUNT(*) FROM messages WHERE conversation_id=? AND deleted=0",
                 (conversation_id,),
             )
             total = (await cur2.fetchone())[0]
@@ -135,7 +137,11 @@ class Crud:
 
     async def delete_message(self, message_id: int) -> bool:
         async with self.connector.get_connection() as conn:
-            await conn.execute("DELETE FROM messages WHERE id=?", (message_id,))
+            # Soft delete message
+            await conn.execute(
+                "UPDATE messages SET deleted=1 WHERE id=?",
+                (message_id,)
+            )
             await conn.commit()
             return True
 
@@ -234,7 +240,7 @@ class Crud:
     async def list_conversations(self) -> list[dict]:
         async with self.connector.get_connection() as conn:
             cur = await conn.execute(
-                "SELECT id, user_id, title, summary, created_at FROM conversations ORDER BY created_at DESC, id DESC"
+                "SELECT id, user_id, title, summary, created_at, deleted FROM conversations WHERE deleted=0 ORDER BY created_at DESC, id DESC"
             )
             rows = await cur.fetchall()
             return [_row_to_dict(cur.description, r) for r in rows]
@@ -279,7 +285,7 @@ class Crud:
     async def list_conversations_for_user(self, user_id: int) -> list[dict]:
         async with self.connector.get_connection() as conn:
             cur = await conn.execute(
-                "SELECT id, title, summary, created_at FROM conversations WHERE user_id=? ORDER BY created_at DESC, id DESC",
+                "SELECT id, title, summary, created_at FROM conversations WHERE user_id=? AND deleted=0 ORDER BY created_at DESC, id DESC",
                 (user_id,)
             )
             rows = await cur.fetchall()

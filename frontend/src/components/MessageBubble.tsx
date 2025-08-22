@@ -24,13 +24,14 @@ const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
     ? "now"
     : new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+  const ignored = msg.ignored === 1 || msg.ignored === (true as unknown as number);
   return (
-    <div className={`message ${sender}`}>
+    <div className={`message ${sender} ${ignored ? 'ignored' : ''}`}>
       {/* Timestamp above (user only) */}
       {sender === "user" && (
         <div className="timestamp">{timeLabel}</div>
       )}
-      <div className="bubble">
+  <div className="bubble">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {displayText}
         </ReactMarkdown>

@@ -22,6 +22,7 @@ class DatabaseInitializer:
                     user_id INTEGER NOT NULL,
                     title TEXT,
                     summary TEXT,
+                    deleted INTEGER NOT NULL DEFAULT 0, -- soft delete flag
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
@@ -33,6 +34,8 @@ class DatabaseInitializer:
                     request_id INTEGER,
                     text TEXT,
                     summary TEXT,
+                    deleted INTEGER NOT NULL DEFAULT 0, -- soft delete flag
+                    ignored INTEGER NOT NULL DEFAULT 0, -- system-ignored (e.g., profanity)
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     input_tokens INTEGER,
                     output_tokens INTEGER,

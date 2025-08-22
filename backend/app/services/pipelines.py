@@ -3,6 +3,7 @@ from typing import Optional, List, Dict, Any
 
 from ..db.repository import Repository
 from ..models.schemas import MessageCreate, UsageDetailCreate
+from .profanity import ProfanityFilter
 from .cache import TTLCache
 from .pricing import PricingService
 from .openai_gateway import OpenAIGateway, OpenAIUsage
@@ -75,6 +76,18 @@ class ChatPipeline:
         6) Persist assistant message with usage+price
         """
         title_usage = None  # silence type checker reuse
+
+        # 0) Profanity pre-check: if profane and no existing conversation, short-circuit without persisting anything
+        if ProfanityFilter.contains_profanity(user_text):
+            if conversation_id is None:
+                return {
+                    "conversation_id": None,
+                    "request_message_id": None,
+                    "response_message_id": None,
+                    "answer": None,
+                    "context_need": "none",
+                    "usage": {"input_tokens": 0, "output_tokens": 0, "cached_tokens": 0, "model": model, "price": 0.0},
+                }
         # 1) Conversation bootstrap
         if conversation_id is None:
             title, title_usage = self.oa.generate_title(user_text)
@@ -108,6 +121,19 @@ class ChatPipeline:
             )
         )
         await self._invalidate_context_cache(conversation_id)
+
+        # 2.5) Profanity check: if profane (existing conversation), mark as ignored and skip LLM
+        if ProfanityFilter.contains_profanity(user_text):
+            # Soft ignore the message by setting ignored flag
+            await self.repo.crud.update_message(user_msg.id, {"ignored": 1})
+            return {
+                "conversation_id": conversation_id,
+                "request_message_id": user_msg.id,
+                "response_message_id": None,
+                "answer": None,
+                "context_need": "none",
+                "usage": {"input_tokens": 0, "output_tokens": 0, "cached_tokens": 0, "model": model, "price": 0.0},
+            }
 
         # 3) Intent detection (context needs only)
         intent, intent_usage = self.oa.detect_intent(user_text)

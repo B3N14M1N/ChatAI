@@ -45,6 +45,8 @@ export interface Message {
   request_id?: number | null; // null for user messages, set for assistant responses
   text?: string;
   summary?: string;
+  deleted?: number;
+  ignored?: number;
   created_at: string;
   // Usage metrics (flattened for compatibility)
   input_tokens?: number;

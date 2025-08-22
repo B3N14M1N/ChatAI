@@ -121,8 +121,8 @@ async def send_message_with_files(
     return SendMessageResponse(
         conversation_id=result["conversation_id"],
         request_message_id=result["request_message_id"],
-        response_message_id=result["response_message_id"],
-        answer=result["answer"],
+    response_message_id=result.get("response_message_id"),
+    answer=result.get("answer"),
     )
 
 
