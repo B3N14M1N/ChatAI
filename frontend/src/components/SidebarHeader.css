@@ -11,9 +11,75 @@
 }
 
 .sidebar-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--user-msg-bg);
+  position: relative;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  /* Animated gradient text using the existing blue as primary */
+  --accent: var(--user-msg-bg);
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    var(--title-pink, #ff66cc) 40%,
+    var(--title-purple, #a06bff) 60%,
+    var(--accent) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Crisper outline for legibility */
+  -webkit-text-stroke: 0.7px rgba(255, 255, 255, 0.22);
+  /* Subtle layered glow without blurring edges */
+  text-shadow:
+    0 0 4px #a06bff33,
+    0 0 8px #ff66cc22;
+  animation: title-shimmer 6s linear infinite;
+}
+
+/* Soft glow behind the text */
+.sidebar-title::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: blur(3px) saturate(1.05);
+  opacity: 0.35;
+  animation: title-shimmer 6s linear infinite;
+}
+
+/* Moving highlight sweep across the text for a subtle sparkle */
+.sidebar-title::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, var(--title-pink, rgba(255,102,204,0.85)) 50%, transparent 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0.18;
+  animation: title-sweep 3.5s linear infinite;
+}
+
+/* Light theme: use a darker stroke for crisp edges */
+[data-theme='light'] .sidebar-title {
+  -webkit-text-stroke: 0.7px rgba(0, 0, 0, 0.28);
+}
+
+@keyframes title-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes title-sweep {
+  0% { background-position: -200% 50%; }
+  100% { background-position: 200% 50%; }
 }
 
 .header-actions {
