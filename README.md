@@ -55,11 +55,16 @@ frontend/     React + Vite client
 
 2. Backend (PowerShell):
    ```powershell
+   # Setup
    cd backend
-   python -m venv .venv; .\.venv\Scripts\Activate.ps1
+   python -m venv .venv
+   ./.venv/Scripts/activate
    pip install -r requirements.txt
+
    # JWT secret (required)
    $env:JWT_SECRET_KEY = "replace_with_a_secure_random_value"
+
+   #Run application
    uvicorn app.main:app --reload
    ```
 

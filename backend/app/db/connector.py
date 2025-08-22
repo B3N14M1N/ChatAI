@@ -1,7 +1,8 @@
 from pathlib import Path
 import aiosqlite
+import os
 
-DB_PATH = Path("data/app.db")
+DB_PATH = Path(os.getenv("DB_PATH", "data/app.db"))
 
 
 class DatabaseConnector:

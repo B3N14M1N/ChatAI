@@ -60,29 +60,30 @@ backend/
 
 1) Create and activate a Python environment (3.12+ recommended).
 
+```powershell
+cd backend
+python -m venv .venv
+./venv/Scripts/activate
+```
+
 2) Install dependencies:
 
 ```powershell
-cd backend
 pip install -r requirements.txt
 ```
 
-3) Set environment variables (PowerShell example):
+3) Configure environment variables via `.env`:
 
-```powershell
-$env:JWT_SECRET_KEY = "replace_with_a_secure_random_value"
-# Optional overrides
-# $env:JWT_ALGORITHM = "HS256"
-# $env:JWT_ACCESS_TOKEN_MINUTES = "1440" # 24h
-```
+- Copy `.env.example` to `.env` and adjust values as needed (JWT secret, OpenAI key, etc.).
+	The app will read from `.env` on startup.
 
 4) Start the server:
 
 ```powershell
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload
 ```
 
-The database will be created on first run at `backend/data/app.db` with PRAGMA foreign_keys enabled.
+The database will be created on first run at `./app.db`.
 
 ## Database schema (high-level)
 
@@ -97,7 +98,7 @@ The database will be created on first run at `backend/data/app.db` with PRAGMA f
 - usage_details
 	- id (PK), message_id (FK), scope, model, input_tokens, output_tokens, cached_tokens, price
 
-Initializer creates tables if they don’t exist. To reset locally, stop the server and remove `backend/data/app.db`.
+Initializer creates tables if they don’t exist. To reset locally, stop the server and remove `./app.db`.
 
 ## Authentication
 

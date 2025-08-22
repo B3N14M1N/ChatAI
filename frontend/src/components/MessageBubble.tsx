@@ -35,6 +35,12 @@ const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {displayText}
         </ReactMarkdown>
+        {/* Subtle system note for ignored user messages */}
+        {ignored && sender === 'user' && (
+          <div className="bubble-footer system-note">
+            This message was removed by the system
+          </div>
+        )}
         {/* Render user attachments in footer */}
         {msg.attachments && msg.attachments.length > 0 && sender === 'user' && (
           <div className="bubble-footer attachments-footer">
