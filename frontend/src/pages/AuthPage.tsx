@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import './AuthPage.css';
 import ChatBackgroundLoop from '../components/ChatBackgroundLoop';
 import AuthOverlay from '../components/AuthOverlay';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { LuEye, LuEyeClosed } from 'react-icons/lu';
 import { useAuth } from '../contexts/AuthContext';
 
 type Mode = 'login' | 'register';
@@ -116,7 +116,7 @@ const AuthPage: React.FC<{ mode?: Mode }> = ({ mode = 'login' }) => {
                     aria-pressed={showPassword}
                     onClick={() => setShowPassword(p => !p)}
                   >
-                    {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                    {showPassword ? <LuEyeClosed size={18} /> : <LuEye size={18} />}
                   </button>
                 )}
               </div>
@@ -141,7 +141,7 @@ const AuthPage: React.FC<{ mode?: Mode }> = ({ mode = 'login' }) => {
                       aria-pressed={showConfirm}
                       onClick={() => setShowConfirm(p => !p)}
                     >
-                      {showConfirm ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                      {showConfirm ? <LuEyeClosed size={18} /> : <LuEye size={18} />}
                     </button>
                   )}
                 </div>

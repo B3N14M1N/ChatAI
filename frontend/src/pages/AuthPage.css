@@ -73,6 +73,24 @@
   transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Disable browser's default password reveal button */
+.form-row input[type="password"] {
+  -webkit-text-security: disc; /* For WebKit browsers */
+}
+
+.form-row input[type="password"]::-ms-reveal,
+.form-row input[type="password"]::-ms-clear {
+  display: none; /* Hide Edge/IE password reveal button */
+}
+
+.form-row input[type="password"]::-webkit-textfield-decoration-container {
+  display: none; /* Hide Chrome password reveal button */
+}
+
+.form-row input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none; /* Hide autofill button if present */
+}
+
 /* wrap inputs when adding inline buttons (e.g. show password) */
 .input-wrapper {
   position: relative;
@@ -104,16 +122,35 @@
   border-radius: 0;
   cursor: pointer;
   z-index: 1;
-  transition: color 0.15s ease;
+  transition: all 0.2s ease;
   padding: 0 !important;
   line-height: 0;
   -webkit-appearance: none;
   appearance: none;
+  opacity: 0.4;
 }
 
 .pw-toggle:hover {
   background: transparent;
   color: var(--color-text-primary);
+  opacity: 0.8;
+}
+
+/* Theme-specific subtle styling for password toggle */
+:root[data-theme="light"] .pw-toggle {
+  color: rgba(75, 85, 99, 0.5);
+}
+
+:root[data-theme="light"] .pw-toggle:hover {
+  color: rgba(75, 85, 99, 0.9);
+}
+
+:root[data-theme="dark"] .pw-toggle {
+  color: rgba(156, 163, 175, 0.4);
+}
+
+:root[data-theme="dark"] .pw-toggle:hover {
+  color: rgba(156, 163, 175, 0.8);
 }
 
 .pw-toggle:focus-visible {
