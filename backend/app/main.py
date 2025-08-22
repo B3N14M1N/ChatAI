@@ -29,10 +29,9 @@ from app.services.auth import (
     get_password_hash,
     verify_password,
     create_access_token,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    oauth2_scheme,
     get_current_user,
 )
+from app.services.validation import PasswordValidator, EmailValidator
 from fastapi.security import OAuth2PasswordRequestForm
 
 
@@ -142,14 +141,37 @@ async def create_conversation_endpoint(conversation: ConversationCreate, current
 
 @app.post("/auth/register", response_model=dict)
 async def register_user(payload: RegisterRequest):
-    # simple registration endpoint
+    """User registration with validation"""
     crud = app.state.repo.crud
+    
+    # Validate email format
+    email_result = EmailValidator.validate_email(payload.email)
+    if not email_result.is_valid:
+        # Return the first error message directly
+        raise HTTPException(
+            status_code=400,
+            detail=email_result.errors[0]
+        )
+    
+    # Validate password strength
+    password_result = PasswordValidator.validate_password(payload.password)
+    if not password_result.is_valid:
+        # Return the first error message directly
+        raise HTTPException(
+            status_code=400,
+            detail=password_result.errors[0]
+        )
+    
+    # Check if email already exists
     existing = await crud.get_user_by_email(payload.email)
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create user
     password_hash = get_password_hash(payload.password)
     uid = await crud.create_user(payload.email, password_hash, payload.display_name)
     token = create_access_token({"sub": str(uid), "email": payload.email})
+    
     return {"access_token": token, "token_type": "bearer"}
 
 
@@ -168,12 +190,35 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 @app.post("/auth/login", response_model=dict)
 async def login_json(payload: LoginRequest):
+    """User login with email validation"""
+    # Validate email format
+    email_result = EmailValidator.validate_email(payload.email)
+    if not email_result.is_valid:
+        # Return the first error message directly
+        raise HTTPException(
+            status_code=400,
+            detail=email_result.errors[0]
+        )
+    
     crud = app.state.repo.crud
     user = await crud.get_user_by_email(payload.email)
     if not user or not verify_password(payload.password, user.get("password_hash")):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     access_token = create_access_token({"sub": str(user["id"]), "email": user["email"]})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/auth/password-requirements")
+async def get_password_requirements():
+    """Get password requirements for frontend validation"""
+    return {
+        "requirements": PasswordValidator.get_password_requirements(),
+        "config": {
+            "minLength": 8,
+            "requireNumber": True,
+            "requireSymbol": True
+        }
+    }
 
 
 @app.get("/users/me")
