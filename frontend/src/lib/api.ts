@@ -35,7 +35,46 @@ export async function fetchJson<T = any>(input: RequestInfo, init?: RequestInit)
   const res = await apiFetch(input, init);
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `HTTP error ${res.status}`);
+    
+    // Log the full error to console for debugging
+    console.error('API Error:', {
+      status: res.status,
+      statusText: res.statusText,
+      url: res.url,
+      response: text
+    });
+
+    // Try to parse the error response as JSON
+    let errorMessage = `HTTP error ${res.status}`;
+    
+    try {
+      const errorData = JSON.parse(text);
+      
+      // Handle different error response formats
+      if (typeof errorData === 'string') {
+        errorMessage = errorData;
+      } else if (errorData.detail) {
+        // FastAPI style error response
+        errorMessage = errorData.detail;
+      } else if (errorData.message) {
+        // Generic message field
+        errorMessage = errorData.message;
+      } else if (errorData.error) {
+        // Error field
+        errorMessage = errorData.error;
+      } else if (Array.isArray(errorData)) {
+        // Handle validation errors (array of error objects)
+        errorMessage = errorData.map(err => err.msg || err.message || String(err)).join(', ');
+      } else {
+        // Fallback: stringify the error object
+        errorMessage = JSON.stringify(errorData);
+      }
+    } catch (parseError) {
+      // If parsing fails, use the raw text or a generic message
+      errorMessage = text || `HTTP error ${res.status}`;
+    }
+    
+    throw new Error(errorMessage);
   }
   return res.json() as Promise<T>;
 }
