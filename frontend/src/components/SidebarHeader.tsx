@@ -9,7 +9,7 @@ interface SidebarHeaderProps {
 
 const SidebarHeader: FC<SidebarHeaderProps> = ({ collapsed, onToggle }) => (
   <div className="sidebar-header">
-    {!collapsed && <div className="sidebar-title">My GPT</div>}
+    {!collapsed && <div className="sidebar-title" data-text="Librarian.AI">Librarian.AI</div>}
     <div className="header-actions">
       <button
         className="header-btn"

@@ -115,8 +115,8 @@ class OpenAIGateway:
     ) -> tuple[str, OpenAIUsage]:
         system_prompt = (
             "You are a book recommendation assistant. "
-            "Only rely on tool_data for catalog facts. "
-            "If tool_data shows no matches, say 'No matches found' and offer alternatives."
+            "Only use information from the conversation messages and tool_data; do not use outside knowledge. "
+            "If tool_data shows no matches, say 'No matches found'."
         )
         messages = [{"role": "system", "content": system_prompt}]
         messages.extend(compact_context)
@@ -219,6 +219,7 @@ class OpenAIGateway:
         """
         system_prompt = (
             "You are a book recommendation assistant. "
+            "Only use information found in the conversation messages or tool results; if it's not there, say you don't have that information. "
             "Use 'content' parameter for ANY book description - genres, themes, plot elements, time periods, etc. "
             "Only use 'authors' for specific author names. "
             "IMPORTANT: Use 'exclude_titles' when user asks for 'another one', 'something else', 'different book', or wants to avoid books already mentioned in the conversation. "
@@ -269,6 +270,7 @@ class OpenAIGateway:
                 "role": "system",
                 "content": (
                     "You are a book recommendation assistant with access to a specific book database. "
+                    "Only use information from the conversation messages and tool results; if it's not present, say you don't have it. "
                     "ONLY recommend books from the tool results provided - NEVER suggest books not in the results. "
                     "NEVER mention internal processes like 'I retrieved', 'I searched', 'I pulled up', 'the tool returned', etc. "
                     "If the tool results don't contain suitable books for the user's request, simply say 'I don't have any books in my collection that match your criteria.' "
@@ -286,7 +288,7 @@ class OpenAIGateway:
             model=model,
             tools=tools,
             input=final_messages,
-            max_output_tokens=max_output_tokens,
+            max_output_tokens=max_output_tokens
         )
 
         text = resp.output_text.strip()
