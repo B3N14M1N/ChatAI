@@ -4,11 +4,13 @@ from typing import List, Optional, Dict, Any
 from openai import OpenAI
 from pydantic import BaseModel
 from ..models.schemas import IntentEnvelope, TitleEnvelope
+import base64
 
 DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-nano")
 TITLE_MODEL = os.getenv("OPENAI_TITLE_MODEL", "gpt-4.1-nano")
 INTENT_MODEL = os.getenv("OPENAI_INTENT_MODEL", "gpt-4.1-nano")
 SUMMARY_MODEL = os.getenv("OPENAI_SUMMARY_MODEL", "gpt-4.1-nano")
+IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1")
 
 
 class OpenAIUsage(BaseModel):
@@ -142,6 +144,45 @@ class OpenAIGateway:
             model=model,
         )
         return text, usage
+
+    # 8) Generate a book cover image from work metadata using Images API
+    def generate_cover_image_bytes(
+        self,
+        *,
+        title: str,
+        author: str | None,
+        short_summary: str | None,
+        full_summary: str | None,
+        size: str = "1024x1024",
+        quality: str = "high",
+        background: str = "auto",
+    ) -> bytes:
+        # Craft a concise, safe prompt
+        prompt_parts = [
+            f"Design a cinematic, text-free book cover illustration.",
+            f"Title: {title}",
+        ]
+        if author:
+            prompt_parts.append(f"Author: {author}")
+        if short_summary:
+            prompt_parts.append(f"Short summary: {short_summary}")
+        elif full_summary:
+            prompt_parts.append(f"Summary: {full_summary[:500]}")
+        prompt_parts.append(
+            "Do not include any text or typography. Focus on imagery and mood that reflects the story's key themes."
+        )
+        prompt = "\n".join(prompt_parts)
+
+        resp = self.client.images.generate(
+            model=IMAGE_MODEL,
+            prompt=prompt,
+            size=size,
+            quality=quality,
+            background=background,
+        )
+        # New SDK returns base64 in data[0].b64_json
+        b64 = resp.data[0].b64_json
+        return base64.b64decode(b64)
 
     # 5) Tools definitions for function calling
     def get_tools_definition(self) -> List[Dict[str, Any]]:

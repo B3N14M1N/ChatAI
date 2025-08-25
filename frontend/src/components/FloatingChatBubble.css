@@ -5,6 +5,8 @@
   height: 64px;
   border-radius: 999px;
   pointer-events: auto;
+  /* Use top/left via inline style and translate for crisp positioning */
+  transform: translate(0, 0);
 }
 
 .floating-chat-bubble .chat-bubble-btn {

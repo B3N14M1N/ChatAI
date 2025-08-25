@@ -268,6 +268,28 @@ class Repository:
             await self.crud.delete_work(work_id)
         return Work(**row) if row else None
 
+    # Work cover images
+    async def set_work_cover(self, work_id: int, content: bytes, content_type: str = "image/png") -> Optional[Work]:
+        await self.crud.upsert_work_image(work_id, content, content_type)
+        # Update image_url to point to our endpoint (cache-bust with timestamp)
+        import time
+        url = f"/works/{work_id}/image?ts={int(time.time())}"
+        await self.crud.update_work(work_id, {"image_url": url})
+        # Return updated work
+        rows = await self.crud.list_works()
+        row = next((w for w in rows if w["id"] == work_id), None)
+        return Work(**row) if row else None
+
+    async def clear_work_cover(self, work_id: int) -> Optional[Work]:
+        await self.crud.delete_work_image(work_id)
+        await self.crud.update_work(work_id, {"image_url": None})
+        rows = await self.crud.list_works()
+        row = next((w for w in rows if w["id"] == work_id), None)
+        return Work(**row) if row else None
+
+    async def get_work_cover_blob(self, work_id: int) -> Optional[tuple[bytes, str]]:
+        return await self.crud.get_work_image(work_id)
+
     async def ensure_work_exists(self, *, title: str, author: Optional[str], year: Optional[str], short_summary: Optional[str], full_summary: Optional[str], image_url: Optional[str], genres: list[str], themes: list[str], rag_id: Optional[str]) -> Work:
         # Try by title/author/year
         existing = await self.crud.get_work_by_title_author_year(title, author, year)

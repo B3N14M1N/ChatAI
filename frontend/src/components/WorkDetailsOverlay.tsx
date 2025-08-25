@@ -1,6 +1,7 @@
 import React from 'react';
 import './WorkDetailsOverlay.css';
 import type { Work } from '../types';
+import { resolveApiUrl } from '../lib/api';
 
 interface WorkDetailsOverlayProps {
   open: boolean;
@@ -42,7 +43,7 @@ const WorkDetailsOverlay: React.FC<WorkDetailsOverlayProps> = ({ open, work, onC
           {hasImage && (
             <div className="details-image">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={work.image_url!} alt={`${work.title} cover`} />
+              <img src={resolveApiUrl(work.image_url!)} alt={`${work.title} cover`} />
             </div>
           )}
         </div>

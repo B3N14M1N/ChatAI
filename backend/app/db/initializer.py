@@ -97,6 +97,15 @@ class DatabaseInitializer:
                     FOREIGN KEY(work_id) REFERENCES works(id) ON DELETE CASCADE,
                     FOREIGN KEY(tag_id) REFERENCES tags(id) ON DELETE CASCADE
                 );
+
+                -- Work cover images stored as blobs
+                CREATE TABLE IF NOT EXISTS work_images (
+                    work_id INTEGER PRIMARY KEY,
+                    content BLOB NOT NULL,
+                    content_type TEXT NOT NULL DEFAULT 'image/png',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(work_id) REFERENCES works(id) ON DELETE CASCADE
+                );
                 """
             )
             await conn.commit()

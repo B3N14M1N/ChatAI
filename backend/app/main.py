@@ -21,6 +21,7 @@ from app.services.openai_gateway import OpenAIGateway
 from app.services.rag import BookRAG
 from app.services.pipelines import ChatPipeline
 from app.services.models_catalog import get_available_models_from_pricing
+from app.services.covers import CoverPipeline
 from app.models.api_schemas import (
     ConversationOut,
     ConversationMessages,
@@ -36,6 +37,7 @@ from app.services.auth import (
 )
 from app.services.validation import PasswordValidator, EmailValidator
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import StreamingResponse
 
 
 @asynccontextmanager
@@ -66,6 +68,7 @@ async def lifespan(app: FastAPI):
         cache=cache_service,
         context=context_service,
     )
+    covers = CoverPipeline(repo, openai_gateway)
 
     # 3) Expose on app.state so routes can use them
     app.state.connector = connector
@@ -76,6 +79,7 @@ async def lifespan(app: FastAPI):
     app.state.oa = openai_gateway
     app.state.rag = rag_service
     app.state.pipeline = pipeline
+    app.state.covers = covers
     app.state.books_path = books_path
     app.state.pricing_path = pricing_path
 
@@ -486,3 +490,34 @@ async def delete_work(work_id: int, current_user=Depends(get_current_user)):
     if not deleted:
         raise HTTPException(404, "Work not found")
     return {"detail": "Work deleted"}
+
+
+# ---------- Work Cover Images ----------
+@app.post("/works/{work_id}/image", response_model=Work)
+async def generate_work_image(work_id: int, size: str = "1024x1024", current_user=Depends(get_current_user)):
+    work = await app.state.repo.get_work(work_id)
+    if not work:
+        raise HTTPException(404, "Work not found")
+    # Use cover pipeline
+    updated = await app.state.covers.generate_and_store_cover(work=work, size=size)
+    if not updated:
+        raise HTTPException(400, "Failed to save image")
+    return updated
+
+
+@app.get("/works/{work_id}/image")
+async def get_work_image(work_id: int):
+    blob = await app.state.repo.get_work_cover_blob(work_id)
+    if not blob:
+        raise HTTPException(404, "Image not found")
+    content, content_type = blob
+    return StreamingResponse(iter([content]), media_type=content_type)
+
+
+@app.delete("/works/{work_id}/image", response_model=Work)
+async def delete_work_image(work_id: int, current_user=Depends(get_current_user)):
+    # Clear both blob and image_url
+    updated = await app.state.repo.clear_work_cover(work_id)
+    if not updated:
+        raise HTTPException(404, "Work not found")
+    return updated

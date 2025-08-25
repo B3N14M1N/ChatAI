@@ -1,11 +1,18 @@
 .library-page {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto; /* take remaining space next to sidebar */
+  min-height: 0;   /* allow inner overflow-y to work in flex layout */
   height: 100%;
   width: 100%;
   background: var(--color-bg);
   color: var(--color-text-primary);
   padding: 16px;
+  /* Allow the library view to scroll within the app container */
+  overflow-y: auto;
+  /* Match scrollbar look & feel from chat input */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   /* Fixed heights for card sections */
   --book-card-header-h: 48px;
   --book-card-body-h: 300px;
@@ -20,8 +27,8 @@
 
 .library-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
   padding-top: 8px;
 }
 
@@ -167,3 +174,30 @@
 .pill.removable .pill-text { pointer-events: none; }
 .pill.removable .pill-x { width: 12px; height: 12px; background-color: var(--color-text-primary); opacity: 0.65; -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>') no-repeat center / contain; mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>') no-repeat center / contain; }
 .pill.removable:hover .pill-x { opacity: 1; }
+
+/* Custom scrollbar styling (reuse from chat input) */
+.library-page::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.library-page::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 12px;
+}
+
+.library-page::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.12s ease;
+}
+
+.library-page::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.library-page::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-hover);
+}

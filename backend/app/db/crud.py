@@ -538,3 +538,31 @@ class Crud:
             )
             await conn.commit()
             return True
+
+    # ---------- Work Images (Cover) ----------
+    async def upsert_work_image(self, work_id: int, content: bytes, content_type: str = "image/png") -> None:
+        async with self.connector.get_connection() as conn:
+            # Replace existing if any
+            await conn.execute("DELETE FROM work_images WHERE work_id=?", (work_id,))
+            await conn.execute(
+                "INSERT INTO work_images (work_id, content, content_type) VALUES (?, ?, ?)",
+                (work_id, content, content_type),
+            )
+            await conn.commit()
+
+    async def get_work_image(self, work_id: int) -> Optional[tuple[bytes, str]]:
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                "SELECT content, content_type FROM work_images WHERE work_id=?",
+                (work_id,),
+            )
+            row = await cur.fetchone()
+            if not row:
+                return None
+            return row[0], row[1]
+
+    async def delete_work_image(self, work_id: int) -> bool:
+        async with self.connector.get_connection() as conn:
+            await conn.execute("DELETE FROM work_images WHERE work_id=?", (work_id,))
+            await conn.commit()
+            return True

@@ -14,9 +14,10 @@ export interface BookCardProps {
   imageUrl?: string | null;
   genres?: string[];
   themes?: string[];
-  onGenerateImage?: () => void;
-  onRegenerateImage?: () => void;
-  onClearImage?: () => void;
+  loading?: boolean;
+  onGenerate?: () => void;
+  onRegenerate?: () => void;
+  onClear?: () => void;
   onViewMore?: () => void;
   onEdit?: () => void;
 }
@@ -27,9 +28,10 @@ export const BookCard: FC<BookCardProps> = ({
   imageUrl,
   genres = [],
   themes = [],
-  onGenerateImage,
-  onRegenerateImage,
-  onClearImage,
+  loading = false,
+  onGenerate,
+  onRegenerate,
+  onClear,
   onViewMore,
   onEdit,
 }) => (
@@ -75,9 +77,10 @@ export const BookCard: FC<BookCardProps> = ({
         <div className="book-image-wrap">
           <BookImage
             imageUrl={imageUrl}
-            onGenerate={onGenerateImage}
-            onRegenerate={onRegenerateImage}
-            onClear={onClearImage}
+            onGenerate={onGenerate}
+            onRegenerate={onRegenerate}
+            onClear={onClear}
+            loading={loading}
             caption="Generate cover"
           />
         </div>
@@ -94,6 +97,7 @@ export const BookCard: FC<BookCardProps> = ({
 const LibraryPage: FC = () => {
   const [works, setWorks] = useState<Work[]>([]);
   const [filtered, setFiltered] = useState<Work[]>([]);
+  const [imgLoading, setImgLoading] = useState<Record<number, boolean>>({});
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Work | null>(null);
   const [detailsTarget, setDetailsTarget] = useState<Work | null>(null);
@@ -236,8 +240,39 @@ const LibraryPage: FC = () => {
             imageUrl={w.image_url || undefined}
             genres={w.genres}
             themes={w.themes}
+            loading={!!imgLoading[w.id]}
             onViewMore={() => setDetailsTarget(w)}
             onEdit={() => { setEditTarget(w); setWizardOpen(true); }}
+            onGenerate={async () => {
+              try {
+                setImgLoading(prev => ({ ...prev, [w.id]: true }));
+                const res = await apiFetch(`/works/${w.id}/image`, { method: 'POST' });
+                if (!res.ok) throw new Error(await res.text());
+                const updated: Work = await res.json();
+                setWorks(prev => prev.map(x => x.id === w.id ? updated : x));
+              } catch (e) { console.error(e); }
+              finally { setImgLoading(prev => ({ ...prev, [w.id]: false })); }
+            }}
+            onRegenerate={async () => {
+              try {
+                setImgLoading(prev => ({ ...prev, [w.id]: true }));
+                const res = await apiFetch(`/works/${w.id}/image`, { method: 'POST' });
+                if (!res.ok) throw new Error(await res.text());
+                const updated: Work = await res.json();
+                setWorks(prev => prev.map(x => x.id === w.id ? updated : x));
+              } catch (e) { console.error(e); }
+              finally { setImgLoading(prev => ({ ...prev, [w.id]: false })); }
+            }}
+            onClear={async () => {
+              try {
+                setImgLoading(prev => ({ ...prev, [w.id]: true }));
+                const res = await apiFetch(`/works/${w.id}/image`, { method: 'DELETE' });
+                if (!res.ok) throw new Error(await res.text());
+                const updated: Work = await res.json();
+                setWorks(prev => prev.map(x => x.id === w.id ? updated : x));
+              } catch (e) { console.error(e); }
+              finally { setImgLoading(prev => ({ ...prev, [w.id]: false })); }
+            }}
           />
         ))}
       </div>

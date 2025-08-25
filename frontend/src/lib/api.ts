@@ -80,3 +80,18 @@ export async function fetchJson<T = any>(input: RequestInfo, init?: RequestInit)
 }
 
 export default { apiFetch, fetchJson };
+
+// Resolve a URL for resources (e.g., <img src>) using the same base rules as apiFetch
+export function resolveApiUrl(url: string): string {
+  if (!url) return url;
+  const isAbsolute = /^https?:\/\//i.test(url);
+  if (isAbsolute) return url;
+  if (!url.startsWith('/')) return url; // relative like 'img/x.png' -> leave as-is
+  // Prefix with API_BASE for dev proxy or configured base
+  if (API_BASE) {
+    if (API_BASE.startsWith('http')) return `${API_BASE}${url}`;
+    const base = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
+    return url.startsWith(base + '/') ? url : `${base}${url}`;
+  }
+  return url;
+}

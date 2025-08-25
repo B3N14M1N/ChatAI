@@ -53,7 +53,10 @@ const App: React.FC = () => {
         return { x: Math.max(margin, Math.min(vw - bw - margin, p.x)), y: Math.max(margin, Math.min(vh - bh - margin, p.y)) };
       }
     } catch {}
-    return { x: Math.max(16, window.innerWidth - 100), y: Math.max(16, 80) };
+    // Default to top-right corner with a small margin
+    const margin = 16;
+    const bw = 64;
+    return { x: Math.max(margin, window.innerWidth - bw - margin), y: margin };
   });
 
   // Persist minimized and bubble position
