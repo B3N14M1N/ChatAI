@@ -1,0 +1,96 @@
+.notifications-overlay-left,
+.notifications-overlay-right {
+  position: fixed;
+  top: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none; /* allow clicks to pass except on cards */
+}
+.notifications-overlay-left { left: 16px; }
+.notifications-overlay-right { right: 16px; }
+
+.notification-card {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 420px;
+  background: var(--glass-bg);
+  color: var(--color-text-primary);
+  border: 1px solid var(--glass-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 10px;
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+.notification-card.success { border-left-color: var(--color-success); }
+.notification-card.error { border-left-color: var(--color-error); }
+
+.notification-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: grab;
+}
+
+.notification-icon {
+  font-size: 18px;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  margin: 0 0 2px 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.notification-message {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.notification-close {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  padding: 2px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.notification-close:hover { color: var(--color-text-primary); background: var(--color-surface-hover); }
+
+.notification-progress {
+  height: 3px;
+  background: var(--color-primary);
+}
+
+.notification-card.success .notification-progress { background: var(--color-success); }
+.notification-card.error .notification-progress { background: var(--color-error); }
+
+/* Progress bar shrink animation (width: 100% -> 0%) */
+@keyframes notif-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.notification-progress.animated {
+  width: 100%;
+  animation-name: notif-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/* Drag feedback */
+.notification-card.dragging .notification-inner { cursor: grabbing; }
+.notification-card.fixed { position: fixed; } /* applied when dragged */

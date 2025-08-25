@@ -3,10 +3,14 @@ import { apiFetch, fetchJson } from "./lib/api";
 import "./App.css";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
+import ChatPane from "./components/ChatPane.tsx";
+import ProfilePage from "./pages/ProfilePage.tsx";
 import type { Conversation, Message } from "./types";
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 const App: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const idParam = searchParams.get('id');
 
@@ -61,6 +65,9 @@ const App: React.FC = () => {
     };
     loadConvos();
   }, []);
+
+  // Note: Do not auto-redirect away from /account. Selecting a conversation triggers
+  // an explicit navigate('/') with the id, handled in onSelect above.
   // Sync selection or new-chat when idParam changes
   useEffect(() => {
     if (conversations.length === 0) return;
@@ -87,7 +94,7 @@ const App: React.FC = () => {
 
   // Start a blank chat, will create on first message
   const createConversation = () => {
-    setSearchParams({ id: 'new' });
+    navigate({ pathname: '/', search: '?id=new' });
   };
 
   // Rename a conversation
@@ -194,19 +201,30 @@ const App: React.FC = () => {
         <Sidebar
           conversations={conversations}
           selectedId={selectedConv?.id ?? null}
-          onSelect={conv => setSearchParams({ id: conv.id.toString() })}
+          onSelect={conv => {
+            navigate({ pathname: '/', search: `?id=${conv.id}` });
+          }}
           onCreate={createConversation}
           onDelete={deleteConversation}
           onRename={renameConversation}
           collapsed={collapsed}
           onToggle={toggleCollapsed}
+          onAccount={() => navigate('/account')}
         />
-        <ChatArea
-          key={selectedConv?.id ?? 'new'}
-          messages={messages}
-          loading={loading}
-          handleSend={handleSend}
-        />
+
+  {/* Right-side content area router: show ProfilePage when on /account, otherwise chat */}
+  {location.pathname.startsWith('/account') ? (
+          <ProfilePage />
+        ) : (
+          <ChatPane enableFloatingToggle={false}>
+            <ChatArea
+              key={selectedConv?.id ?? 'new'}
+              messages={messages}
+              loading={loading}
+              handleSend={handleSend}
+            />
+          </ChatPane>
+        )}
       </div>
   );
 };

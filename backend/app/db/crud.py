@@ -58,6 +58,11 @@ class Crud:
                 "UPDATE conversations SET deleted=1 WHERE id=?",
                 (conversation_id,)
             )
+            # Also soft delete messages in that conversation
+            await conn.execute(
+                "UPDATE messages SET deleted=1 WHERE conversation_id=?",
+                (conversation_id,)
+            )
             await conn.commit()
             return True
 
@@ -155,11 +160,11 @@ class Crud:
           - assistant response: messages.request_id == user_message.id (may be None if missing)
         """
         async with self.connector.get_connection() as conn:
-            # Get last N user requests (most recent first)
+            # Get last N user requests (most recent first), excluding deleted
             cur = await conn.execute(
                 """
                 SELECT id FROM messages
-                WHERE conversation_id=? AND request_id IS NULL
+                WHERE conversation_id=? AND request_id IS NULL AND deleted=0
                 ORDER BY created_at DESC, id DESC
                 LIMIT ?
                 """,
@@ -173,7 +178,7 @@ class Crud:
             cur2 = await conn.execute(
                 f"""
                 SELECT * FROM messages
-                WHERE id IN ({placeholders})
+                WHERE id IN ({placeholders}) AND deleted=0
                 """,
                 tuple(request_ids),
             )
@@ -184,7 +189,7 @@ class Crud:
             cur3 = await conn.execute(
                 f"""
                 SELECT * FROM messages
-                WHERE request_id IN ({placeholders})
+                WHERE request_id IN ({placeholders}) AND deleted=0
                 """,
                 tuple(request_ids),
             )
@@ -281,6 +286,44 @@ class Crud:
             )
             row = await cur.fetchone()
             return _row_to_dict(cur.description, row) if row else None
+
+    async def get_user_with_hash(self, user_id: int) -> Optional[dict]:
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                "SELECT id, email, password_hash, display_name, created_at FROM users WHERE id=?",
+                (user_id,),
+            )
+            row = await cur.fetchone()
+            return _row_to_dict(cur.description, row) if row else None
+
+    async def update_user(self, user_id: int, *, email: Optional[str] = None, display_name: Optional[str] = None) -> bool:
+        fields = []
+        values = []
+        if email is not None:
+            fields.append("email=?")
+            values.append(email)
+        if display_name is not None:
+            fields.append("display_name=?")
+            values.append(display_name)
+        if not fields:
+            return True
+        values.append(user_id)
+        async with self.connector.get_connection() as conn:
+            await conn.execute(
+                f"UPDATE users SET {', '.join(fields)} WHERE id=?",
+                tuple(values),
+            )
+            await conn.commit()
+            return True
+
+    async def update_user_password(self, user_id: int, password_hash: str) -> bool:
+        async with self.connector.get_connection() as conn:
+            await conn.execute(
+                "UPDATE users SET password_hash=? WHERE id=?",
+                (password_hash, user_id),
+            )
+            await conn.commit()
+            return True
 
     async def list_conversations_for_user(self, user_id: int) -> list[dict]:
         async with self.connector.get_connection() as conn:

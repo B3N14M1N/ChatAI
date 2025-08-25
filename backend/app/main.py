@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Response, Form, File, UploadFile, Depends
+from pydantic import BaseModel
 
 from app.db.connector import DatabaseConnector
 from app.db.initializer import DatabaseInitializer
@@ -224,6 +225,51 @@ async def get_password_requirements():
 @app.get("/users/me")
 async def read_users_me(current_user=Depends(get_current_user)):
     return current_user
+
+
+class UpdateMePayload(BaseModel):
+    email: Optional[str] = None
+    display_name: Optional[str] = None
+
+
+class ChangePasswordPayload(BaseModel):
+    current_password: str
+    new_password: str
+
+
+@app.put("/users/me")
+async def update_me(payload: UpdateMePayload, current_user=Depends(get_current_user)):
+    crud = app.state.repo.crud
+    # If email changes, ensure uniqueness
+    new_email = payload.email
+    if new_email and new_email != current_user.get("email"):
+        exists = await crud.get_user_by_email(new_email)
+        if exists:
+            raise HTTPException(status_code=400, detail="Email already registered")
+    updated = await crud.update_user(current_user["id"], email=new_email, display_name=payload.display_name)
+    if not updated:
+        raise HTTPException(400, "Failed to update profile")
+    # Return refreshed user
+    user_row = await crud.get_user(current_user["id"])
+    return user_row
+
+
+@app.put("/users/me/password")
+async def change_password(payload: ChangePasswordPayload, current_user=Depends(get_current_user)):
+    crud = app.state.repo.crud
+    # Load full user with password hash
+    full = await crud.get_user_with_hash(current_user["id"]) 
+    if not full or not verify_password(payload.current_password, full.get("password_hash")):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    # Optional: validate new password strength using PasswordValidator
+    pw_check = PasswordValidator.validate_password(payload.new_password)
+    if not pw_check.is_valid:
+        raise HTTPException(status_code=400, detail=pw_check.errors[0])
+    new_hash = get_password_hash(payload.new_password)
+    ok = await crud.update_user_password(current_user["id"], new_hash)
+    if not ok:
+        raise HTTPException(400, detail="Failed to change password")
+    return {"detail": "Password changed"}
 
 
 @app.put("/conversations/{conversation_id}/rename")
