@@ -18,6 +18,7 @@ A glassy, responsive chat UI with authentication, theming, and conversation mana
   - Usage breakdown dropdown for message costs and tokens
   - Attach files when sending messages
   - “Models” dropdown for choosing the chat model
+  - Profanity handling UX: messages flagged by the backend appear subdued and include a subtle “removed by system” note; the first profane message in a brand-new chat is blocked before creation
 - API helper
   - `src/lib/api.ts` prefixes API requests with `/api` by default (Vite proxy)
   - Automatically adds `Authorization: Bearer <token>` header from localStorage
@@ -67,7 +68,7 @@ npm run dev
 
 The app will be available at http://localhost:5173. During development, requests to `/api/*` are proxied to the backend at `http://127.0.0.1:8000`.
 
-Backend must be running with the JWT secret configured (see backend README or `JWT_SECRET_KEY`).
+Backend must be running and configured via `.env` (copy `backend/.env.example` to `backend/.env` and set values such as `JWT_SECRET_KEY`). See the backend README for details.
 
 ## Build and preview
 
@@ -106,6 +107,9 @@ The frontend calls the following backend endpoints:
   - `GET /chat/messages/{messageId}/usage-details` — usage breakdown for a message
   - `GET /models` — available model list
 
+Notes:
+- When a first message in a new chat is rejected by profanity checks, the backend returns a response with `conversation_id`, `request_message_id`, and `response_message_id` as `null`, and no conversation is created. Subsequent non-profane messages work as normal.
+
 All requests go through `api.ts` which attaches the `Authorization` header when a token is present.
 
 ## Troubleshooting
@@ -118,6 +122,9 @@ All requests go through `api.ts` which attaches the `Authorization` header when 
 
 - 401s on conversations or chat
   - Confirm you are logged in and a valid `authToken` exists in localStorage. All requests should include the `Authorization` header automatically via `api.ts`.
+
+- No conversation created after sending the first message
+  - If the message was flagged by profanity checks, the backend intentionally does not create a conversation and returns `null` IDs. Try again with non-profane content.
 
 ## Scripts
 

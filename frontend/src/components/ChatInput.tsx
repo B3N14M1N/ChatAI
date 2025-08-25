@@ -50,6 +50,16 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
     }).catch(console.error);
   }, []);
 
+  // Keep focus on the textarea initially and whenever loading finishes
+  useEffect(() => {
+    if (!loading) {
+      textareaRef.current?.focus();
+    }
+  }, [loading]);
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
+
   // helper for sending current text
   const sendText = async () => {
     const trimmed = inputText.trim();
@@ -63,6 +73,8 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
     setAttachments([]);
     // Clear file input to allow re-adding
     if (fileInputRef.current) fileInputRef.current.value = '';
+  // Restore focus so the user can continue typing immediately
+  textareaRef.current?.focus();
   };
   // submit via form
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -123,8 +135,8 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
         value={inputText}
         onChange={e => setInputText(e.target.value)}
         placeholder="Type your message..."
-        disabled={loading}
-        style={{ height: `${inputHeight}px` }}
+  disabled={loading}
+  style={{ height: `${inputHeight}px` }}
         onKeyDown={e => {
           // on desktop, Enter sends message; Shift+Enter newline
           if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 768) {
@@ -140,6 +152,7 @@ const ChatInput: FC<ChatInputProps> = ({ loading, handleSend, onHeightChange, mi
             type="button"
             className="attach-btn"
             onClick={() => fileInputRef.current?.click()}
+            disabled={loading}
             aria-label="Attach files"
           >
             <FaPaperclip />

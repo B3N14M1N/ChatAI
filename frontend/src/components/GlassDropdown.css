@@ -148,3 +148,11 @@
   background: rgba(241, 245, 249, 0.95);
   border-color: rgba(203, 213, 225, 0.8);
 }
+
+/* Auto-compact dropdown when inside a compact ChatPane */
+.chat-pane.compact .glass-dropdown {
+  width: 6rem;
+  padding: 6px 10px;
+  height: 32px;
+  font-size: 0.85rem;
+}

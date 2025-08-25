@@ -5,12 +5,15 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import MetricsDisplay from "./MetricsDisplay";
 import "./MessageBubble.css";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface MessageBubbleProps {
   msg: Message;
 }
 
 const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const sender = getSender(msg);
   const displayText = getDisplayText(msg);
 
@@ -24,16 +27,53 @@ const MessageBubble: FC<MessageBubbleProps> = ({ msg }) => {
     ? "now"
     : new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+  const ignored = msg.ignored === 1 || msg.ignored === (true as unknown as number);
   return (
-    <div className={`message ${sender}`}>
+    <div className={`message ${sender} ${ignored ? 'ignored' : ''}`}>
       {/* Timestamp above (user only) */}
       {sender === "user" && (
         <div className="timestamp">{timeLabel}</div>
       )}
-      <div className="bubble">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+  <div className="bubble">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            a: ({ href, children, ...props }) => {
+              const h = href || "";
+              if (h.startsWith("/library?")) {
+                const url = new URL(h, window.location.origin);
+                const title = url.searchParams.get("select") || "";
+                return (
+                  <a
+                    {...props}
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // Preserve chat id in query if present
+                      const currentId = searchParams.get("id");
+                      const qs = new URLSearchParams();
+                      if (currentId) qs.set("id", currentId);
+                      qs.set("select", title);
+                      navigate({ pathname: "/library", search: `?${qs.toString()}` });
+                    }}
+                  >
+                    {children}
+                  </a>
+                );
+              }
+              // default link
+              return <a href={h} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
+            },
+          }}
+        >
           {displayText}
         </ReactMarkdown>
+        {/* Subtle system note for ignored user messages */}
+        {ignored && sender === 'user' && (
+          <div className="bubble-footer system-note">
+            This message was removed by the system
+          </div>
+        )}
         {/* Render user attachments in footer */}
         {msg.attachments && msg.attachments.length > 0 && sender === 'user' && (
           <div className="bubble-footer attachments-footer">

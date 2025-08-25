@@ -1,0 +1,131 @@
+.wizard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(2px);
+}
+
+.wizard-card {
+  width: min(980px, 92vw);
+  max-height: 88vh;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--glass-border, rgba(255,255,255,0.2));
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.wizard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--glass-border, rgba(255,255,255,0.2));
+}
+.wizard-title { font-weight: 600; font-size: 1.1rem; }
+
+.wizard-tabs { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--glass-border); }
+.tab-btn {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+}
+.tab-btn:hover { background: var(--color-surface-hover); color: var(--color-text-primary); }
+.tab-btn.active { background: var(--color-surface-hover); border-color: var(--color-border-hover); }
+
+.wizard-body { padding: 12px 16px; overflow: auto; color: var(--color-text-primary); }
+.wizard-footer { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--glass-border); justify-content: flex-end; }
+
+.grid.two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid .span-2 { grid-column: span 2; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { opacity: 0.9; font-size: 0.9rem; color: var(--color-text-secondary); }
+.form-group .hint { opacity: 0.7; font-size: 0.8rem; margin-top: 6px; }
+.form-control { background: var(--input-bg); color: var(--input-text); border: 1px solid var(--color-border); border-radius: 8px; padding: 8px 10px; }
+.form-control.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+/* Dark-theme / wizard specific fixes to avoid white focus backgrounds and unreadable text */
+.wizard-card .form-control,
+.wizard-card input,
+.wizard-card textarea,
+.wizard-card select {
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  color: var(--color-text-primary);
+  border: 1px solid var(--glass-border);
+  outline: none;
+  box-shadow: none;
+}
+
+.wizard-card .form-control::placeholder,
+.wizard-card input::placeholder,
+.wizard-card textarea::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 1;
+}
+
+.wizard-card .form-control:focus,
+.wizard-card input:focus,
+.wizard-card textarea:focus,
+.wizard-card select:focus {
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--glass-border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-text-primary);
+}
+
+/* Prevent webkit autofill from forcing white background */
+.wizard-card input:-webkit-autofill,
+.wizard-card textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-surface) 92%, transparent) inset !important;
+  box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-surface) 92%, transparent) inset !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+}
+
+/* Style file input button to match theme */
+.wizard-card input[type="file"] {
+  color: var(--color-text-primary);
+}
+.wizard-card input[type="file"]::file-selector-button {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--glass-border);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.wizard-card input[type="file"]::file-selector-button:hover {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+.wizard-card input[type="file"]::file-selector-button:focus,
+.wizard-card input[type="file"]::file-selector-button:active {
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+/* JSON paste area - monospace and matching background */
+.wizard-card .form-control.mono,
+.wizard-card textarea.mono,
+.wizard-card .form-control.mono.json,
+.wizard-card textarea.json {
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: var(--color-text-primary);
+}
+
+.file-preview { margin-top: 8px; border: 1px dashed var(--glass-border); border-radius: 8px; padding: 8px; }
+.file-preview-title { font-weight: 600; margin-bottom: 6px; }
+
+@media (max-width: 800px) {
+  .grid.two-cols { grid-template-columns: 1fr; }
+  .grid .span-2 { grid-column: span 1; }
+}

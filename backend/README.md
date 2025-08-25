@@ -15,6 +15,7 @@ FastAPI backend powering the ChatAI application: authentication (JWT), user-scop
 	- Handles user messages, creates conversations, records usage details
 	- Optional file attachments stored and downloadable
 	- Pricing/usage summary via `GET /chat/messages/{message_id}/usage-details` and conversation-wide variant
+	- Profanity filtering: first profane message in a new chat is ignored without creating a conversation; profane messages in existing chats are saved with `ignored=1` and do not trigger an LLM call
 - Models catalog
 	- `GET /models` returns available chat models derived from `data/pricing_data.json`
 - Caching and context
@@ -59,29 +60,30 @@ backend/
 
 1) Create and activate a Python environment (3.12+ recommended).
 
+```powershell
+cd backend
+python -m venv .venv
+./venv/Scripts/activate
+```
+
 2) Install dependencies:
 
 ```powershell
-cd backend
 pip install -r requirements.txt
 ```
 
-3) Set environment variables (PowerShell example):
+3) Configure environment variables via `.env`:
 
-```powershell
-$env:JWT_SECRET_KEY = "replace_with_a_secure_random_value"
-# Optional overrides
-# $env:JWT_ALGORITHM = "HS256"
-# $env:JWT_ACCESS_TOKEN_MINUTES = "1440" # 24h
-```
+- Copy `.env.example` to `.env` and adjust values as needed (JWT secret, OpenAI key, etc.).
+	The app will read from `.env` on startup.
 
 4) Start the server:
 
 ```powershell
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload
 ```
 
-The database will be created on first run at `backend/data/app.db` with PRAGMA foreign_keys enabled.
+The database will be created on first run at `./app.db`.
 
 ## Database schema (high-level)
 
@@ -96,7 +98,7 @@ The database will be created on first run at `backend/data/app.db` with PRAGMA f
 - usage_details
 	- id (PK), message_id (FK), scope, model, input_tokens, output_tokens, cached_tokens, price
 
-Initializer creates tables if they don’t exist. To reset locally, stop the server and remove `backend/data/app.db`.
+Initializer creates tables if they don’t exist. To reset locally, stop the server and remove `./app.db`.
 
 ## Authentication
 
@@ -129,7 +131,9 @@ Initializer creates tables if they don’t exist. To reset locally, stop the ser
 		- `model` (str, optional; default `gpt-4.1-nano`)
 		- `conversation_id` (int, optional; omitted for new conversation)
 		- `files` (file[], optional)
-	- Returns: `{ conversation_id, request_message_id, response_message_id, answer }`
+	- Returns: `{ conversation_id?, request_message_id?, response_message_id?, answer? }`
+	  - If the first message of a new chat is profane, no conversation/message is created and all fields may be null.
+	  - If a profane message is sent in an existing conversation, the user message is saved with `ignored=1`, no assistant response is created, and `response_message_id`/`answer` are null.
 - Message usage details: `GET /chat/messages/{message_id}/usage-details`
 	- Returns usage details for a specific message
 - Conversation usage details: `GET /chat/{conversation_id}/usage-details`
@@ -148,6 +152,10 @@ Initializer creates tables if they don’t exist. To reset locally, stop the ser
 - Ownership checks: most conversation routes accept the user via `Depends(get_current_user)` and validate access in the repository layer.
 - The app stores attachments and blobs in SQLite for simplicity. For large files or production, switch to external storage.
 - The RAG service (`rag.py`) reads from `data/books.json`. Replace or extend as needed.
+- Profanity & context:
+	- The pipeline pre-checks for profanity before creating a new conversation. If detected, it short-circuits without any DB writes.
+	- In existing conversations, profane user messages are persisted and flagged `ignored=1` (soft removed) and no LLM call is made.
+	- The context builder (`services/context.py`) excludes ignored messages to ensure they are never included in prompts.
 
 ## Troubleshooting
 

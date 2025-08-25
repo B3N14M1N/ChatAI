@@ -145,6 +145,11 @@
   transform: translateY(-1px);
 }
 
+.attach-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Group attach and model select */
 .left-controls {
   display: flex;
@@ -165,6 +170,12 @@
   color: var(--color-text-primary);
   font-family: inherit;
   transition: all 0.2s ease;
+}
+
+.chat-textarea:disabled {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .chat-textarea::placeholder {

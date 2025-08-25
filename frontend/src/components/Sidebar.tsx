@@ -18,6 +18,8 @@ interface SidebarProps {
   onRename: (id: number, newTitle: string) => void;
   collapsed: boolean;
   onToggle: () => void;
+  onAccount?: () => void;
+  onLibrary?: () => void;
 }
 
 const Sidebar: FC<SidebarProps> = ({
@@ -29,6 +31,8 @@ const Sidebar: FC<SidebarProps> = ({
   collapsed,
   onToggle,
   onRename,
+  onAccount,
+  onLibrary,
 }) => (
   <>
     {/* Lock body scroll when sidebar is open on small screens */}
@@ -41,7 +45,7 @@ const Sidebar: FC<SidebarProps> = ({
 
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       <SidebarHeader collapsed={collapsed} onToggle={onToggle} />
-      <SidebarMenu collapsed={collapsed} onCreate={onCreate} />
+  <SidebarMenu collapsed={collapsed} onCreate={onCreate} onAccount={onAccount} onLibrary={onLibrary} />
       <hr />
       {!collapsed && (
         <ul className="conversations-list">

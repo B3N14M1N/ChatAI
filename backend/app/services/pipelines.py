@@ -2,7 +2,9 @@ from __future__ import annotations
 from typing import Optional, List, Dict, Any
 
 from ..db.repository import Repository
+from urllib.parse import quote_plus
 from ..models.schemas import MessageCreate, UsageDetailCreate
+from .profanity import ProfanityFilter
 from .cache import TTLCache
 from .pricing import PricingService
 from .openai_gateway import OpenAIGateway, OpenAIUsage
@@ -75,6 +77,18 @@ class ChatPipeline:
         6) Persist assistant message with usage+price
         """
         title_usage = None  # silence type checker reuse
+
+        # 0) Profanity pre-check: if profane and no existing conversation, short-circuit without persisting anything
+        if ProfanityFilter.contains_profanity(user_text):
+            if conversation_id is None:
+                return {
+                    "conversation_id": None,
+                    "request_message_id": None,
+                    "response_message_id": None,
+                    "answer": None,
+                    "context_need": "none",
+                    "usage": {"input_tokens": 0, "output_tokens": 0, "cached_tokens": 0, "model": model, "price": 0.0},
+                }
         # 1) Conversation bootstrap
         if conversation_id is None:
             title, title_usage = self.oa.generate_title(user_text)
@@ -109,6 +123,19 @@ class ChatPipeline:
         )
         await self._invalidate_context_cache(conversation_id)
 
+        # 2.5) Profanity check: if profane (existing conversation), mark as ignored and skip LLM
+        if ProfanityFilter.contains_profanity(user_text):
+            # Soft ignore the message by setting ignored flag
+            await self.repo.crud.update_message(user_msg.id, {"ignored": 1})
+            return {
+                "conversation_id": conversation_id,
+                "request_message_id": user_msg.id,
+                "response_message_id": None,
+                "answer": None,
+                "context_need": "none",
+                "usage": {"input_tokens": 0, "output_tokens": 0, "cached_tokens": 0, "model": model, "price": 0.0},
+            }
+
         # 3) Intent detection (context needs only)
         intent, intent_usage = self.oa.detect_intent(user_text)
 
@@ -134,11 +161,28 @@ class ChatPipeline:
         input_messages += resp.output
 
         # Execute function calls if any
+        recommended_titles: list[str] = []
         has_function_calls = False
         for item in resp.output:
             if item.type == "function_call":
                 has_function_calls = True
                 result = await self._execute_function_call(item)
+                # Try to collect titles from known functions for deep-linking
+                try:
+                    import json as _json
+                    data = _json.loads(result)
+                    if item.name == "get_book_recommendations" and isinstance(data.get("recommendations"), list):
+                        for r in data["recommendations"]:
+                            t = (r or {}).get("title")
+                            if t and t not in recommended_titles:
+                                recommended_titles.append(t)
+                    if item.name == "get_book_summaries" and isinstance(data.get("summaries"), list):
+                        for r in data["summaries"]:
+                            t = (r or {}).get("title")
+                            if t and t not in recommended_titles:
+                                recommended_titles.append(t)
+                except Exception:
+                    pass
                 input_messages.append(
                     {
                         "type": "function_call_output",
@@ -170,6 +214,16 @@ class ChatPipeline:
         ans_summary = None
         if len(answer_text) > 600:
             ans_summary, _ = self.oa.summarize(answer_text, max_words=80)
+
+        # 7.5) Append deep links to library for recommended titles (if any)
+        if recommended_titles:
+            try:
+                # Use internal links for SPA routing
+                links = ", ".join([f"[{t}](/library?select={quote_plus(t)})" for t in recommended_titles])
+                suffix = f"\n\nRecommended: {links}"
+                answer_text = f"{answer_text}{suffix}"
+            except Exception:
+                pass
 
         # 8) Persist assistant response (link via request_id=user_msg.id)
         assistant_msg = await self.repo.create_message(

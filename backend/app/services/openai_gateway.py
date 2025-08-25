@@ -4,11 +4,13 @@ from typing import List, Optional, Dict, Any
 from openai import OpenAI
 from pydantic import BaseModel
 from ..models.schemas import IntentEnvelope, TitleEnvelope
+import base64
 
 DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1-nano")
 TITLE_MODEL = os.getenv("OPENAI_TITLE_MODEL", "gpt-4.1-nano")
 INTENT_MODEL = os.getenv("OPENAI_INTENT_MODEL", "gpt-4.1-nano")
 SUMMARY_MODEL = os.getenv("OPENAI_SUMMARY_MODEL", "gpt-4.1-nano")
+IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1")
 
 
 class OpenAIUsage(BaseModel):
@@ -115,8 +117,8 @@ class OpenAIGateway:
     ) -> tuple[str, OpenAIUsage]:
         system_prompt = (
             "You are a book recommendation assistant. "
-            "Only rely on tool_data for catalog facts. "
-            "If tool_data shows no matches, say 'No matches found' and offer alternatives."
+            "Only use information from the conversation messages and tool_data; do not use outside knowledge. "
+            "If tool_data shows no matches, say 'No matches found'."
         )
         messages = [{"role": "system", "content": system_prompt}]
         messages.extend(compact_context)
@@ -142,6 +144,45 @@ class OpenAIGateway:
             model=model,
         )
         return text, usage
+
+    # 8) Generate a book cover image from work metadata using Images API
+    def generate_cover_image_bytes(
+        self,
+        *,
+        title: str,
+        author: str | None,
+        short_summary: str | None,
+        full_summary: str | None,
+        size: str = "1024x1024",
+        quality: str = "high",
+        background: str = "auto",
+    ) -> bytes:
+        # Craft a concise, safe prompt
+        prompt_parts = [
+            f"Design a cinematic, text-free book cover illustration.",
+            f"Title: {title}",
+        ]
+        if author:
+            prompt_parts.append(f"Author: {author}")
+        if short_summary:
+            prompt_parts.append(f"Short summary: {short_summary}")
+        elif full_summary:
+            prompt_parts.append(f"Summary: {full_summary[:500]}")
+        prompt_parts.append(
+            "Do not include any text or typography. Focus on imagery and mood that reflects the story's key themes."
+        )
+        prompt = "\n".join(prompt_parts)
+
+        resp = self.client.images.generate(
+            model=IMAGE_MODEL,
+            prompt=prompt,
+            size=size,
+            quality=quality,
+            background=background,
+        )
+        # New SDK returns base64 in data[0].b64_json
+        b64 = resp.data[0].b64_json
+        return base64.b64decode(b64)
 
     # 5) Tools definitions for function calling
     def get_tools_definition(self) -> List[Dict[str, Any]]:
@@ -219,6 +260,7 @@ class OpenAIGateway:
         """
         system_prompt = (
             "You are a book recommendation assistant. "
+            "Only use information found in the conversation messages or tool results; if it's not there, say you don't have that information. "
             "Use 'content' parameter for ANY book description - genres, themes, plot elements, time periods, etc. "
             "Only use 'authors' for specific author names. "
             "IMPORTANT: Use 'exclude_titles' when user asks for 'another one', 'something else', 'different book', or wants to avoid books already mentioned in the conversation. "
@@ -269,6 +311,7 @@ class OpenAIGateway:
                 "role": "system",
                 "content": (
                     "You are a book recommendation assistant with access to a specific book database. "
+                    "Only use information from the conversation messages and tool results; if it's not present, say you don't have it. "
                     "ONLY recommend books from the tool results provided - NEVER suggest books not in the results. "
                     "NEVER mention internal processes like 'I retrieved', 'I searched', 'I pulled up', 'the tool returned', etc. "
                     "If the tool results don't contain suitable books for the user's request, simply say 'I don't have any books in my collection that match your criteria.' "
@@ -286,7 +329,7 @@ class OpenAIGateway:
             model=model,
             tools=tools,
             input=final_messages,
-            max_output_tokens=max_output_tokens,
+            max_output_tokens=max_output_tokens
         )
 
         text = resp.output_text.strip()

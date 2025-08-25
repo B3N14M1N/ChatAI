@@ -1,0 +1,203 @@
+.library-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto; /* take remaining space next to sidebar */
+  min-height: 0;   /* allow inner overflow-y to work in flex layout */
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  padding: 16px;
+  /* Allow the library view to scroll within the app container */
+  overflow-y: auto;
+  /* Match scrollbar look & feel from chat input */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  /* Fixed heights for card sections */
+  --book-card-header-h: 48px;
+  --book-card-body-h: 300px;
+  --book-card-footer-h: 42px;
+}
+
+.library-header { margin-bottom: 8px; }
+.library-header-actions { margin-left: auto; }
+.library-header-row { display: flex; align-items: center; gap: 8px; }
+/* Ensure description is readable in dark theme */
+.library-header .text-muted { color: var(--color-text-secondary) !important; }
+
+.library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.book-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-card-header { margin-bottom: 6px; height: var(--book-card-header-h); display:flex; align-items:center; justify-content:center; }
+.book-card-header-row { position: relative; width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+.header-spacer { justify-self: start; }
+.icon-btn { background: var(--color-surface); border: 1px solid var(--glass-border); color: var(--color-text-secondary); border-radius: 8px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; transition: background 120ms ease, color 120ms ease, border-color 120ms ease; }
+.icon-btn:hover { background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--color-text-primary); border-color: color-mix(in srgb, var(--color-primary) 40%, var(--glass-border)); }
+.edit-btn { justify-self: end; }
+.book-title { margin: 0; font-size: 16px; text-align:center; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.book-title.centered { text-align: center; }
+
+.book-card-body { flex: 1; }
+.book-card-body.fixed-h { height: var(--book-card-body-h); overflow: hidden; }
+.book-body-grid { display: grid; grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: 10px; height: 100%; }
+
+/* Two-column on wider cards */
+@media (min-width: 360px) {
+  .book-body-grid { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+}
+/* Keep vertical layout (text over image) across sizes for consistency */
+
+.book-summary-wrap { overflow: hidden; }
+.book-summary { margin: 0; color: var(--color-text-secondary); font-size: 14px; text-align: justify; display: -webkit-box; -webkit-line-clamp: 6; line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.book-summary.justified { text-align: justify; }
+
+.book-image-wrap { display: flex; align-items: center; justify-content: center; min-height: 0; }
+
+.book-card-footer { margin-top: 10px; display: flex; justify-content: space-between; height: var(--book-card-footer-h); align-items: center; }
+.book-card-footer.fixed-h { height: var(--book-card-footer-h); }
+.book-footer-left { display:flex; gap: 8px; }
+.book-footer-right { display:flex; gap: 8px; margin-left: auto; }
+
+/* Softer tag styling for dark theme */
+.book-tags { margin-bottom: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--glass-border); }
+.tag-genre { background: color-mix(in srgb, var(--color-primary) 14%, transparent); color: var(--color-text-primary); }
+.tag-theme { background: color-mix(in srgb, var(--color-success, #2ecc71) 14%, transparent); color: var(--color-text-primary); }
+
+/* Add Work card styles (reuses book-card visuals) */
+.add-work-card .book-card-body { position: relative; }
+.add-work-body { height: 100%; display: flex; align-items: center; justify-content: center; }
+.add-work-button {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 32px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+.add-work-button:hover { transform: scale(1.06); }
+.add-work-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 70%, transparent);
+  border-radius: 50%;
+}
+
+/* Wide search bar with left search icon and embedded filter button */
+.library-searchbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 92%, transparent), color-mix(in srgb, var(--color-surface) 86%, transparent));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 70%, transparent);
+  border-radius: 20px;
+  padding: 8px 12px;
+  min-width: 640px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+/* Theme-aware modern magnifier using CSS mask */
+.library-searchbar .search-icon {
+  width: 18px; height: 18px;
+  margin-left: 4px;
+  background-color: var(--color-text-primary);
+  opacity: 0.85;
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat center / contain;
+          mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat center / contain;
+}
+
+/* Modern filter button (funnel icon) */
+.library-searchbar .filter-btn {
+  width: 28px; height: 28px; cursor: pointer; position: relative; background: transparent; border: none; padding: 0;
+}
+.library-searchbar .filter-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  margin: auto;
+  width: 16px; height: 16px;
+  background-color: var(--color-text-primary);
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12 10 19 14 21 14 12 22 3"/></svg>') no-repeat center / contain;
+          mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12 10 19 14 21 14 12 22 3"/></svg>') no-repeat center / contain;
+}
+.library-searchbar .filter-btn:hover::before { opacity: 0.85; }
+
+.library-searchbar .form-control {
+  border: none !important; outline: none !important; box-shadow: none !important; background: transparent; min-width: 360px; color: var(--color-text-primary);
+}
+.library-searchbar .form-control::placeholder { color: var(--color-text-secondary); }
+.library-searchbar .form-control:focus { outline: none; box-shadow: none; }
+.filters-below { margin-top: 10px; display:flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-start; width: min(100%, 1200px); margin-left: auto; margin-right: auto; min-height: 36px; }
+
+/* Make the book card edit button an icon-only with circular highlight */
+.book-card .icon-btn { background: transparent; border: none; color: var(--color-text-secondary); border-radius: 999px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; transition: background 120ms ease, color 120ms ease, transform 120ms ease; }
+.book-card .icon-btn:hover { background: color-mix(in srgb, var(--color-text-primary) 10%, transparent); color: var(--color-text-primary); }
+.book-card .icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 50%, transparent); }
+
+/* Vertical container for search + filters */
+.search-and-filters { display:flex; flex-direction: column; align-items: stretch; }
+
+/* Inline pills for currently active filters (kept subtle but readable in dark) */
+.inline-filter-pills { display:flex; gap:6px; flex-wrap:wrap; margin-left: auto; align-items: center; }
+.pill { font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--glass-border); color: var(--color-text-primary); background: var(--glass-bg); }
+.pill-genre { background: color-mix(in srgb, var(--color-primary) 16%, transparent); }
+.pill-theme { background: color-mix(in srgb, var(--color-success, #2ecc71) 16%, transparent); }
+.pill-author { background: color-mix(in srgb, #198754 16%, transparent); }
+.pill-year { background: color-mix(in srgb, #d63384 16%, transparent); }
+
+/* Removable pill variant with hover X */
+.pill.removable { position: relative; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border-radius: 999px; border: 1px solid var(--glass-border); }
+.pill.removable .pill-text { pointer-events: none; }
+.pill.removable .pill-x { width: 12px; height: 12px; background-color: var(--color-text-primary); opacity: 0.65; -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>') no-repeat center / contain; mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>') no-repeat center / contain; }
+.pill.removable:hover .pill-x { opacity: 1; }
+
+/* Custom scrollbar styling (reuse from chat input) */
+.library-page::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.library-page::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 12px;
+}
+
+.library-page::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.12s ease;
+}
+
+.library-page::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.library-page::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-hover);
+}

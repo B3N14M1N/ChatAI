@@ -1,0 +1,30 @@
+.filter-overlay {
+  position: fixed;
+  z-index: 1200;
+  min-width: 280px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 96%, transparent), color-mix(in srgb, var(--color-surface) 88%, transparent));
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.28);
+  padding: 16px 12px 12px 12px; /* extra top padding for close button space */
+  border-radius: 12px;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: var(--color-text-primary);
+}
+.filter-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.filter-row label { font-size: 12px; color: var(--color-text-secondary); }
+.filter-row .input-add { display:flex; gap:8px; }
+.filter-row input { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--glass-border); background: color-mix(in srgb, var(--color-surface) 96%, transparent); color: var(--color-text-primary); }
+.add-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--color-primary) 30%, var(--glass-border)); background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-text-primary); cursor: pointer; }
+.add-btn:hover { background: color-mix(in srgb, var(--color-primary) 18%, transparent); }
+.filter-actions { display:flex; gap:8px; align-items:center; margin-top:6px; }
+
+/* Close button (top-right) with mask icon */
+.overlay-close-btn { position:absolute; top:8px; right:8px; width:28px; height:28px; border-radius:999px; border: none; background: transparent; cursor:pointer; }
+.overlay-close-btn::before { content:''; position:absolute; inset:0; margin:auto; width:14px; height:14px; background-color: var(--color-text-primary); -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>') no-repeat center/contain; mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>') no-repeat center/contain; }
+.overlay-close-btn:hover { background: color-mix(in srgb, var(--color-text-primary) 10%, transparent); }

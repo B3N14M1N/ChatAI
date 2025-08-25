@@ -3,10 +3,16 @@ import { apiFetch, fetchJson } from "./lib/api";
 import "./App.css";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
+import ChatPane from "./components/ChatPane.tsx";
+import FloatingChatBubble from "./components/FloatingChatBubble.tsx";
+import ProfilePage from "./pages/ProfilePage.tsx";
+import LibraryPage from "./pages/LibraryPage.tsx";
 import type { Conversation, Message } from "./types";
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 const App: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const idParam = searchParams.get('id');
 
@@ -34,6 +40,32 @@ const App: React.FC = () => {
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showFloatingChat, setShowFloatingChat] = useState<boolean>(true);
+  const [chatMinimized, setChatMinimized] = useState<boolean>(() => {
+    try { return localStorage.getItem('chat.floating.minimized') === 'true'; } catch { return false; }
+  });
+  const [bubblePos, setBubblePos] = useState<{ x: number; y: number }>(() => {
+    try {
+      const raw = localStorage.getItem('chat.floating.bubble.pos');
+      if (raw) {
+        const p = JSON.parse(raw) as { x: number; y: number };
+        const vw = window.innerWidth, vh = window.innerHeight; const bw = 64, bh = 64; const margin = 8;
+        return { x: Math.max(margin, Math.min(vw - bw - margin, p.x)), y: Math.max(margin, Math.min(vh - bh - margin, p.y)) };
+      }
+    } catch {}
+    // Default to top-right corner with a small margin
+    const margin = 16;
+    const bw = 64;
+    return { x: Math.max(margin, window.innerWidth - bw - margin), y: margin };
+  });
+
+  // Persist minimized and bubble position
+  useEffect(() => {
+    try { localStorage.setItem('chat.floating.minimized', chatMinimized ? 'true' : 'false'); } catch {}
+  }, [chatMinimized]);
+  useEffect(() => {
+    try { localStorage.setItem('chat.floating.bubble.pos', JSON.stringify(bubblePos)); } catch {}
+  }, [bubblePos]);
 
   // Function to select and load messages for a conversation
   async function selectConversation(conv: Conversation): Promise<void> {
@@ -61,8 +93,14 @@ const App: React.FC = () => {
     };
     loadConvos();
   }, []);
+
+  // Note: Do not auto-redirect away from /account. Selecting a conversation triggers
+  // an explicit navigate('/') with the id, handled in onSelect above.
   // Sync selection or new-chat when idParam changes
   useEffect(() => {
+    // Don't manage chat selection when on the Library page,
+    // to avoid clobbering query params like `select`.
+    if (location.pathname.startsWith('/library')) return;
     if (conversations.length === 0) return;
     // if no idParam, redirect to new conversation
     if (!searchParams.has('id')) {
@@ -83,11 +121,23 @@ const App: React.FC = () => {
       setSearchParams({ id: conv.id.toString() }, { replace: true });
     }
     selectConversation(conv);
-  }, [conversations, idParam, collapsed]);
+  }, [conversations, idParam, collapsed, location.pathname]);
 
   // Start a blank chat, will create on first message
   const createConversation = () => {
-    setSearchParams({ id: 'new' });
+    navigate({ pathname: '/', search: '?id=new' });
+  };
+
+  // Start a new conversation but keep/use the floating chat (don't navigate away)
+  const startNewFloatingConversation = () => {
+    try {
+      // set query to new to make App effect clear selection
+      setSearchParams({ id: 'new' });
+    } catch {}
+    setSelectedConv(null);
+    setMessages([]);
+    setShowFloatingChat(true);
+    setChatMinimized(false);
   };
 
   // Rename a conversation
@@ -162,7 +212,7 @@ const App: React.FC = () => {
       }
   const res = await apiFetch('/chat/', { method: 'POST', body: form });
   if (!res.ok) throw new Error(await res.text());
-  const data: { conversation_id: number; request_message_id: number; response_message_id: number; answer: string } = await res.json();
+  const data: { conversation_id: number; request_message_id: number; response_message_id?: number | null; answer?: string | null } = await res.json();
       // On first message, select the new conversation
       let convId = selectedConv?.id || data.conversation_id;
       if (!selectedConv) {
@@ -175,7 +225,7 @@ const App: React.FC = () => {
           convId = newConv.id;
         }
       }
-      // Reload full conversation messages to include attachments
+  // Reload full conversation messages to include attachments and reflect ignored flags
       if (convId != null) {
         const msgsRes = await fetchJson<{ conversation_id: number; messages: Message[] }>(
           `/conversations/${convId}/messages`
@@ -189,25 +239,95 @@ const App: React.FC = () => {
     }
   };
 
+  // Ensure floating chat is shown when navigating to /library (fix for missing bubble after docking)
+  useEffect(() => {
+    if (location.pathname.startsWith('/library')) {
+      setShowFloatingChat(true);
+  // On Library, keep chat minimized so content stays in focus
+  setChatMinimized(true);
+    }
+  }, [location.pathname]);
+
   return (
       <div className="app-container">
         <Sidebar
           conversations={conversations}
           selectedId={selectedConv?.id ?? null}
-          onSelect={conv => setSearchParams({ id: conv.id.toString() })}
+          onSelect={conv => {
+            navigate({ pathname: '/', search: `?id=${conv.id}` });
+          }}
           onCreate={createConversation}
           onDelete={deleteConversation}
           onRename={renameConversation}
           collapsed={collapsed}
           onToggle={toggleCollapsed}
+          onAccount={() => navigate('/account')}
+          onLibrary={() => navigate({ pathname: '/library', search: selectedConv ? `?id=${selectedConv.id}` : location.search })}
         />
-        <ChatArea
-          key={selectedConv?.id ?? 'new'}
-          messages={messages}
-          loading={loading}
-          handleSend={handleSend}
-        />
+
+  {/* Right-side content area router: show ProfilePage when on /account, otherwise chat */}
+  {location.pathname.startsWith('/account') ? (
+          // Account: hide chat completely
+          <ProfilePage />
+        ) : location.pathname.startsWith('/library') ? (
+          // Library: show page and a minimized floating chat
+          <>
+            <LibraryPage />
+            {/* Separate bubble appears only when chat is minimized (and floating visible) */}
+      {showFloatingChat && chatMinimized && (
+              <FloatingChatBubble
+                pos={bubblePos}
+                setPos={setBubblePos}
+                onRestore={() => setChatMinimized(false)}
+              />
+            )}
+            {showFloatingChat && !chatMinimized && (
+              <ChatPane
+                floatingDefault={true}
+                enableFloatingToggle={true}
+                hideHeaderWhenDocked={false}
+                title={selectedConv ? `Chat • ${selectedConv.title ?? selectedConv.id}` : 'Chat'}
+                initialSize={{ w: 420, h: 340 }}
+        initialPos={{ x: Math.max(16, window.innerWidth - 460), y: 80 }}
+                minimized={false}
+                onRequestMinimize={() => setChatMinimized(true)}
+                onRequestRestore={() => setChatMinimized(false)}
+                onRequestDock={() => {
+                  const id = selectedConv?.id ?? (searchParams.get('id') ?? 'new');
+                  setShowFloatingChat(false);
+                  setChatMinimized(false);
+                  navigate({ pathname: '/', search: `?id=${id}` });
+                }}
+                onRequestClear={() => startNewFloatingConversation()}
+              >
+                <ChatArea
+                  key={selectedConv?.id ?? 'new'}
+                  messages={messages}
+                  loading={loading}
+                  handleSend={handleSend}
+                />
+              </ChatPane>
+            )}
+          </>
+        ) : (
+          // Default chat view: docked fullscreen chat, no floating toggle
+          <ChatPane enableFloatingToggle={false} onRequestClear={() => startNewFloatingConversation()}>
+            <ChatArea
+              key={selectedConv?.id ?? 'new'}
+              messages={messages}
+              loading={loading}
+              handleSend={handleSend}
+            />
+          </ChatPane>
+        )}
       </div>
   );
 };
 export default App;
+
+// Ensure floating chat is shown when navigating to /library (fix for missing bubble after docking)
+// This runs outside the component body so it picks up location changes via history; keep minimal.
+// NOTE: we intentionally call this here as a micro fix; could be integrated into the component if you prefer.
+try {
+  // noop - keep file-level safe for module hot reload
+} catch {}

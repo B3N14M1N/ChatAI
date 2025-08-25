@@ -6,6 +6,7 @@ ChatAI is a full-stack chat application that uses OpenAI's LLM API to simulate a
 - Model switching and request metrics (tokens & cost)
 - RAG (Retrieval-Augmented Generation) with ChromaDB for enhanced responses
 - Intent detection and conversation context management
+- Profanity-aware pipeline that prevents abusive content from being sent to the LLM and excludes ignored messages from context
 - **Book recommendations** from a curated dataset of classic literature using the RAG system
  - User accounts with JWT authentication (register/login) and user-scoped conversations
  - Glassy UI with theme switching and a collapsible sidebar
@@ -54,11 +55,16 @@ frontend/     React + Vite client
 
 2. Backend (PowerShell):
    ```powershell
+   # Setup
    cd backend
-   python -m venv .venv; .\.venv\Scripts\Activate.ps1
+   python -m venv .venv
+   ./.venv/Scripts/activate
    pip install -r requirements.txt
+
    # JWT secret (required)
    $env:JWT_SECRET_KEY = "replace_with_a_secure_random_value"
+
+   #Run application
    uvicorn app.main:app --reload
    ```
 
@@ -72,3 +78,7 @@ frontend/     React + Vite client
 Open http://localhost:5173 to start chatting and getting book recommendations!
 
 Login/Register at `/auth/login` or `/auth/register`. Once authenticated, conversations and messages are scoped to your account.
+
+### Profanity handling
+- New chat: if the first message contains profanity, the backend discards it and does not create a conversation.
+- Existing chat: if a message contains profanity, it’s saved with an `ignored` flag; no LLM call is made and the UI displays the message in a subdued style. Ignored messages are excluded from the conversation context used by the LLM.

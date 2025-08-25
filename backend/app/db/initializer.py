@@ -22,6 +22,7 @@ class DatabaseInitializer:
                     user_id INTEGER NOT NULL,
                     title TEXT,
                     summary TEXT,
+                    deleted INTEGER NOT NULL DEFAULT 0, -- soft delete flag
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
@@ -33,6 +34,8 @@ class DatabaseInitializer:
                     request_id INTEGER,
                     text TEXT,
                     summary TEXT,
+                    deleted INTEGER NOT NULL DEFAULT 0, -- soft delete flag
+                    ignored INTEGER NOT NULL DEFAULT 0, -- system-ignored (e.g., profanity)
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     input_tokens INTEGER,
                     output_tokens INTEGER,
@@ -65,6 +68,43 @@ class DatabaseInitializer:
                     price REAL NOT NULL DEFAULT 0.0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY(message_id) REFERENCES messages(id) ON DELETE CASCADE
+                );
+
+                -- Works (books) management
+                CREATE TABLE IF NOT EXISTS works (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    author TEXT,
+                    year TEXT,
+                    short_summary TEXT,
+                    full_summary TEXT,
+                    image_url TEXT,
+                    rag_id TEXT, -- id used in Chroma collection
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS tags (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    type TEXT NOT NULL CHECK (type IN ('genre', 'theme')),
+                    UNIQUE(name, type)
+                );
+
+                CREATE TABLE IF NOT EXISTS work_tags (
+                    work_id INTEGER NOT NULL,
+                    tag_id INTEGER NOT NULL,
+                    PRIMARY KEY (work_id, tag_id),
+                    FOREIGN KEY(work_id) REFERENCES works(id) ON DELETE CASCADE,
+                    FOREIGN KEY(tag_id) REFERENCES tags(id) ON DELETE CASCADE
+                );
+
+                -- Work cover images stored as blobs
+                CREATE TABLE IF NOT EXISTS work_images (
+                    work_id INTEGER PRIMARY KEY,
+                    content BLOB NOT NULL,
+                    content_type TEXT NOT NULL DEFAULT 'image/png',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(work_id) REFERENCES works(id) ON DELETE CASCADE
                 );
                 """
             )

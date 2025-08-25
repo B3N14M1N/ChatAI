@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import './AuthPage.css';
 import ChatBackgroundLoop from '../components/ChatBackgroundLoop';
 import AuthOverlay from '../components/AuthOverlay';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { LuEye, LuEyeClosed } from 'react-icons/lu';
 import { useAuth } from '../contexts/AuthContext';
 
 type Mode = 'login' | 'register';
@@ -38,7 +38,32 @@ const AuthPage: React.FC<{ mode?: Mode }> = ({ mode = 'login' }) => {
       }
       window.location.href = '/';
     } catch (err) {
-      setError((err as Error).message || 'Authentication failed');
+      console.error('Authentication error:', err);
+      
+      // Handle different types of errors
+      let errorMessage = 'Authentication failed';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else if (err && typeof err === 'object') {
+        // Handle case where error might be an object
+        errorMessage = JSON.stringify(err);
+      }
+      
+      // Provide user-friendly messages for common errors
+      if (errorMessage.includes('Incorrect username or password')) {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else if (errorMessage.includes('User already exists')) {
+        errorMessage = 'An account with this email already exists. Please try logging in instead.';
+      } else if (errorMessage.includes('validation')) {
+        errorMessage = 'Please check your input and try again.';
+      } else if (errorMessage.includes('Network') || errorMessage.includes('fetch')) {
+        errorMessage = 'Connection error. Please check your internet connection and try again.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -91,7 +116,7 @@ const AuthPage: React.FC<{ mode?: Mode }> = ({ mode = 'login' }) => {
                     aria-pressed={showPassword}
                     onClick={() => setShowPassword(p => !p)}
                   >
-                    {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                    {showPassword ? <LuEyeClosed size={18} /> : <LuEye size={18} />}
                   </button>
                 )}
               </div>
@@ -116,7 +141,7 @@ const AuthPage: React.FC<{ mode?: Mode }> = ({ mode = 'login' }) => {
                       aria-pressed={showConfirm}
                       onClick={() => setShowConfirm(p => !p)}
                     >
-                      {showConfirm ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                      {showConfirm ? <LuEyeClosed size={18} /> : <LuEye size={18} />}
                     </button>
                   )}
                 </div>

@@ -1,0 +1,51 @@
+.details-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+  backdrop-filter: blur(2px);
+}
+
+.details-card {
+  width: min(1100px, 94vw);
+  max-height: 90vh;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--glass-border, rgba(255,255,255,0.2));
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--glass-border);
+}
+.details-title .title-text { font-weight: 700; font-size: 1.15rem; color: var(--color-text-primary); }
+.details-title .subtitle { opacity: 0.9; font-size: 0.9rem; margin-top: 2px; color: var(--color-text-secondary); }
+
+.details-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--glass-border); }
+.tag { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--glass-border); }
+.tag-genre { background: color-mix(in srgb, var(--color-primary) 16%, transparent); color: var(--color-text-primary); }
+.tag-theme { background: color-mix(in srgb, var(--color-success, #2ecc71) 16%, transparent); color: var(--color-text-primary); }
+
+.details-body { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 12px 16px; overflow: auto; }
+.details-body.two-cols { grid-template-columns: 1.4fr 1fr; }
+.details-text { min-width: 0; }
+.full-summary { white-space: pre-wrap; line-height: 1.6; color: var(--color-text-secondary); }
+.details-image { display: flex; align-items: flex-start; justify-content: center; }
+.details-image img { max-width: 100%; max-height: 60vh; border-radius: 8px; border: 1px solid var(--glass-border); object-fit: contain; background: var(--color-bg); }
+
+.details-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--glass-border); }
+
+@media (max-width: 900px) {
+  .details-body.two-cols { grid-template-columns: 1fr; }
+}

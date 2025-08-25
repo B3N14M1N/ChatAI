@@ -109,3 +109,22 @@
   display: flex;
   gap: 0.5rem;
 }
+
+/* Ignored messages (e.g., profanity) appear subdued */
+.message.ignored .bubble {
+  opacity: 0.55;
+  filter: saturate(0.6);
+}
+
+/* Subtle system note for ignored user messages */
+.message .bubble-footer.system-note {
+  justify-content: flex-start;
+  color: var(--color-danger, #e53935); /* strong red with safe fallback */
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* Darker variant in light theme for better contrast */
+[data-theme='light'] .message .bubble-footer.system-note {
+  color: var(--color-danger-light, #b71c1c);
+}
