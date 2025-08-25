@@ -27,6 +27,7 @@ createRoot(document.getElementById('root')!).render(
               {/* Chat routes guarded */}
               <Route path="/conversation/:id" element={isAuthed() ? <App /> : <Navigate to="/auth/login" replace />} />
               <Route path="/account" element={isAuthed() ? <App /> : <Navigate to="/auth/login" replace />} />
+              <Route path="/library" element={isAuthed() ? <App /> : <Navigate to="/auth/login" replace />} />
               <Route path="*" element={<Navigate to={isAuthed() ? '/' : '/auth/login'} replace />} />
             </Routes>
           </BrowserRouter>

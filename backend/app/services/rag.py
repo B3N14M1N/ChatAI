@@ -88,6 +88,21 @@ class BookRAG:
             )
         self.collection.add(ids=ids, documents=docs, metadatas=metas)
 
+    def list_all_metadata(self) -> list[dict]:
+        try:
+            n = self.collection.count()
+            if n == 0:
+                return []
+            res = self.collection.get(include=["metadatas", "ids"], limit=n)
+            out = []
+            for i, md in enumerate(res.get("metadatas", [])):
+                item = dict(md)
+                item["rag_id"] = res.get("ids", [None]*n)[i]
+                out.append(item)
+            return out
+        except Exception:
+            return []
+
     # --- Queries ---
     def recommend(
         self,

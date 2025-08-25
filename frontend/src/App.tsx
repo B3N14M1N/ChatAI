@@ -4,7 +4,9 @@ import "./App.css";
 import Sidebar from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
 import ChatPane from "./components/ChatPane.tsx";
+import FloatingChatBubble from "./components/FloatingChatBubble.tsx";
 import ProfilePage from "./pages/ProfilePage.tsx";
+import LibraryPage from "./pages/LibraryPage.tsx";
 import type { Conversation, Message } from "./types";
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -38,6 +40,29 @@ const App: React.FC = () => {
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showFloatingChat, setShowFloatingChat] = useState<boolean>(true);
+  const [chatMinimized, setChatMinimized] = useState<boolean>(() => {
+    try { return localStorage.getItem('chat.floating.minimized') === 'true'; } catch { return false; }
+  });
+  const [bubblePos, setBubblePos] = useState<{ x: number; y: number }>(() => {
+    try {
+      const raw = localStorage.getItem('chat.floating.bubble.pos');
+      if (raw) {
+        const p = JSON.parse(raw) as { x: number; y: number };
+        const vw = window.innerWidth, vh = window.innerHeight; const bw = 64, bh = 64; const margin = 8;
+        return { x: Math.max(margin, Math.min(vw - bw - margin, p.x)), y: Math.max(margin, Math.min(vh - bh - margin, p.y)) };
+      }
+    } catch {}
+    return { x: Math.max(16, window.innerWidth - 100), y: Math.max(16, 80) };
+  });
+
+  // Persist minimized and bubble position
+  useEffect(() => {
+    try { localStorage.setItem('chat.floating.minimized', chatMinimized ? 'true' : 'false'); } catch {}
+  }, [chatMinimized]);
+  useEffect(() => {
+    try { localStorage.setItem('chat.floating.bubble.pos', JSON.stringify(bubblePos)); } catch {}
+  }, [bubblePos]);
 
   // Function to select and load messages for a conversation
   async function selectConversation(conv: Conversation): Promise<void> {
@@ -95,6 +120,18 @@ const App: React.FC = () => {
   // Start a blank chat, will create on first message
   const createConversation = () => {
     navigate({ pathname: '/', search: '?id=new' });
+  };
+
+  // Start a new conversation but keep/use the floating chat (don't navigate away)
+  const startNewFloatingConversation = () => {
+    try {
+      // set query to new to make App effect clear selection
+      setSearchParams({ id: 'new' });
+    } catch {}
+    setSelectedConv(null);
+    setMessages([]);
+    setShowFloatingChat(true);
+    setChatMinimized(false);
   };
 
   // Rename a conversation
@@ -196,6 +233,14 @@ const App: React.FC = () => {
     }
   };
 
+  // Ensure floating chat is shown when navigating to /library (fix for missing bubble after docking)
+  useEffect(() => {
+    if (location.pathname.startsWith('/library')) {
+      setShowFloatingChat(true);
+      // If it was previously minimized we keep that state; ensure bubble is visible via showFloatingChat
+    }
+  }, [location.pathname]);
+
   return (
       <div className="app-container">
         <Sidebar
@@ -210,13 +255,56 @@ const App: React.FC = () => {
           collapsed={collapsed}
           onToggle={toggleCollapsed}
           onAccount={() => navigate('/account')}
+          onLibrary={() => navigate({ pathname: '/library', search: selectedConv ? `?id=${selectedConv.id}` : location.search })}
         />
 
   {/* Right-side content area router: show ProfilePage when on /account, otherwise chat */}
   {location.pathname.startsWith('/account') ? (
+          // Account: hide chat completely
           <ProfilePage />
+        ) : location.pathname.startsWith('/library') ? (
+          // Library: show page and a minimized floating chat
+          <>
+            <LibraryPage />
+            {/* Separate bubble appears only when chat is minimized (and floating visible) */}
+      {showFloatingChat && chatMinimized && (
+              <FloatingChatBubble
+                pos={bubblePos}
+                setPos={setBubblePos}
+                onRestore={() => setChatMinimized(false)}
+              />
+            )}
+            {showFloatingChat && !chatMinimized && (
+              <ChatPane
+                floatingDefault={true}
+                enableFloatingToggle={true}
+                hideHeaderWhenDocked={false}
+                title={selectedConv ? `Chat • ${selectedConv.title ?? selectedConv.id}` : 'Chat'}
+                initialSize={{ w: 420, h: 340 }}
+        initialPos={{ x: Math.max(16, window.innerWidth - 460), y: 80 }}
+                minimized={false}
+                onRequestMinimize={() => setChatMinimized(true)}
+                onRequestRestore={() => setChatMinimized(false)}
+                onRequestDock={() => {
+                  const id = selectedConv?.id ?? (searchParams.get('id') ?? 'new');
+                  setShowFloatingChat(false);
+                  setChatMinimized(false);
+                  navigate({ pathname: '/', search: `?id=${id}` });
+                }}
+                onRequestClear={() => startNewFloatingConversation()}
+              >
+                <ChatArea
+                  key={selectedConv?.id ?? 'new'}
+                  messages={messages}
+                  loading={loading}
+                  handleSend={handleSend}
+                />
+              </ChatPane>
+            )}
+          </>
         ) : (
-          <ChatPane enableFloatingToggle={false}>
+          // Default chat view: docked fullscreen chat, no floating toggle
+          <ChatPane enableFloatingToggle={false} onRequestClear={() => startNewFloatingConversation()}>
             <ChatArea
               key={selectedConv?.id ?? 'new'}
               messages={messages}
@@ -229,3 +317,10 @@ const App: React.FC = () => {
   );
 };
 export default App;
+
+// Ensure floating chat is shown when navigating to /library (fix for missing bubble after docking)
+// This runs outside the component body so it picks up location changes via history; keep minimal.
+// NOTE: we intentionally call this here as a micro fix; could be integrated into the component if you prefer.
+try {
+  // noop - keep file-level safe for module hot reload
+} catch {}

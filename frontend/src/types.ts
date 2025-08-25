@@ -72,3 +72,18 @@ export function getDisplayText(message: Message): string {
   // Always prefer the full text over summary for display
   return message.text || message.summary || "";
 }
+
+// Works / Library
+export interface Work {
+  id: number;
+  title: string;
+  author?: string;
+  year?: string;
+  short_summary?: string;
+  full_summary?: string;
+  image_url?: string;
+  genres: string[];
+  themes: string[];
+  rag_id?: string;
+  created_at: string;
+}

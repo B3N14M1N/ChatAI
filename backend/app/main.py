@@ -3,6 +3,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List, Optional
+import hashlib
 
 from fastapi import FastAPI, HTTPException, Response, Form, File, UploadFile, Depends
 from pydantic import BaseModel
@@ -12,6 +13,7 @@ from app.db.initializer import DatabaseInitializer
 from app.db.crud import Crud
 from app.db.repository import Repository
 from app.models.schemas import ConversationCreate
+from app.models.schemas import WorkCreate, Work
 from app.services.context import ContextService
 from app.services.cache import TTLCache
 from app.services.pricing import PricingService
@@ -76,6 +78,38 @@ async def lifespan(app: FastAPI):
     app.state.pipeline = pipeline
     app.state.books_path = books_path
     app.state.pricing_path = pricing_path
+
+    # After services are ready, ensure dataset books exist in SQL (idempotent)
+    try:
+        data = []
+        if books_path.exists():
+            import json
+            data = json.loads(books_path.read_text(encoding="utf-8"))
+        for item in data:
+            title = item.get("title")
+            author = item.get("author")
+            year = str(item.get("year") or "") or None
+            genres = item.get("genres", [])
+            themes = item.get("themes", [])
+            short_summary = item.get("short_summary")
+            full_summary = item.get("full_summary")
+            # Deterministic rag id based on title+author
+            base = f"{title}|{author or ''}"
+            rid = hashlib.sha1(base.encode("utf-8")).hexdigest()
+            await repo.ensure_work_exists(
+                title=title,
+                author=author,
+                year=year,
+                short_summary=short_summary,
+                full_summary=full_summary,
+                image_url=item.get("image_url"),
+                genres=genres,
+                themes=themes,
+                rag_id=rid,
+            )
+    except Exception as e:
+        # Do not fail startup on sync issues
+        print(f"Dataset sync error: {e}")
 
     yield
 
@@ -353,3 +387,82 @@ async def download_attachment(attachment_id: int):
         media_type=meta.content_type or "application/octet-stream",
         headers={"Content-Disposition": f'attachment; filename="{meta.filename}"'},
     )
+
+# ---------------- Works (Library) ----------------
+@app.get("/works", response_model=list[Work])
+async def list_works(q: str | None = None, author: str | None = None, year: str | None = None, genres: str | None = None, themes: str | None = None, current_user=Depends(get_current_user)):
+    g_list = [g.strip() for g in (genres.split(",") if genres else []) if g.strip()]
+    t_list = [t.strip() for t in (themes.split(",") if themes else []) if t.strip()]
+    rows = await app.state.repo.list_works(q=q, author=author, year=year, genres=g_list or None, themes=t_list or None)
+    return [Work(**w.model_dump()) for w in rows]
+
+
+@app.post("/works", response_model=Work)
+async def create_work(payload: WorkCreate, current_user=Depends(get_current_user)):
+    # Insert into RAG first to get rag_id
+    # Build rich doc text similar to rag ingestion
+    text = f"""Title: {payload.title}
+Author: {payload.author or ''}
+Year: {payload.year or ''}
+Genres: {', '.join(payload.genres)}
+Themes: {', '.join(payload.themes)}
+Summary: {payload.short_summary or ''}
+{payload.full_summary or ''}"""
+    # Upsert into Chroma
+    rag = app.state.rag
+    # Deterministic rag id by title+author
+    base = f"{payload.title}|{payload.author or ''}"
+    rid = hashlib.sha1(base.encode("utf-8")).hexdigest()
+    rag.collection.add(ids=[rid], documents=[text], metadatas=[{
+        "title": payload.title,
+        "author": payload.author or "",
+        "year": str(payload.year or ""),
+        "genres": payload.genres,
+        "themes": payload.themes,
+        "short_summary": payload.short_summary or "",
+        "full_summary": payload.full_summary or "",
+    }])
+    # Save in SQL and link tags
+    work = await app.state.repo.create_work(payload, genres=payload.genres, themes=payload.themes, rag_id=rid)
+    return work
+
+
+@app.get("/works/{work_id}", response_model=Work)
+async def get_work(work_id: int, current_user=Depends(get_current_user)):
+    work = await app.state.repo.get_work(work_id)
+    if not work:
+        raise HTTPException(404, "Work not found")
+    return work
+
+
+@app.put("/works/{work_id}", response_model=Work)
+async def update_work(work_id: int, payload: WorkCreate, current_user=Depends(get_current_user)):
+    # Update RAG doc as well: delete + add with same deterministic id
+    base = f"{payload.title}|{payload.author or ''}"
+    rid = hashlib.sha1(base.encode("utf-8")).hexdigest()
+    text = f"""Title: {payload.title}
+Author: {payload.author or ''}
+Year: {payload.year or ''}
+Genres: {', '.join(payload.genres)}
+Themes: {', '.join(payload.themes)}
+Summary: {payload.short_summary or ''}
+{payload.full_summary or ''}"""
+    rag = app.state.rag
+    try:
+        # remove old by id if exists
+        rag.collection.delete(ids=[rid])
+    except Exception:
+        pass
+    rag.collection.add(ids=[rid], documents=[text], metadatas=[{
+        "title": payload.title,
+        "author": payload.author or "",
+        "year": str(payload.year or ""),
+        "genres": payload.genres,
+        "themes": payload.themes,
+        "short_summary": payload.short_summary or "",
+        "full_summary": payload.full_summary or "",
+    }])
+    updated = await app.state.repo.update_work(work_id, payload, genres=payload.genres, themes=payload.themes, rag_id=rid)
+    if not updated:
+        raise HTTPException(404, "Work not found")
+    return updated

@@ -134,3 +134,22 @@ class IntentEnvelope(BaseModel):
 
 class TitleEnvelope(BaseModel):
     title: str
+
+# Works / Books
+class WorkBase(BaseModel):
+    title: str
+    author: str | None = None
+    year: str | None = None
+    short_summary: str | None = None
+    full_summary: str | None = None
+    image_url: str | None = None
+    genres: list[str] = []
+    themes: list[str] = []
+
+class WorkCreate(WorkBase):
+    pass
+
+class Work(WorkBase):
+    id: int
+    rag_id: str | None = None
+    created_at: str

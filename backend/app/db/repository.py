@@ -13,6 +13,8 @@ from ..models.schemas import (
     UsageDetail,
     UsageDetailCreate,
     MessageWithUsageDetails,
+    Work,
+    WorkCreate,
 )
 
 
@@ -196,3 +198,82 @@ class Repository:
         """Get all usage details for all messages in a conversation"""
         rows = await self.crud.get_usage_details_for_conversation(conversation_id)
         return [UsageDetail(**r) for r in rows]
+
+    # Works / Tags
+    async def create_work(self, data: WorkCreate, *, genres: list[str], themes: list[str], rag_id: str | None = None) -> Work:
+        work_id = await self.crud.create_work({
+            "title": data.title,
+            "author": data.author,
+            "year": data.year,
+            "short_summary": data.short_summary,
+            "full_summary": data.full_summary,
+            "image_url": data.image_url,
+            "rag_id": rag_id,
+        })
+        # Upsert tags, then link
+        tag_ids: list[int] = []
+        for name in genres:
+            tid = await self.crud.upsert_tag(name, "genre")
+            tag_ids.append(tid)
+        for name in themes:
+            tid = await self.crud.upsert_tag(name, "theme")
+            tag_ids.append(tid)
+        await self.crud.set_work_tags(work_id, tag_ids)
+        # Re-fetch via list to include tags
+        rows = await self.crud.list_works()
+        row = next(w for w in rows if w["id"] == work_id)
+        return Work(**row)
+
+    async def list_works(self, *, q: str | None = None, author: str | None = None, year: str | None = None, genres: list[str] | None = None, themes: list[str] | None = None) -> list[Work]:
+        rows = await self.crud.list_works(q=q, author=author, year=year, genres=genres, themes=themes)
+        return [Work(**r) for r in rows]
+
+    async def get_work(self, work_id: int) -> Optional[Work]:
+        row = await self.crud.get_work_basic_by_id(work_id)
+        if not row:
+            return None
+        # fetch tags via list_works to include genres/themes
+        rows = await self.crud.list_works()
+        match = next((r for r in rows if r["id"] == work_id), None)
+        return Work(**match) if match else Work(**row)
+
+    async def update_work(self, work_id: int, data: WorkCreate, *, genres: list[str], themes: list[str], rag_id: str | None = None) -> Optional[Work]:
+        await self.crud.update_work(work_id, {
+            "title": data.title,
+            "author": data.author,
+            "year": data.year,
+            "short_summary": data.short_summary,
+            "full_summary": data.full_summary,
+            "image_url": data.image_url,
+            "rag_id": rag_id,
+        })
+        tag_ids: list[int] = []
+        for name in genres:
+            tid = await self.crud.upsert_tag(name, "genre")
+            tag_ids.append(tid)
+        for name in themes:
+            tid = await self.crud.upsert_tag(name, "theme")
+            tag_ids.append(tid)
+        await self.crud.set_work_tags(work_id, tag_ids)
+        # return updated
+        rows = await self.crud.list_works()
+        row = next((w for w in rows if w["id"] == work_id), None)
+        return Work(**row) if row else None
+
+    async def ensure_work_exists(self, *, title: str, author: Optional[str], year: Optional[str], short_summary: Optional[str], full_summary: Optional[str], image_url: Optional[str], genres: list[str], themes: list[str], rag_id: Optional[str]) -> Work:
+        # Try by title/author/year
+        existing = await self.crud.get_work_by_title_author_year(title, author, year)
+        if existing:
+            return Work(**existing)
+        # else create
+        wc = WorkCreate(
+            title=title,
+            author=author,
+            year=year,
+            short_summary=short_summary,
+            full_summary=full_summary,
+            image_url=image_url,
+            genres=genres,
+            themes=themes,
+        )
+        return await self.create_work(wc, genres=genres, themes=themes, rag_id=rag_id)

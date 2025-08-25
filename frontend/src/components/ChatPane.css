@@ -17,10 +17,13 @@
   position: fixed;
   z-index: 1000;
   box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-  resize: both;
-  min-width: 360px;
-  min-height: 320px;
+  /* custom handles manage resizing */
+  resize: none;
+  min-width: 400px;
+  min-height: 470px;
 }
+
+
 .chat-pane-header {
   display: flex;
   align-items: center;
@@ -36,6 +39,11 @@
   font-size: 0.9rem;
   opacity: 0.9;
 }
+.chat-pane-actions {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
 .chat-pane-action {
   background: transparent;
   border: none;
@@ -46,3 +54,45 @@
 }
 .chat-pane-action:hover { background: var(--color-surface-hover); }
 .chat-pane-body { flex: 1; display: flex; min-height: 0; }
+
+
+/* Docking preview halo when near top-center */
+.chat-pane.floating.docking-preview {
+  /* Thicker dashed outline for clearer docking affordance, especially in light theme */
+  outline: 4px dashed color-mix(in srgb, var(--color-primary) 70%, transparent);
+  outline-offset: 4px;
+  animation: dockPulse 0.6s ease-in-out infinite;
+}
+
+@keyframes dockPulse {
+  0% { outline-color: color-mix(in srgb, var(--color-primary) 30%, transparent); }
+  50% { outline-color: color-mix(in srgb, var(--color-primary) 70%, transparent); }
+  100% { outline-color: color-mix(in srgb, var(--color-primary) 30%, transparent); }
+}
+
+.chat-pane.floating.docking-animate {
+  animation: dockScale 0.18s ease-in forwards;
+}
+@keyframes dockScale {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(1.04); opacity: 0.9; }
+}
+
+/* Compact mode for narrow widths */
+.chat-pane.compact .chat-pane-header { padding: 6px 8px; }
+.chat-pane.compact .chat-pane-title { font-size: 0.85rem; }
+.chat-pane.compact .chat-pane-body { font-size: 0.95em; }
+
+/* Resize handles */
+.resize-handle { position: absolute; z-index: 5; }
+.resize-handle.n, .resize-handle.s { left: 0; right: 0; height: 6px; cursor: ns-resize; }
+.resize-handle.e, .resize-handle.w { top: 0; bottom: 0; width: 6px; cursor: ew-resize; }
+.resize-handle.n { top: -2px; }
+.resize-handle.s { bottom: -2px; }
+.resize-handle.e { right: -2px; }
+.resize-handle.w { left: -2px; }
+.resize-handle.ne, .resize-handle.nw, .resize-handle.se, .resize-handle.sw { width: 10px; height: 10px; position: absolute; }
+.resize-handle.ne { right: -3px; top: -3px; cursor: nesw-resize; }
+.resize-handle.nw { left: -3px; top: -3px; cursor: nwse-resize; }
+.resize-handle.se { right: -3px; bottom: -3px; cursor: nwse-resize; }
+.resize-handle.sw { left: -3px; bottom: -3px; cursor: nesw-resize; }
