@@ -98,6 +98,9 @@ const App: React.FC = () => {
   // an explicit navigate('/') with the id, handled in onSelect above.
   // Sync selection or new-chat when idParam changes
   useEffect(() => {
+    // Don't manage chat selection when on the Library page,
+    // to avoid clobbering query params like `select`.
+    if (location.pathname.startsWith('/library')) return;
     if (conversations.length === 0) return;
     // if no idParam, redirect to new conversation
     if (!searchParams.has('id')) {
@@ -118,7 +121,7 @@ const App: React.FC = () => {
       setSearchParams({ id: conv.id.toString() }, { replace: true });
     }
     selectConversation(conv);
-  }, [conversations, idParam, collapsed]);
+  }, [conversations, idParam, collapsed, location.pathname]);
 
   // Start a blank chat, will create on first message
   const createConversation = () => {
@@ -240,7 +243,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (location.pathname.startsWith('/library')) {
       setShowFloatingChat(true);
-      // If it was previously minimized we keep that state; ensure bubble is visible via showFloatingChat
+  // On Library, keep chat minimized so content stays in focus
+  setChatMinimized(true);
     }
   }, [location.pathname]);
 

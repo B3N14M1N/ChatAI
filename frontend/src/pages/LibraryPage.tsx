@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import FilterOverlay from '../components/FilterOverlay';
 import './LibraryPage.css';
 import BookImage from '../components/BookImage';
@@ -95,6 +96,7 @@ export const BookCard: FC<BookCardProps> = ({
 );
 
 const LibraryPage: FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [works, setWorks] = useState<Work[]>([]);
   const [filtered, setFiltered] = useState<Work[]>([]);
   const [imgLoading, setImgLoading] = useState<Record<number, boolean>>({});
@@ -178,6 +180,25 @@ const LibraryPage: FC = () => {
   }, [q, genreFilters, themeFilters, authorFilters, yearFilters, works]);
 
   // anchorRect is updated when opening via button
+
+  // If coming from chat with a `select` title, prefilter and open details
+  useEffect(() => {
+    const sel = searchParams.get('select');
+    if (!sel) return;
+    // Set search query to help highlight/filter
+    setQ(sel);
+    // Once works are loaded, open the first matching work
+    if (works.length > 0) {
+      const match = works.find(w => (w.title || '').toLowerCase().includes(sel.toLowerCase()));
+      if (match) {
+        setDetailsTarget(match);
+      }
+      // Remove the param to avoid reopening on state changes
+      const next = new URLSearchParams(searchParams);
+      next.delete('select');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, works]);
 
   return (
     <div className="library-page">
