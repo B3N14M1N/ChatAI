@@ -55,6 +55,73 @@
 .form-control { background: var(--input-bg); color: var(--input-text); border: 1px solid var(--color-border); border-radius: 8px; padding: 8px 10px; }
 .form-control.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
+/* Dark-theme / wizard specific fixes to avoid white focus backgrounds and unreadable text */
+.wizard-card .form-control,
+.wizard-card input,
+.wizard-card textarea,
+.wizard-card select {
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  color: var(--color-text-primary);
+  border: 1px solid var(--glass-border);
+  outline: none;
+  box-shadow: none;
+}
+
+.wizard-card .form-control::placeholder,
+.wizard-card input::placeholder,
+.wizard-card textarea::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 1;
+}
+
+.wizard-card .form-control:focus,
+.wizard-card input:focus,
+.wizard-card textarea:focus,
+.wizard-card select:focus {
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--glass-border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-text-primary);
+}
+
+/* Prevent webkit autofill from forcing white background */
+.wizard-card input:-webkit-autofill,
+.wizard-card textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-surface) 92%, transparent) inset !important;
+  box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-surface) 92%, transparent) inset !important;
+  -webkit-text-fill-color: var(--color-text-primary) !important;
+}
+
+/* Style file input button to match theme */
+.wizard-card input[type="file"] {
+  color: var(--color-text-primary);
+}
+.wizard-card input[type="file"]::file-selector-button {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--glass-border);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.wizard-card input[type="file"]::file-selector-button:hover {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+.wizard-card input[type="file"]::file-selector-button:focus,
+.wizard-card input[type="file"]::file-selector-button:active {
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+/* JSON paste area - monospace and matching background */
+.wizard-card .form-control.mono,
+.wizard-card textarea.mono,
+.wizard-card .form-control.mono.json,
+.wizard-card textarea.json {
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  color: var(--color-text-primary);
+}
+
 .file-preview { margin-top: 8px; border: 1px dashed var(--glass-border); border-radius: 8px; padding: 8px; }
 .file-preview-title { font-weight: 600; margin-bottom: 6px; }
 
