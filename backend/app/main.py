@@ -417,8 +417,9 @@ Summary: {payload.short_summary or ''}
         "title": payload.title,
         "author": payload.author or "",
         "year": str(payload.year or ""),
-        "genres": payload.genres,
-        "themes": payload.themes,
+        # Chroma metadata values must be scalars; store lists as comma-separated strings
+        "genres": ", ".join(payload.genres) if payload.genres else "",
+        "themes": ", ".join(payload.themes) if payload.themes else "",
         "short_summary": payload.short_summary or "",
         "full_summary": payload.full_summary or "",
     }])
@@ -457,8 +458,8 @@ Summary: {payload.short_summary or ''}
         "title": payload.title,
         "author": payload.author or "",
         "year": str(payload.year or ""),
-        "genres": payload.genres,
-        "themes": payload.themes,
+        "genres": ", ".join(payload.genres) if payload.genres else "",
+        "themes": ", ".join(payload.themes) if payload.themes else "",
         "short_summary": payload.short_summary or "",
         "full_summary": payload.full_summary or "",
     }])
@@ -466,3 +467,22 @@ Summary: {payload.short_summary or ''}
     if not updated:
         raise HTTPException(404, "Work not found")
     return updated
+
+
+@app.delete("/works/{work_id}")
+async def delete_work(work_id: int, current_user=Depends(get_current_user)):
+    # Try to load work to get rag_id for RAG deletion
+    work = await app.state.repo.get_work(work_id)
+    if not work:
+        raise HTTPException(404, "Work not found")
+    # Remove from RAG by rag_id if present
+    rid = work.rag_id
+    if rid:
+        try:
+            app.state.rag.collection.delete(ids=[rid])
+        except Exception:
+            pass
+    deleted = await app.state.repo.delete_work(work_id)
+    if not deleted:
+        raise HTTPException(404, "Work not found")
+    return {"detail": "Work deleted"}

@@ -529,3 +529,12 @@ class Crud:
             )
             await conn.commit()
             return True
+
+    async def delete_work(self, work_id: int) -> bool:
+        async with self.connector.get_connection() as conn:
+            await conn.execute(
+                "DELETE FROM works WHERE id=?",
+                (work_id,),
+            )
+            await conn.commit()
+            return True

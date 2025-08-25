@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './WorkWizardOverlay.css';
 import type { Work } from '../types';
+import { apiFetch } from '../lib/api';
+import { useNotifications } from './Notifications';
 
 type TabKey = 'wizard' | 'json';
 
@@ -67,6 +69,7 @@ const WorkWizardOverlay: React.FC<WorkWizardOverlayProps> = ({ open, initialWork
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const isEdit = !!initialWork;
+  const { notify } = useNotifications();
 
   useEffect(() => {
     setDraft(toDraftFromWork(initialWork));
@@ -111,7 +114,13 @@ const WorkWizardOverlay: React.FC<WorkWizardOverlayProps> = ({ open, initialWork
       alert('Title is required');
       return;
     }
-    await onSubmit(payloadForSubmit);
+    try {
+      await onSubmit(payloadForSubmit);
+      notify({ kind: 'success', title: isEdit ? 'Updated' : 'Created', message: isEdit ? 'Work updated successfully' : 'Work created successfully' });
+    } catch (e: any) {
+      notify({ kind: 'error', title: 'Failed', message: e?.message || 'Operation failed' });
+      throw e;
+    }
   };
 
   const submitFromJson = async () => {
@@ -122,9 +131,27 @@ const WorkWizardOverlay: React.FC<WorkWizardOverlayProps> = ({ open, initialWork
       obj.genres = Array.isArray(obj.genres) ? obj.genres : arrayFromCSV(String(obj.genres || ''));
       obj.themes = Array.isArray(obj.themes) ? obj.themes : arrayFromCSV(String(obj.themes || ''));
       await onSubmit(obj);
+      notify({ kind: 'success', title: isEdit ? 'Updated' : 'Created', message: isEdit ? 'Work updated successfully' : 'Work created successfully' });
       setJsonError(null);
     } catch (e: any) {
       setJsonError(e?.message || 'Invalid JSON');
+      notify({ kind: 'error', title: 'Invalid JSON', message: e?.message || 'Invalid JSON' });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!initialWork) return;
+    const ok = window.confirm(`Delete "${initialWork.title}"? This cannot be undone.`);
+    if (!ok) return;
+    try {
+      const res = await apiFetch(`/works/${initialWork.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(await res.text());
+      notify({ kind: 'success', title: 'Deleted', message: 'Work deleted successfully' });
+      onClose();
+      // Let parent remove from list by refetching or optimistic update; simplest: emit a window event
+      window.dispatchEvent(new CustomEvent('work:deleted', { detail: { id: initialWork.id } }));
+    } catch (e: any) {
+      notify({ kind: 'error', title: 'Delete failed', message: e?.message || 'Delete failed' });
     }
   };
 
@@ -201,6 +228,9 @@ const WorkWizardOverlay: React.FC<WorkWizardOverlayProps> = ({ open, initialWork
           </div>
         )}
         <div className="wizard-footer">
+          {isEdit && (
+            <button className="btn btn-outline-danger me-auto" onClick={handleDelete} title="Delete work">Delete</button>
+          )}
           <button className="btn btn-primary" onClick={active==='wizard' ? submitFromWizard : submitFromJson}>{isEdit ? 'Save changes' : 'Create work'}</button>
           <button className="btn btn-outline-secondary" onClick={onClose}>Cancel</button>
         </div>

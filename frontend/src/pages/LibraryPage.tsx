@@ -124,6 +124,19 @@ const LibraryPage: FC = () => {
     return () => { ignore = true; };
   }, []);
 
+  // Listen for deletion events from the wizard to update list
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const ce = e as CustomEvent<{ id: number }>;
+      const id = ce.detail?.id;
+      if (id != null) {
+        setWorks(prev => prev.filter(w => w.id !== id));
+      }
+    };
+    window.addEventListener('work:deleted', handler as EventListener);
+    return () => window.removeEventListener('work:deleted', handler as EventListener);
+  }, []);
+
   const onAddWork = () => {
     setEditTarget(null);
     setWizardOpen(true);
@@ -135,11 +148,13 @@ const LibraryPage: FC = () => {
       if (!res.ok) throw new Error(await res.text());
       const updated: Work = await res.json();
       setWorks(prev => prev.map(w => (w.id === updated.id ? updated : w)));
+  // success toast is handled inside the wizard overlay
     } else {
       const res = await apiFetch('/works', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error(await res.text());
       const created: Work = await res.json();
       setWorks(prev => [created, ...prev]);
+  // success toast is handled inside the wizard overlay
     }
     setWizardOpen(false);
   };

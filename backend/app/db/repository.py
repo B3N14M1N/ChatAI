@@ -260,6 +260,14 @@ class Repository:
         row = next((w for w in rows if w["id"] == work_id), None)
         return Work(**row) if row else None
 
+    async def delete_work(self, work_id: int) -> Optional[Work]:
+        # Work_tags has ON DELETE CASCADE; tags remain globally.
+        rows = await self.crud.list_works()
+        row = next((w for w in rows if w["id"] == work_id), None)
+        if row:
+            await self.crud.delete_work(work_id)
+        return Work(**row) if row else None
+
     async def ensure_work_exists(self, *, title: str, author: Optional[str], year: Optional[str], short_summary: Optional[str], full_summary: Optional[str], image_url: Optional[str], genres: list[str], themes: list[str], rag_id: Optional[str]) -> Work:
         # Try by title/author/year
         existing = await self.crud.get_work_by_title_author_year(title, author, year)
