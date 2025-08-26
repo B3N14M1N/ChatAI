@@ -327,7 +327,7 @@ export default App;
 
 // Ensure floating chat is shown when navigating to /library (fix for missing bubble after docking)
 // This runs outside the component body so it picks up location changes via history; keep minimal.
-// NOTE: we intentionally call this here as a micro fix; could be integrated into the component if you prefer.
+// NOTE: we intentionally call this here as a micro fix;
 try {
   // noop - keep file-level safe for module hot reload
 } catch {}
