@@ -28,7 +28,8 @@
   gap: 6px;
 }
 
-.book-image-empty-icon { font-size: 22px; }
+.book-image-empty-icon { width: 48px; height: 48px; display:flex; align-items:center; justify-content:center; }
+.book-image-empty-icon svg { width: 36px; height: 36px; color: var(--color-text-secondary); }
 .book-image-empty-caption { font-size: 12px; }
 
 .book-image-actions {

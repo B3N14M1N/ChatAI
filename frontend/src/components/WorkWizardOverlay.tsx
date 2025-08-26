@@ -162,7 +162,6 @@ const WorkWizardOverlay: React.FC<WorkWizardOverlayProps> = ({ open, initialWork
       <div className="wizard-card">
         <div className="wizard-header">
           <div className="wizard-title">{isEdit ? 'Edit work' : 'Add a new work'}</div>
-          <button className="btn btn-sm btn-outline-secondary" onClick={onClose}>Close</button>
         </div>
         <div className="wizard-tabs">
           <button className={`tab-btn ${active==='wizard' ? 'active' : ''}`} onClick={() => setActive('wizard')}>Wizard</button>

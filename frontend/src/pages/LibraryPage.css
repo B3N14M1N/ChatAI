@@ -153,8 +153,29 @@
 .library-searchbar .form-control:focus { outline: none; box-shadow: none; }
 .filters-below { margin-top: 10px; display:flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-start; width: min(100%, 1200px); margin-left: auto; margin-right: auto; min-height: 36px; }
 
-/* Make the book card edit button an icon-only with circular highlight */
-.book-card .icon-btn { background: transparent; border: none; color: var(--color-text-secondary); border-radius: 999px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; transition: background 120ms ease, color 120ms ease, transform 120ms ease; }
+/* Make the book card edit button an icon-only with circular highlight
+   Hidden by default and revealed when the card is hovered or focused for accessibility */
+.book-card .icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  border-radius: 999px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms ease, color 120ms ease, transform 120ms ease, opacity 150ms ease;
+  opacity: 0;
+  transform: scale(0.92);
+  pointer-events: none;
+}
+.book-card:hover .icon-btn,
+.book-card:focus-within .icon-btn {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
 .book-card .icon-btn:hover { background: color-mix(in srgb, var(--color-text-primary) 10%, transparent); color: var(--color-text-primary); }
 .book-card .icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 50%, transparent); }
 

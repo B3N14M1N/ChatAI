@@ -82,7 +82,6 @@ export const BookCard: FC<BookCardProps> = ({
             onRegenerate={onRegenerate}
             onClear={onClear}
             loading={loading}
-            caption="Generate cover"
           />
         </div>
       </div>
