@@ -270,7 +270,8 @@ class Repository:
 
     # Work cover images
     async def set_work_cover(self, work_id: int, content: bytes, content_type: str = "image/png") -> Optional[Work]:
-        await self.crud.upsert_work_image(work_id, content, content_type)
+        # Create a new version and set as current (also syncs legacy table)
+        await self.crud.create_work_image_version(work_id, content, content_type, set_current=True)
         # Update image_url to point to our endpoint (cache-bust with timestamp)
         import time
         url = f"/works/{work_id}/image?ts={int(time.time())}"
@@ -281,14 +282,35 @@ class Repository:
         return Work(**row) if row else None
 
     async def clear_work_cover(self, work_id: int) -> Optional[Work]:
-        await self.crud.delete_work_image(work_id)
+        # Soft delete current version and clear legacy image
+        await self.crud.soft_delete_current_work_image(work_id)
         await self.crud.update_work(work_id, {"image_url": None})
         rows = await self.crud.list_works()
         row = next((w for w in rows if w["id"] == work_id), None)
         return Work(**row) if row else None
 
     async def get_work_cover_blob(self, work_id: int) -> Optional[tuple[bytes, str]]:
+        # Prefer versions table (current), fallback to legacy
+        blob = await self.crud.get_current_work_image_from_versions(work_id)
+        if blob:
+            return blob
         return await self.crud.get_work_image(work_id)
+
+    # Versions APIs
+    async def list_work_image_versions(self, work_id: int, include_deleted: bool = False) -> list[dict]:
+        return await self.crud.list_work_image_versions(work_id, include_deleted)
+
+    async def set_current_work_image_version(self, work_id: int, version_id: int) -> Optional[Work]:
+        ok = await self.crud.set_current_work_image_version(work_id, version_id)
+        if not ok:
+            return None
+        # Refresh image_url
+        import time
+        url = f"/works/{work_id}/image?ts={int(time.time())}"
+        await self.crud.update_work(work_id, {"image_url": url})
+        rows = await self.crud.list_works()
+        row = next((w for w in rows if w["id"] == work_id), None)
+        return Work(**row) if row else None
 
     async def ensure_work_exists(self, *, title: str, author: Optional[str], year: Optional[str], short_summary: Optional[str], full_summary: Optional[str], image_url: Optional[str], genres: list[str], themes: list[str], rag_id: Optional[str]) -> Work:
         # Try by title/author/year
