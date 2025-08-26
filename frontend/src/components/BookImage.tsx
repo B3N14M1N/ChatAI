@@ -121,12 +121,25 @@ const BookImage: FC<BookImageProps> = ({ workId, imageUrl, onGenerate, onRegener
             )}
             {!loadingHistory && versions.map(v => (
               <div key={v.id} className={"history-item" + (v.is_current ? ' current' : '') + (v.deleted ? ' deleted' : '')}>
+                {v.is_current && <span className="history-flag current">Current</span>}
                 <img src={resolveApiUrl(`/works/${workId}/images/${v.id}`)} alt="version" />
                 <div className="history-actions">
                   {onSelectVersion && !v.is_current && !loading && (
-                    <button type="button" className="btn btn-sm btn-outline-primary" onClick={() => onSelectVersion(v.id)}>Use</button>
-                  )}
-                  {v.is_current && <span className="badge bg-primary">Current</span>}
+                      <button type="button" className="btn btn-sm btn-outline-primary" onClick={async () => {
+                        try {
+                          setLoadingHistory(true);
+                          // parent handler performs API call; await it
+                          await onSelectVersion(v.id);
+                          // re-fetch versions to refresh 'current' flags
+                          const resp = await fetchJson<{ items: any[] }>(`/works/${workId}/images?include_deleted=true`);
+                          setVersions(resp.items || []);
+                        } catch (e) {
+                          console.error(e);
+                        } finally {
+                          setLoadingHistory(false);
+                        }
+                      }}>Use</button>
+                    )}
                   {v.deleted && <span className="badge bg-secondary">Deleted</span>}
                 </div>
               </div>

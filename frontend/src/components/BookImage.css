@@ -139,6 +139,18 @@
 .book-image-history .history-item.current {
   box-shadow: 0 0 0 2px var(--accent, #0d6efd) inset;
 }
+.book-image-history .history-flag.current {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: var(--accent, #0d6efd);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 2px 6px;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+}
 .book-image-history .history-item.deleted::after {
   content: '✕';
   position: absolute;
