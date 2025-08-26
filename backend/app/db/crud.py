@@ -566,3 +566,104 @@ class Crud:
             await conn.execute("DELETE FROM work_images WHERE work_id=?", (work_id,))
             await conn.commit()
             return True
+
+    # ---------- Work Image Versions (History + Soft Delete) ----------
+    async def create_work_image_version(self, work_id: int, content: bytes, content_type: str = "image/png", set_current: bool = True) -> int:
+        async with self.connector.get_connection() as conn:
+            if set_current:
+                # Clear current flag for existing versions
+                await conn.execute(
+                    "UPDATE work_image_versions SET is_current=0 WHERE work_id=?",
+                    (work_id,),
+                )
+            cur = await conn.execute(
+                "INSERT INTO work_image_versions (work_id, content, content_type, deleted, is_current) VALUES (?, ?, ?, 0, ?)",
+                (work_id, content, content_type, 1 if set_current else 0),
+            )
+            # Keep legacy table in sync for current image serving via /works/{id}/image
+            if set_current:
+                await conn.execute("DELETE FROM work_images WHERE work_id=?", (work_id,))
+                await conn.execute(
+                    "INSERT INTO work_images (work_id, content, content_type) VALUES (?, ?, ?)",
+                    (work_id, content, content_type),
+                )
+            await conn.commit()
+            return cur.lastrowid
+
+    async def list_work_image_versions(self, work_id: int, include_deleted: bool = False) -> list[dict]:
+        async with self.connector.get_connection() as conn:
+            where = "WHERE work_id=?"
+            params: list[object] = [work_id]
+            if not include_deleted:
+                where += " AND deleted=0"
+            cur = await conn.execute(
+                f"SELECT id, work_id, content_type, deleted, is_current, created_at FROM work_image_versions {where} ORDER BY created_at DESC, id DESC",
+                tuple(params),
+            )
+            rows = await cur.fetchall()
+            return [_row_to_dict(cur.description, r) for r in rows]
+
+    async def get_work_image_version_blob(self, work_id: int, version_id: int) -> Optional[tuple[bytes, str]]:
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                "SELECT content, content_type FROM work_image_versions WHERE work_id=? AND id=?",
+                (work_id, version_id),
+            )
+            row = await cur.fetchone()
+            if not row:
+                return None
+            return row[0], row[1]
+
+    async def set_current_work_image_version(self, work_id: int, version_id: int) -> bool:
+        async with self.connector.get_connection() as conn:
+            # Ensure version exists
+            cur = await conn.execute(
+                "SELECT id FROM work_image_versions WHERE work_id=? AND id=?",
+                (work_id, version_id),
+            )
+            if not await cur.fetchone():
+                return False
+            # Reset current, undelete target, set current
+            await conn.execute(
+                "UPDATE work_image_versions SET is_current=0 WHERE work_id=?",
+                (work_id,),
+            )
+            await conn.execute(
+                "UPDATE work_image_versions SET deleted=0, is_current=1 WHERE work_id=? AND id=?",
+                (work_id, version_id),
+            )
+            # Sync legacy table with selected version
+            await conn.execute("DELETE FROM work_images WHERE work_id=?", (work_id,))
+            await conn.execute(
+                "INSERT INTO work_images (work_id, content, content_type) SELECT ?, content, content_type FROM work_image_versions WHERE id=? AND work_id=?",
+                (work_id, version_id, work_id),
+            )
+            await conn.commit()
+            return True
+
+    async def soft_delete_current_work_image(self, work_id: int) -> bool:
+        async with self.connector.get_connection() as conn:
+            await conn.execute(
+                "UPDATE work_image_versions SET deleted=1, is_current=0 WHERE work_id=? AND is_current=1",
+                (work_id,),
+            )
+            await conn.execute("DELETE FROM work_images WHERE work_id=?", (work_id,))
+            await conn.commit()
+            return True
+
+    async def get_current_work_image_from_versions(self, work_id: int) -> Optional[tuple[bytes, str]]:
+        async with self.connector.get_connection() as conn:
+            cur = await conn.execute(
+                """
+                SELECT content, content_type
+                FROM work_image_versions
+                WHERE work_id=? AND deleted=0 AND is_current=1
+                ORDER BY created_at DESC, id DESC
+                LIMIT 1
+                """,
+                (work_id,),
+            )
+            row = await cur.fetchone()
+            if not row:
+                return None
+            return row[0], row[1]

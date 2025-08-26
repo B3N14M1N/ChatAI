@@ -102,12 +102,12 @@ const ConversationItem: FC<ConversationItemProps> = ({ conv, selected, onSelect,
       <div className="actions" ref={menuRef}>
         {editing ? (
           <>
-            <button className="icon-btn" onClick={e => { e.stopPropagation(); saveRename(); }}><FaCheck /></button>
-            <button className="icon-btn" onClick={e => { e.stopPropagation(); cancelRename(); }}><FaTimes /></button>
+            <button className="menu-icon-btn" onClick={e => { e.stopPropagation(); saveRename(); }}><FaCheck /></button>
+            <button className="menu-icon-btn" onClick={e => { e.stopPropagation(); cancelRename(); }}><FaTimes /></button>
           </>
         ) : (
           <>
-            <button ref={el => { menuBtnRef.current = el; }} className="icon-btn" onClick={e => {
+            <button ref={el => { menuBtnRef.current = el; }} className="menu-icon-btn" onClick={e => {
               e.stopPropagation(); setMenuOpen(open => {
                 const next = !open;
                 if (next) {

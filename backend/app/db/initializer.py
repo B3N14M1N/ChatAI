@@ -106,6 +106,34 @@ class DatabaseInitializer:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY(work_id) REFERENCES works(id) ON DELETE CASCADE
                 );
+
+                -- Image versions history (soft-delete + current selection)
+                CREATE TABLE IF NOT EXISTS work_image_versions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    work_id INTEGER NOT NULL,
+                    content BLOB NOT NULL,
+                    content_type TEXT NOT NULL DEFAULT 'image/png',
+                    deleted INTEGER NOT NULL DEFAULT 0,
+                    is_current INTEGER NOT NULL DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(work_id) REFERENCES works(id) ON DELETE CASCADE
+                );
+                """
+            )
+            await conn.commit()
+
+        # Best-effort migrate existing single cover rows into versions as current
+        async with connector.get_connection() as conn:
+            await conn.execute("PRAGMA foreign_keys = ON;")
+            # Insert a version for any work that has a legacy image and no versions yet
+            await conn.executescript(
+                """
+                INSERT INTO work_image_versions (work_id, content, content_type, deleted, is_current, created_at)
+                SELECT wi.work_id, wi.content, wi.content_type, 0, 1, wi.created_at
+                FROM work_images wi
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM work_image_versions viv WHERE viv.work_id = wi.work_id
+                );
                 """
             )
             await conn.commit()

@@ -26,7 +26,6 @@ const WorkDetailsOverlay: React.FC<WorkDetailsOverlayProps> = ({ open, work, onC
               </div>
             )}
           </div>
-          <button className="btn btn-sm btn-outline-secondary" onClick={onClose} aria-label="Close details">Close</button>
         </div>
         {(work.genres?.length || work.themes?.length) ? (
           <div className="details-tags">

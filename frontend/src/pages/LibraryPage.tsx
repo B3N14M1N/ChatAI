@@ -10,6 +10,7 @@ import WorkWizardOverlay, { type WorkDraft } from '../components/WorkWizardOverl
 import WorkDetailsOverlay from '../components/WorkDetailsOverlay.tsx';
 
 export interface BookCardProps {
+  workId: number;
   title: string;
   summary: string;
   imageUrl?: string | null;
@@ -19,11 +20,14 @@ export interface BookCardProps {
   onGenerate?: () => void;
   onRegenerate?: () => void;
   onClear?: () => void;
+  onUpload?: (file: File) => void;
+  onSelectVersion?: (versionId: number) => void;
   onViewMore?: () => void;
   onEdit?: () => void;
 }
 
 export const BookCard: FC<BookCardProps> = ({
+  workId,
   title,
   summary,
   imageUrl,
@@ -33,6 +37,8 @@ export const BookCard: FC<BookCardProps> = ({
   onGenerate,
   onRegenerate,
   onClear,
+  onUpload,
+  onSelectVersion,
   onViewMore,
   onEdit,
 }) => (
@@ -77,12 +83,14 @@ export const BookCard: FC<BookCardProps> = ({
         </div>
         <div className="book-image-wrap">
           <BookImage
+            workId={workId}
             imageUrl={imageUrl}
             onGenerate={onGenerate}
             onRegenerate={onRegenerate}
             onClear={onClear}
+            onUpload={onUpload}
+            onSelectVersion={onSelectVersion}
             loading={loading}
-            caption="Generate cover"
           />
         </div>
       </div>
@@ -256,6 +264,7 @@ const LibraryPage: FC = () => {
   {filtered.map(w => (
           <BookCard
             key={w.id}
+            workId={w.id}
             title={w.title}
             summary={w.short_summary || ''}
             imageUrl={w.image_url || undefined}
@@ -274,8 +283,9 @@ const LibraryPage: FC = () => {
               } catch (e) { console.error(e); }
               finally { setImgLoading(prev => ({ ...prev, [w.id]: false })); }
             }}
-            onRegenerate={async () => {
+      onRegenerate={async () => {
               try {
+        if (!window.confirm('Regenerate cover? The new image will replace the current one, and the old will be kept in history.')) return;
                 setImgLoading(prev => ({ ...prev, [w.id]: true }));
                 const res = await apiFetch(`/works/${w.id}/image`, { method: 'POST' });
                 if (!res.ok) throw new Error(await res.text());
@@ -286,8 +296,32 @@ const LibraryPage: FC = () => {
             }}
             onClear={async () => {
               try {
+        if (!window.confirm('Clear current cover? You can restore it later from History.')) return;
                 setImgLoading(prev => ({ ...prev, [w.id]: true }));
                 const res = await apiFetch(`/works/${w.id}/image`, { method: 'DELETE' });
+                if (!res.ok) throw new Error(await res.text());
+                const updated: Work = await res.json();
+                setWorks(prev => prev.map(x => x.id === w.id ? updated : x));
+              } catch (e) { console.error(e); }
+              finally { setImgLoading(prev => ({ ...prev, [w.id]: false })); }
+            }}
+            onUpload={async (file) => {
+              try {
+                if (!window.confirm('Upload this image as the new cover?')) return;
+                setImgLoading(prev => ({ ...prev, [w.id]: true }));
+                const form = new FormData();
+                form.append('file', file);
+                const res = await apiFetch(`/works/${w.id}/images/upload`, { method: 'POST', body: form });
+                if (!res.ok) throw new Error(await res.text());
+                const updated: Work = await res.json();
+                setWorks(prev => prev.map(x => x.id === w.id ? updated : x));
+              } catch (e) { console.error(e); }
+              finally { setImgLoading(prev => ({ ...prev, [w.id]: false })); }
+            }}
+            onSelectVersion={async (versionId) => {
+              try {
+                setImgLoading(prev => ({ ...prev, [w.id]: true }));
+                const res = await apiFetch(`/works/${w.id}/images/${versionId}/set-current`, { method: 'POST' });
                 if (!res.ok) throw new Error(await res.text());
                 const updated: Work = await res.json();
                 setWorks(prev => prev.map(x => x.id === w.id ? updated : x));

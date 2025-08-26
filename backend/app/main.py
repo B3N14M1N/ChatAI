@@ -521,3 +521,56 @@ async def delete_work_image(work_id: int, current_user=Depends(get_current_user)
     if not updated:
         raise HTTPException(404, "Work not found")
     return updated
+
+
+# ---------- Work Image Versions (History) ----------
+@app.get("/works/{work_id}/images")
+async def list_work_images(work_id: int, include_deleted: bool = False, current_user=Depends(get_current_user)):
+    # Ensure work exists
+    work = await app.state.repo.get_work(work_id)
+    if not work:
+        raise HTTPException(404, "Work not found")
+    rows = await app.state.repo.list_work_image_versions(work_id, include_deleted)
+    # Expose lightweight metadata and URLs for streaming
+    def to_meta(r: dict):
+        return {
+            "id": r["id"],
+            "content_type": r["content_type"],
+            "deleted": bool(r["deleted"]),
+            "is_current": bool(r["is_current"]),
+            "created_at": r["created_at"],
+            "url": f"/works/{work_id}/images/{r['id']}"
+        }
+    return {"items": [to_meta(r) for r in rows]}
+
+
+@app.get("/works/{work_id}/images/{image_id}")
+async def get_work_image_version(work_id: int, image_id: int):
+    blob = await app.state.repo.crud.get_work_image_version_blob(work_id, image_id)
+    if not blob:
+        raise HTTPException(404, "Image not found")
+    content, content_type = blob
+    return StreamingResponse(iter([content]), media_type=content_type)
+
+
+@app.post("/works/{work_id}/images/{image_id}/set-current", response_model=Work)
+async def set_current_work_image(work_id: int, image_id: int, current_user=Depends(get_current_user)):
+    updated = await app.state.repo.set_current_work_image_version(work_id, image_id)
+    if not updated:
+        raise HTTPException(404, "Image not found")
+    return updated
+
+
+@app.post("/works/{work_id}/images/upload", response_model=Work)
+async def upload_work_image(work_id: int, file: UploadFile = File(...), current_user=Depends(get_current_user)):
+    # Basic content type allow-list
+    allowed = {"image/png", "image/jpeg", "image/webp"}
+    ctype = file.content_type or "application/octet-stream"
+    if ctype not in allowed:
+        raise HTTPException(400, "Unsupported image type")
+    content = await file.read()
+    # Store as a new version and set as current
+    updated = await app.state.repo.set_work_cover(work_id, content, content_type=ctype)
+    if not updated:
+        raise HTTPException(404, "Work not found")
+    return updated
